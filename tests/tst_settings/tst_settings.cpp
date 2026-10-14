@@ -4,6 +4,7 @@
 // with every widget changed, and what LightscreenWindow::screenshotAction reads from the same settings. These tests
 // describe current behaviour, quirks included; a change that moves any of them must update this file on purpose.
 #include <QtTest>
+#include <algorithm>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QGroupBox>
@@ -54,11 +55,13 @@ private:
     QScopedPointer<ScreenshotManager> mManager;
 };
 
-// Compares two key=value lists and fails with every difference listed, not just the first.
+// Compares two key=value lists and fails with every difference listed, not just the first. Uses std::equal, not
+// QStringList::operator==: with Qt 5.15.2 and current MSVC (CI's windows-latest), QList::operator== does not compile
+// (it calls stdext::make_checked_array_iterator, which the newer MSVC standard library removed).
 #define COMPARE_LINES(actual, expected)                                                                     \
     do {                                                                                                    \
         const QStringList a_ = (actual), e_ = (expected);                                                   \
-        if (a_ != e_) {                                                                                     \
+        if (a_.size() != e_.size() || !std::equal(a_.cbegin(), a_.cend(), e_.cbegin())) {                \
             QStringList diff_;                                                                              \
             for (const QString &line : e_) if (!a_.contains(line)) diff_ << "- " + line;                    \
             for (const QString &line : a_) if (!e_.contains(line)) diff_ << "+ " + line;                    \
@@ -366,8 +369,8 @@ void tst_Settings::dialogRoundTrip()
 }
 
 // Indexes the dialog's combo boxes cannot show (known-bugs.md, bug 19). The format combo box has PNG, JPG and BMP
-// only, so a WEBP setting
-// (3, which Screenshot::Format and the window accept) does not survive opening and saving the options.
+// only, so a WEBP setting (3, which Screenshot::Format and the window accept) does not survive opening and saving
+// the options.
 void tst_Settings::dialogOutOfRangeIndexes()
 {
     mSettings->setValue("file/format", 3);
