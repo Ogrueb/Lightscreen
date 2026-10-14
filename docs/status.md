@@ -2,6 +2,12 @@
 
 What is done, what changed from the plan, and what is open. Newest first.
 
+## 2026-10-14: Stage 5, bug 10 local part (PNG optimization)
+
+- `Screenshot::optimize` fixed as plan section 7 describes: `optimizationDone` exactly once (early return when `optipng` is missing, `errorOccurred` for a failed start, process `deleteLater`), pointer-to-member `finished`, and `optipng -out <file>.optipng.tmp` with a replace over the original only on exit code 0. On Linux the binary is now looked up on `PATH` (`QStandardPaths::findExecutable`); before, the check looked in the working directory, so `finished` fired twice whenever `optipng` was installed. Details: `docs/known-bugs.md`, bug 10.
+- New test `tests/tst_optimize` with a stub `optipng` (`tests/optipng_stub`, a small C++ program built into `tst_optimize/stub/`): success, a stale temporary file, a failing run leaving the original byte-identical, a run that writes nothing, and a missing binary. On master four of the five fail. Linux puts the stub on `PATH`; Windows copies it next to the test executable as `optipng.exe`, where the app looks.
+- Verified in the cloud container (Qt 5.15.13): all test suites pass under `xvfb-run -a make check`; the `-out` behaviour was checked by hand against real `optipng` 0.7.8, including an already optimized file (it still writes the output). Windows through CI.
+- Left for S05: the queue, concurrency bound, persistence and tray count.
 ## 2026-10-14: Stage 5, bug 13 (`updateHistory` inserted duplicates)
 
 - `ScreenshotManager::updateHistory` now looks up `WHERE fileName = ?` and checks `exec()` and `next()`, so uploading a screenshot that already has a history row fills in that row's URL instead of adding a second row. Details and the two small choices (newer URL wins; empty delete hash gives an empty delete URL) in `docs/decisions.md`. Rows duplicated by the bug in existing databases are left as they are; a later update writes to all rows of that file.
