@@ -39,9 +39,21 @@ Uploader *Uploader::instance()
     return mInstance;
 }
 
+// Test seam: replaces the singleton. The previous instance is not deleted.
+void Uploader::setInstance(Uploader *uploader)
+{
+    mInstance = uploader;
+}
+
 QNetworkAccessManager *Uploader::network()
 {
     return instance()->mNetworkAccessManager;
+}
+
+// Test seam: replaces the network access manager used by all uploads. Ownership stays with the caller.
+void Uploader::setNetwork(QNetworkAccessManager *network)
+{
+    mNetworkAccessManager = network;
 }
 
 int Uploader::progress() const

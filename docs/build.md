@@ -1,6 +1,6 @@
 # Building Lightscreen
 
-Status as of Stage 1 (2026-10-14): the Windows x64 release build compiles, links and launches on a current toolchain **with no source or build-file changes**. There are no tests yet (upstream never had any), so there is nothing to run beyond the build.
+Status as of Stage 1 (2026-10-14): the Windows x64 release build compiles, links and launches on a current toolchain **with no source or build-file changes**. Upstream had no tests; the test harness added in M02 is described under [Tests](#tests).
 
 ## Windows (verified)
 
@@ -66,9 +66,50 @@ Nothing needed fixing to build. Things noticed along the way, left unchanged on 
   - `tools/screenshot.cpp:404` (C4715): `Screenshot::extension()` has no return for formats outside its `switch` (WEBP was removed from the UI but is still in the enum). Undefined behavior if it is ever hit.
 - **`QT_DEPRECATED_WARNINGS`** is defined, but against Qt 5.15.2 the build emits no C4996 deprecation warnings. Qt 6 porting issues (`winextras`, `x11extras`, `QRegExp`, `QDesktopWidget`) will only show up when building against Qt 6.
 
+## Tests
+
+The tests live under `tests/`, one directory per test (`tests/tst_<name>/`), all listed in `tests/tests.pro` (`TEMPLATE = subdirs`). Each test's `.pro` includes `tests/common.pri`, which includes `src.pri`: the tests compile the application's own sources (everything but `main.cpp`) rather than linking a library. `lightscreen.pro` includes the same `src.pri`, so a file added to the app goes into `src.pri`, not `lightscreen.pro`.
+
+So far there is one placeholder test, `tst_smoke`, which checks that the harness builds and that the seams below can be installed. The safety-net tests (Stage 4) go next to it.
+
+### Running the tests
+
+Linux, from the checkout (`build-tests/` is git-ignored):
+
+```sh
+mkdir build-tests && cd build-tests
+qmake ../tests/tests.pro
+make -j"$(nproc)"
+xvfb-run -a make check
+```
+
+Windows, from a `cmd` prompt set up as in the Windows build section:
+
+```bat
+mkdir build-tests && cd build-tests
+qmake ..\tests\tests.pro CONFIG+=release
+nmake
+set QT_QPA_PLATFORM=offscreen
+nmake check
+```
+
+`make check` builds nothing new; it runs each test and fails on the first failing one. A single test can be run directly, e.g. `./tst_smoke/tst_smoke` (Linux) or `tst_smoke\release\tst_smoke.exe` (Windows), with the usual QtTest options (`-v2`, a test function name).
+
+Tests can run with `QT_QPA_PLATFORM=offscreen` except those that construct `LightscreenWindow`: it creates `UGlobalHotkeys`, which needs a real X display on Linux (see `docs/status.md`), so those need `xvfb-run`.
+
+### Writing a test
+
+Each test starts with `QStandardPaths::setTestModeEnabled(true)` and `QSettings::setDefaultFormat(QSettings::IniFormat)` so it never touches the developer's settings or data, works in a `QTemporaryDir`, and installs its own singletons through the seams:
+
+- `ScreenshotManager(QSettings *settings, const QString &historyPath, QObject *parent)` builds a manager on the given settings (not owned) and history directory (with a trailing separator), then `ScreenshotManager::setInstance(&manager)` makes it the one `ScreenshotManager::instance()` returns.
+- `Uploader::setInstance(&uploader)` does the same for the uploader, and `uploader.setNetwork(&nam)` makes every upload and network call use `nam` (not owned), typically a `QNetworkAccessManager` subclass whose `createRequest` returns a canned reply.
+- `Screenshot::extensionFor(Format)` and `Screenshot::uniqueName(nameWithoutExtension, extension)` expose the extension lookup and the " (n)" collision naming used by `Screenshot::save()`.
+
+`setInstance` does not delete the previous instance; reset it to `nullptr` at the end of the test so a destroyed object is not left installed.
+
 ## Known flaky tests
 
-None: there are no tests yet.
+None so far.
 
 ## Third-party libraries
 

@@ -2,6 +2,13 @@
 
 What is done, what changed from the plan, and what is open. Newest first.
 
+## 2026-10-14: M02 test harness and seams
+
+- `lightscreen.pro` is split: the sources, Qt modules, compile flags, platform libraries and the two vendored `.pri` files are in `src.pri`; `lightscreen.pro` keeps the target, `main.cpp`, the icon, the manifest and the linker subsystem flags. `tests/tests.pro` (subdirs) and `tests/common.pri` build tests against the same `src.pri`. One placeholder test, `tests/tst_smoke`. How to build and run: `docs/build.md`, "Tests".
+- Seams, as the plan specifies: `ScreenshotManager(QSettings *, historyPath, parent)` + `setInstance`; `Uploader::setInstance` + `setNetwork`; `Screenshot::extensionFor` + `uniqueName` (the collision loop from `save()` moved verbatim, quirks kept). Existing call sites are unchanged; no behaviour change intended.
+- Verified in the cloud container (Ubuntu 24.04, Qt 5.15.13 from apt), on a fresh clone of the branch: the app builds with the same warnings as `master`, and it starts and stops with `--quit` under Xvfb (the M01 smoke script); the tests build and `tst_smoke` passes under `xvfb-run -a make check` and with `QT_QPA_PLATFORM=offscreen`.
+- **Not verified:** the Windows build and the Windows test run (no Windows machine from the cloud). Running the tests in CI (plan step M02.3) is not wired yet: M01's workflow was not on `master` when this PR was opened. Until it is, Stage 4 should not start.
+
 ## 2026-10-14: Stage 3 plan written
 
 - `docs/modernization-plan.md`: 16 mechanical steps (M01-M16) and 7 structural steps (S01-S07, two optional), each one PR with dependencies, files, a done-check and a merge owner; an overall merge order; Stage 4 test priorities with the seams they need; Stage 5 bug triage. Decisions and rejected alternatives are in `docs/decisions.md` (Stage 3 entry).
