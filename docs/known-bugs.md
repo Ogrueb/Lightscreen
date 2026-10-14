@@ -2,7 +2,7 @@
 
 Technical description of each known bug, for Stage 5 (one session per bug marked "fix now"). Line references are to `master` after PR #3. Each entry says where the bug is, how it shows, how to reproduce it, and which platform can reproduce it, since cloud threads can only run Linux.
 
-Draft status: first draft, 2026-10-14. Bugs 1-3 are confirmed from the code; 4-8 are inferred from the code and still need a reproduction. Upstream's GitHub issue tracker is disabled, so there is no issue list to mine; the unmerged upstream PRs (see `docs/upstream-prs.md` once it lands) and the owner's own reports are the other sources, still to be added.
+Draft status: first draft, 2026-10-14. Bugs 1-3 are confirmed from the code; 4-8 are inferred from the code and still need a reproduction; 9-10 were reported by the owner on 2026-10-14. Upstream's GitHub issue tracker is disabled, so there is no issue list to mine; the unmerged upstream PRs (see `docs/upstream-prs.md` once it lands) and the owner's own reports are the other sources, still to be added.
 
 ## Confirmed from the code
 
@@ -58,6 +58,22 @@ Draft status: first draft, 2026-10-14. Bugs 1-3 are confirmed from the code; 4-8
 - **Where:** `lightscreenwindow.cpp:1000-1010`, under `#ifdef Q_WS_MAC`.
 - **What happens:** `Q_WS_MAC` is a Qt 4 macro, so the block never compiles; if it did, `e->key()` refers to a variable that does not exist. Not a runtime bug; remove with the Qt 6 port.
 - **Platform:** n/a.
+
+## Reported by the owner
+
+### 9. Browser windows captured brighter than they appear (HDR display)
+
+- **Where:** all capture modes (desktop, area, window); the capture itself is `QScreen::grabWindow` on the desktop (`tools/screenshot.cpp:436`) or `BitBlt` from the window DC (`tools/os.cpp:171-243`).
+- **What happens:** on the owner's setup (monitor in HDR mode, with an AMD driver setting that lowers the SDR baseline brightness), a browser window in the capture is sometimes markedly brighter than on screen. Only browsers are affected, it persists for a few minutes once it starts, and it starts unpredictably. Other windows in the same capture look right.
+- **Likely cause (inferred):** browsers composite through a hardware-accelerated swap chain that can run in a different colour space than the desktop (scRGB / 10-bit) while HDR is on. `grabWindow` and `BitBlt` read the SDR-tonemapped desktop surface, and the driver's brightness offset is applied on the display path, not in that surface, so the browser's content is read back before the offset. A capture through the Windows.Graphics.Capture API, or the DXGI desktop duplication API with HDR tonemapping, would see what the display shows.
+- **Platform:** Windows, HDR monitor; needs the owner's machine. **Test:** none automated. Mark as "fix if a cheap capture-path change does it, otherwise document".
+
+### 10. PNG optimization: no queue, no bound, no crash safety
+
+- **Where:** `tools/screenshot.cpp:168-200`, `Screenshot::optimize()`, called from `:276-281` after every PNG save when "optimize" is on.
+- **What happens:** every screenshot starts its own `optipng` process at once; there is no queue and no concurrency limit, so a burst of captures spikes CPU, and under load a long tail of files stays unoptimized. `optipng` rewrites the file in place, so if the machine shuts down mid-run the screenshot is left half-written next to its backup copy. Two smaller defects in the same function: when the `optipng` binary is missing it emits `optimizationDone()` and then still calls `process->start()`, so `optimizationDone` can fire twice (and on Windows it starts a process that does not exist); the `finished` signal is connected with a string-based `SIGNAL()` whose argument list must match exactly.
+- **Fix direction:** one worker queue (`QThreadPool` with one or two slots, or a serial `QProcess` chain) owned by `ScreenshotManager`; have `optipng` write to a temp file and rename over the original only on success (`-out` plus `QFile::rename`), so an interrupted run leaves the original intact; persist the pending list so a restart resumes it; show a count in the tray tooltip.
+- **Platform:** any (Linux CI can run `optipng`). **Test:** headless, with a stub executable in place of `optipng`.
 
 ## Still to add
 
