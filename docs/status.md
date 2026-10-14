@@ -2,6 +2,10 @@
 
 What is done, what changed from the plan, and what is open. Newest first.
 
+## 2026-10-14: Upstream PRs recorded
+
+- The upstream issue tracker (`ckaiser/Lightscreen`) is disabled, so there are no upstream issues to draw on. The 10 upstream PRs are summarized in `docs/upstream-prs.md`. The Linux `Success` clash (#40) and the active-monitor capture bug (#38) are already fixed in the code. Multi-monitor and HiDPI capture (#38, #35) are worth re-testing.
+
 ## 2026-10-14: Submodules vendored
 
 - SingleApplication and UGlobalHotkey are now plain files in the repo instead of submodules (see `docs/decisions.md`). A plain `git clone` is enough to build; the `git submodule update --init` step is gone from `docs/build.md`.
