@@ -6,3 +6,4 @@ SUBDIRS += tst_screenshot
 SUBDIRS += tst_settings
 SUBDIRS += tst_uploader
 SUBDIRS += tst_areadialog
+SUBDIRS += tst_os
