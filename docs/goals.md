@@ -1,8 +1,8 @@
 # Goals
 
-What this fork is for, what "resilient" means here, what it commits to, and what is out of scope. Stage 3 (the modernization plan) treats this file as its brief. Items marked **[open]** still need the owner's answer; the rest is decided.
+What this fork is for, what "resilient" means here, what it commits to, and what is out of scope. Stage 3 (the modernization plan) treats this file as its brief. Everything here is decided by the owner unless marked **[open]**.
 
-Draft status: first draft, 2026-10-14. Not yet agreed.
+Draft status: second draft, 2026-10-14, after the owner's answers on Qt, Windows, Linux and the update check. Not yet merged.
 
 ## Purpose
 
@@ -21,13 +21,9 @@ Not part of "resilient": new features, a new UI, a plugin system, a rewrite in a
 
 ## Platform and toolchain commitments
 
-- **Qt version: [open]** Qt 6 (recommended) or stay on Qt 5.15.
-  - Qt 6: Qt 5.15 open-source releases ended; a fork built on it inherits a dead toolchain. Cost: `winextras` and `x11extras` are gone, so the taskbar button, jump list, DWM blur and the X11 window-picker code need replacements or removal, and about 20 smaller API changes across most files (`docs/inventory.md` section 4).
-  - Qt 5.15: zero porting cost now, but every later step is work on a platform that will not get fixes.
-- **Minimum Windows version: [open]** Windows 10 (recommended), or Windows 7.
-  - Qt 6 supports Windows 10 and later only, so choosing Qt 6 decides this. Either answer drops XP, Vista and 8: the XP linker flags and the `WV_XP` / `WV_2003` runtime checks are removed.
-- **Linux: [open]** keep X11 as a built-and-tested target (recommended, since it is the only target cloud threads and CI can run end to end), keep it as build-only (compiles in CI, no promise it works), or drop it.
-  - Wayland is out of scope either way: global hotkeys and window picking have no portable Wayland path.
+- **Qt 6** (decided 2026-10-14). Qt 5.15 has no further open-source releases, so a fork on it would rot on a fixed date; Qt 6 is where fixes, binaries and tooling are. The port is one plan step: the `winextras` and `x11extras` modules are gone, so the taskbar progress button, the jump list and the DWM blur are reimplemented with Win32 calls or dropped (the plan decides per feature), the X11 window-picker code moves to xcb, and about 20 smaller API replacements land across most files (`docs/inventory.md` section 4). Target the current Qt 6 LTS at the time of the port.
+- **Windows 10 or later** (decided). Qt 6 supports nothing older. The XP linker flags and the `WV_XP` / `WV_2003` runtime checks are removed; Windows 7, 8 and 8.1 are not tested and not promised.
+- **Linux, X11, kept as a tested target** (decided). It is the only target cloud threads and CI can build and run end to end, so it is where the safety-net tests and most bug fixes are exercised. The owner does not test Linux by hand; "tested" means CI and cloud threads. Wayland is out of scope: global hotkeys and window picking have no portable Wayland path.
 - **macOS:** not a target. The code has no macOS build branch and never did.
 - **Architecture:** 64-bit only. The 32-bit Windows build is dropped.
 - **Build system:** qmake stays until a plan step replaces it; CMake is the expected end state because Qt 6 and CI tooling are built around it. The switch is one plan step, not a prerequisite.
@@ -39,7 +35,7 @@ Not part of "resilient": new features, a new UI, a plugin system, a rewrite in a
 - **Portable mode stays.** `config.ini` next to the executable keeps working as it does now.
 - **Hotkeys, naming patterns, file formats and the capture modes** (desktop, current monitor, area, window, window picker) keep their current behavior unless a known bug says otherwise.
 - **Uploads:** Imgur is removed (decided). The pomf uploader becomes a user-configurable uploader: upload URL, form field, optional headers, and the JSON path to the returned link. Existing pomf settings are migrated or re-entered; a pre-filled host list is not promised.
-- **Update check:** moves to GitHub Releases of the fork, or is removed entirely. [open: keep (recommended, it is cheap) or remove]
+- **Update check:** moves to the fork's GitHub Releases (decided, "for now"): the app asks `api.github.com/repos/<owner>/<fork>/releases/latest` and compares `tag_name` to its version. A failed request must say so, not report "up to date" (see `docs/known-bugs.md`, bug 6). Removing the check altogether stays an option if it proves a nuisance.
 
 ## Identity
 
@@ -56,7 +52,7 @@ Decided and not to be reopened in this fork:
 - Any call to `lightscreen.com.ar`.
 - Imgur, or any uploader with credentials baked into the binary.
 - Code signing.
-- Windows XP, Vista, 7 (if Windows 10 is chosen above), 8 and 8.1; 32-bit builds.
+- Windows XP, Vista, 7, 8 and 8.1; 32-bit builds.
 - macOS and Wayland.
 - New capture features (video, scrolling capture, annotation, OCR) and any UI redesign.
 - Translations beyond what exists (none are shipped; `windeployqt --no-translations` stays).
@@ -65,8 +61,6 @@ Decided and not to be reopened in this fork:
 
 | # | Question | Options | Recommendation |
 |---|---|---|---|
-| 1 | Qt version | Qt 6 / Qt 5.15 | Qt 6 |
-| 2 | Minimum Windows | 10 / 7 | 10 (forced by Qt 6) |
-| 3 | Linux | tested target / build-only / dropped | tested target |
-| 4 | Update check | GitHub Releases / removed | GitHub Releases |
-| 5 | Fork name | — | needed before the rename step, not before Stage 3 |
+| 1 | Fork name | — | needed before the rename step, not before Stage 3 |
+
+Settled 2026-10-14: Qt 6; Windows 10 minimum; Linux kept as a CI-tested target; update check via GitHub Releases.
