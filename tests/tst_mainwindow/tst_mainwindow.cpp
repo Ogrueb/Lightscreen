@@ -49,6 +49,7 @@ private slots:
     void screenshotFlags();
     void folderFlag();
     void uploadLastFlag();
+    void uploadErrorWithoutTray();
     void viewHistoryFlag();
     void optionsFlag();
     void unknownFlagsDoNothing_data();
@@ -291,13 +292,11 @@ void tst_MainWindow::folderFlag()
 
 // --uploadlast uploads the "lastScreenshot" setting (read by applySettings) with the configured service. With the
 // pomf service and no pomf URL the uploader fails before any network request, which shows the call was made.
-// The tray icon is on because LightscreenWindow::showUploaderError crashes without one (docs/known-bugs.md).
 void tst_MainWindow::uploadLastFlag()
 {
     const QString last = mDir->filePath("last.jpg");
     mSettings->setValue("lastScreenshot", last);
     mSettings->setValue("upload/service", 1);
-    mSettings->setValue("options/tray", true);
 
     startWindow();
 
@@ -310,6 +309,25 @@ void tst_MainWindow::uploadLastFlag()
     QCOMPARE(error.at(0).at(0).toString(), QStringLiteral("Invalid pomf uploader URL!"));
     QCOMPARE(done.count(), 1);
     QCOMPARE(done.at(0).at(0).toString(), last);
+}
+
+// Bug 27: an upload error with the tray icon off (init's default) used to crash in notify on the null tray icon.
+void tst_MainWindow::uploadErrorWithoutTray()
+{
+    mSettings->setValue("lastScreenshot", mDir->filePath("last.jpg"));
+    mSettings->setValue("upload/service", 1);
+
+    startWindow();
+
+    QSignalSpy error(mUploader.data(), &Uploader::error);
+    QSignalSpy titles(mWindow.data(), &QWidget::windowTitleChanged);
+
+    mWindow->executeArgument("--uploadlast");
+
+    // notify's "Failed!" title is replaced at once by updateStatus (Uploader::done follows the error).
+    QCOMPARE(error.count(), 1);
+    QVERIFY(!titles.isEmpty());
+    QCOMPARE(titles.at(0).at(0).toString(), QStringLiteral("Failed!"));
 }
 
 // --viewhistory opens the history dialog (modal).

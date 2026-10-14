@@ -146,3 +146,9 @@ What is done, what changed from the plan, and what is open. Newest first.
 
 - Windows x64 release build works on VS 2022 + Qt 5.15.2 with no source changes; see `docs/build.md`.
 - Open from Stage 1: Linux build verification, CI for Windows and Linux, `docs/goals.md` and `docs/known-bugs.md` (by the owner).
+
+## 2026-10-14: Stage 5, bug 27 fixed (upload error with the tray icon off)
+
+- `LightscreenWindow::notify` no longer dereferences a null `mTrayIcon`: with `options/tray` off, an upload error (or a cancelled upload, bug 22) used to crash the app. The title and taskbar overlay are unchanged.
+- New test `tst_mainwindow::uploadErrorWithoutTray` (segfaults before the fix); `uploadLastFlag` now runs with the tray off. All suites pass under Xvfb in the cloud container.
+- Noticed, not changed: the "Failed!" title from `notify` is overwritten at once, because `Uploader::done` follows every error and `showUploaderMessage` calls `updateStatus`. So the failure title never shows after an upload error; the tray icon's red state (when the tray is on) does.
