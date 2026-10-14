@@ -122,6 +122,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **Fix:** parse only an exact `<name> (<n>)<extension>` pattern, or loop until the candidate does not exist.
 - **Platform:** any. **Test:** `tst_screenshot::uniqueName_returnsExistingName` (confirmed).
 - **Triage:** fix now (Stage 5 session C, with 17); priority: data loss.
+- **Status:** fixed in Stage 5 (2026-10-14), with 17. `uniqueName` counts only files named exactly `<name> (<n>)<extension>` and then counts up until `<name> (<n>)<extension>` does not exist. Tests: `uniqueName_returnsExistingName` (now `2 (3)`), `uniqueName_skipsExistingCandidate`.
 
 ### 16. A failed save emits `finished` twice and still writes a history row
 
@@ -138,6 +139,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **Fix:** the same pattern match as 15.
 - **Platform:** any. **Test:** `tst_screenshot::uniqueName_prefixMatch`, `tst_screenshot::uniqueName_nestedSuffix`.
 - **Triage:** fix now, with 15 (session C).
+- **Status:** fixed in Stage 5 (2026-10-14), with 15: the exact pattern match ignores longer names and nested suffixes (`screenshot1 (1)`, `shot (1)`).
 
 ### 18. Temporary `.screenshot.` file kept when file and clipboard are both on (lower severity)
 

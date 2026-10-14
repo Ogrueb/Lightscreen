@@ -24,6 +24,7 @@
 #include <QPainter>
 #include <QPixmap>
 #include <QProcess>
+#include <QRegularExpression>
 #include <QTextStream>
 #include <QScreen>
 #include <QStandardPaths>
@@ -443,32 +444,32 @@ Screenshot::Format Screenshot::formatFromSetting(const QVariant &value)
     return Screenshot::Format(format);
 }
 
-// Appends " (n)" to the name, n being one more than the largest number found among the files in the same
-// directory whose name contains this one.
+// Appends " (n)" to the name, n being one more than the largest number among the files in the same directory
+// named exactly "<name> (<n>)<extension>", then counting up until no such file exists.
 QString Screenshot::uniqueName(const QString &nameWithoutExtension, const QString &extension)
 {
-    // Ugly? You should see my wife!
+    const QFileInfo info(nameWithoutExtension % extension);
+    const QRegularExpression pattern(QRegularExpression::anchoredPattern(
+        QRegularExpression::escape(QFileInfo(nameWithoutExtension).fileName()) % " \\((\\d+)\\)"
+        % QRegularExpression::escape(extension)));
+
     int count = 0;
-    int cunt  = 0;
 
-    QString naming = QFileInfo(nameWithoutExtension).fileName();
+    for (const auto &file : info.dir().entryList(QDir::Files)) {
+        const auto match = pattern.match(file);
 
-    for (auto file : QFileInfo(nameWithoutExtension % extension).dir().entryList(QDir::Files)) {
-        if (file.contains(naming)) {
-            file.remove(naming);
-            file.remove(" (");
-            file.remove(")");
-            file.remove(extension);
-
-            cunt = file.toInt();
-
-            if (cunt > count) {
-                count = cunt;
-            }
+        if (match.hasMatch()) {
+            count = qMax(count, match.captured(1).toInt());
         }
     }
 
-    return nameWithoutExtension % " (" % QString::number(count + 1) % ")";
+    QString candidate;
+
+    do {
+        candidate = nameWithoutExtension % " (" % QString::number(++count) % ")";
+    } while (QFile::exists(candidate % extension));
+
+    return candidate;
 }
 
 void Screenshot::grabDesktop()
