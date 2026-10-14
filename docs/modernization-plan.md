@@ -2,7 +2,7 @@
 
 Stage 3 output (2026-10-14). A staged plan for the Lightscreen fork that keeps the code building and working after every step. Written from `master` at `d92b3ca` (after PR #4), `docs/goals.md`, `docs/inventory.md`, `docs/known-bugs.md` and a full read of the source. Nothing was built for this document: the cloud container has no Qt installed, so every claim about an API below comes from the code and the Qt documentation, not from a compile.
 
-Decisions behind the plan are in `docs/decisions.md` (entries dated 2026-10-14, Stage 3). Two of them are open questions for the owner; see the end of this file.
+Decisions behind the plan are in `docs/decisions.md` (entries dated 2026-10-14, Stage 3). The two questions it raised for the owner were answered in the Stage 3 thread; section 8 records the answers.
 
 ## 1. How to read this plan
 
