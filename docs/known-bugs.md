@@ -172,6 +172,22 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **Fix:** in the pomf (or S03 custom) uploader, map `OperationCanceledError` to `CancelError`.
 - **Platform:** any. **Test:** recorded by `tst_Uploader::cancel` (with a stub reply whose `abort()` behaves like Qt's HTTP reply); the fix flips that assertion. Not reproduced in the running app.
 
+## Found while writing the Stage 4 area dialog tests
+
+### 23. Area selection loses a pixel at fractional scaling
+
+- **Where:** `dialogs/areadialog.cpp:101-109`, `AreaDialog::resultRect`.
+- **What happens:** the selection's left, top, width and height are each multiplied by the pixmap's device pixel ratio and truncated to `int`. At 150%, the selection (3, 5) 7x9 becomes (4, 7) 10x13 instead of covering device pixels 4.5 to 15 and 7.5 to 21, so the saved image can be a pixel narrower or shorter than what was selected, and the far edge is off by up to one pixel. Integer ratios (100%, 200%) are exact. Related to bug 12; S04 replaces this mapping.
+- **Fix:** map the corners (`QRectF` scaled, then `toAlignedRect()` or rounded corners) instead of truncating origin and size separately.
+- **Platform:** Windows (or X11 with `QT_SCALE_FACTOR`) at 125%, 150% or 175%. **Test:** `tst_AreaDialog::resultRect` rows "ratio 1.5 truncates" and "ratio 1.25 truncates" record the current values. Confirmed by the test; not reproduced in the running app.
+
+### 24. Typed area size ignores an upper-case X
+
+- **Where:** `dialogs/areadialog.cpp:227-240` (`keyPressEvent`) and `:137-163` (`keyboardResize`).
+- **What happens:** `keyPressEvent` lets the X key through whatever its text, so Shift+X or Caps Lock adds `X` to the typed size, but `keyboardResize` only splits on a lower-case `x`. Typing `100X100` and Enter shows the text on screen, then silently does nothing. The "only one x" check is case-sensitive too, so `1X2x3` can be typed.
+- **Fix:** append a lower-case `x` for the X key (or split case-insensitively).
+- **Platform:** any. **Test:** `tst_AreaDialog::typing_upperCaseX` and the "upper case X" row of `keyboardResize` record it. Confirmed by the test.
+
 ## Still to add
 
 - Bugs the owner has hit on their own machine.
