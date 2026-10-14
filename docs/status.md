@@ -2,6 +2,13 @@
 
 What is done, what changed from the plan, and what is open. Newest first.
 
+## 2026-10-14: Stage 4 safety net, screenshot naming and saving
+
+- `tests/tst_screenshot` (39 test functions) records what `tools/screenshot` does today: `getName` for all four namings, `extensionFor`, `uniqueName`, `save()` (file, clipboard, both, neither, failure, `replace`, every format, quality), the `.screenshot.` temp file and `confirm`. Passes under Xvfb and offscreen on Linux (Qt 5.15.13); Windows through CI.
+- Bug 2 is a skipped test with the intended assertion; the Stage 5 fix deletes the `QSKIP` (`docs/decisions.md`).
+- Quirks the tests pin down, none fixed: `uniqueName("2")` with `2.png`, `2 (1).png` and `2 (2).png` present returns `2 (2)`, an existing file, which `save()` then overwrites; `uniqueName` counts any file containing the name (`screenshot1` next to `screenshot12.png` gives `screenshot1 (3)`) and joins nested suffixes (`shot (1) (1).png` gives `shot (12)`); Numeric naming counts every extension and flipped and unflipped names share one counter; a `%1` in the prefix is substituted too. `save()` emits `finished` twice when it fails or when neither file nor clipboard is on, and a failed file save still writes a history row. With file and clipboard both on, the unloaded temp file is re-encoded instead of renamed and stays on disk until the `Screenshot` is destroyed. PNG quality is always forced to 80. The overwrite, the double `finished`, the prefix matching and the leftover temp file are now bugs 15-18 in `docs/known-bugs.md`, not yet triaged.
+- No production code changed.
+
 ## 2026-10-14: Stage 4 safety net, history tests
 
 - `tests/tst_history/` (19 test functions) covers `tools/screenshotmanager`'s history as plan section 6 item 3 describes: `initHistory` (directory, file, the four columns), `saveHistory` with history on (the default) and off, `updateHistory` for an existing file, a new file, an empty URL and history off, `Uploader::done` reaching `updateHistory`, `removeHistory`, `clearHistory`, the seam's history path, and portable mode. Tests only; no production code changed.

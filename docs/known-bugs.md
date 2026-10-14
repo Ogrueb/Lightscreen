@@ -108,6 +108,38 @@ Upstream's unmerged Linux build fixes (#40, #44) need no entry: `#undef Success`
 - **Fix:** read `upload/service` and map it through `Uploader::serviceName`.
 - **Platform:** any. **Test:** headless with a stub network manager. Triage: fixed in plan step M12 (one line), not a Stage 5 session.
 
+## Found by the Stage 4 screenshot naming tests
+
+Recorded as current behaviour in `tests/tst_screenshot`; the test names below are the assertions a fix flips. Not yet triaged into the Stage 5 table.
+
+### 15. Collision naming can pick an existing file, which is then overwritten
+
+- **Where:** `tools/screenshot.cpp`, `Screenshot::uniqueName` (called from `Screenshot::save`).
+- **What happens:** for each file containing the name, it removes *every* occurrence of the name, `" ("` and `")"`, then parses what is left. With the name `2` and `2.png`, `2 (1).png`, `2 (2).png` on disk, `2 (2).png` reads as 0 (its `2` inside the suffix is removed too), the maximum is 1, and it returns `2 (2)`. `save()` does not check again and writes over `2 (2).png`. Any name containing digits can hit this (Numeric naming produces such names with `replace` off whenever a file already has the next number).
+- **Fix:** parse only an exact `<name> (<n>)<extension>` pattern, or loop until the candidate does not exist.
+- **Platform:** any. **Test:** `tst_screenshot::uniqueName_returnsExistingName` (confirmed).
+
+### 16. A failed save emits `finished` twice and still writes a history row
+
+- **Where:** `tools/screenshot.cpp`, `Screenshot::save`.
+- **What happens:** `if (!mOptions.result) emit finished();` fires for `Failure`, and the branch below then emits `finished` again (after `saveHistory` when file saving is on). `ScreenshotManager::finished` runs twice for one screenshot (`removeOne`, `activeCountChange` and `deleteLater` twice), and the history gets a row for a file that was never written. Same double `finished` when neither file nor clipboard is on.
+- **Fix:** return after the failure `finished`, or emit it once at the end; skip `saveHistory` on failure.
+- **Platform:** any. **Test:** `tst_screenshot::save_failure`, `tst_screenshot::save_neither` (confirmed).
+
+### 17. Collision suffix counts any file that contains the name (lower severity)
+
+- **Where:** `Screenshot::uniqueName`.
+- **What happens:** `file.contains(name)` matches longer names, so `screenshot1` next to `screenshot12.png` becomes `screenshot1 (3)`, and `shot (1) (1).png` becomes `shot (12)`. Odd numbers, no data loss on its own (see 15 for the case that loses data).
+- **Fix:** the same pattern match as 15.
+- **Platform:** any. **Test:** `tst_screenshot::uniqueName_prefixMatch`, `tst_screenshot::uniqueName_nestedSuffix`.
+
+### 18. Temporary `.screenshot.` file kept when file and clipboard are both on (lower severity)
+
+- **Where:** `Screenshot::save`, `Screenshot::unloadPixmap`.
+- **What happens:** with the clipboard on, `save()` reloads the unloaded pixmap from the temp file and clears `mUnloaded`, so the file branch saves the pixmap again (a second encode) instead of renaming. The hidden `.screenshot.<n><ext>` file stays in the screenshot folder until the `Screenshot` is destroyed; a crash in between leaves it behind.
+- **Fix:** keep the rename path when the pixmap was unloaded, reloading only for the clipboard.
+- **Platform:** any. **Test:** `tst_screenshot::confirm_true_afterUnload_withClipboard`.
+
 ## Still to add
 
 - Bugs the owner has hit on their own machine.
