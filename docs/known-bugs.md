@@ -131,6 +131,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **Fix:** return after the failure `finished`, or emit it once at the end; skip `saveHistory` on failure.
 - **Platform:** any. **Test:** `tst_screenshot::save_failure`, `tst_screenshot::save_neither` (confirmed).
 - **Triage:** fix now (Stage 5 session D, with 18), after the bug 10 PR merges.
+- **Status:** fixed in Stage 5 (2026-10-14). On `Failure`, `save()` emits `finished` once and returns: no history row, no optimize or upload hand-off. Left open: upload-only (file off and no clipboard image) still reports `Failure` and emits `finished` early, then again when the upload succeeds. That early `finished` currently ends the screenshot when an upload fails (the uploader emits no `done` on error), so it is left for the uploader work rather than removed here.
 
 ### 17. Collision suffix counts any file that contains the name (lower severity)
 
@@ -148,6 +149,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **Fix:** keep the rename path when the pixmap was unloaded, reloading only for the clipboard.
 - **Platform:** any. **Test:** `tst_screenshot::confirm_true_afterUnload_withClipboard`.
 - **Triage:** fix now, with 16 (session D).
+- **Status:** fixed in Stage 5 (2026-10-14). The clipboard gets a pixmap loaded from the temp file without clearing `mUnloaded`, so the file is renamed into place and no `.screenshot.` file is left.
 
 ## Found by the Stage 4 settings tests
 

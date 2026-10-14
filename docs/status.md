@@ -183,3 +183,8 @@ What is done, what changed from the plan, and what is open. Newest first.
 - `LightscreenWindow::notify` no longer dereferences a null `mTrayIcon`: with `options/tray` off, an upload error (or a cancelled upload, bug 22) used to crash the app. The title and taskbar overlay are unchanged.
 - New test `tst_mainwindow::uploadErrorWithoutTray` (segfaults before the fix); `uploadLastFlag` now runs with the tray off. All suites pass under Xvfb in the cloud container.
 - Noticed, not changed: the "Failed!" title from `notify` is overwritten at once, because `Uploader::done` follows every error and `showUploaderMessage` calls `updateStatus`. So the failure title never shows after an upload error; the tray icon's red state (when the tray is on) does.
+## 2026-10-14: Stage 5, bugs 16 and 18 (failed save, leftover temp file)
+
+- `Screenshot::save` emits `finished` once on `Failure` and returns before `saveHistory`, `optimize` and `upload` (bug 16). With file and clipboard both on, the clipboard gets the pixmap reloaded from the temporary file and the file branch renames it as before, so no `.screenshot.` file lingers (bug 18).
+- `tst_screenshot::save_failure`, `save_neither` and `confirm_true_afterUnload_withClipboard` now assert the fixed behaviour. All suites pass on Linux.
+- Left open, recorded under bug 16: an upload-only screenshot still reports `Failure` and emits `finished` twice; its early `finished` is what ends the screenshot when an upload fails, so it belongs with the uploader work.
