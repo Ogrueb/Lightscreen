@@ -2,6 +2,10 @@
 
 What is done, what changed from the plan, and what is open. Newest first.
 
+## 2026-10-14: Stage 5, bug 13 (`updateHistory` inserted duplicates)
+
+- `ScreenshotManager::updateHistory` now looks up `WHERE fileName = ?` and checks `exec()` and `next()`, so uploading a screenshot that already has a history row fills in that row's URL instead of adding a second row. Details and the two small choices (newer URL wins; empty delete hash gives an empty delete URL) in `docs/decisions.md`. Rows duplicated by the bug in existing databases are left as they are; a later update writes to all rows of that file.
+- `tst_history`: the three `expected to change (bug 13)` assertions are flipped (`updateHistoryExistingFile`, `updateHistoryTwice`, `uploaderDoneUpdatesHistory`); they failed before the fix and pass after. Verified in the cloud container (Ubuntu 24.04, Qt 5.15.13): all suites pass under `xvfb-run -a make check`. Windows through CI.
 ## 2026-10-14: Stage 5, bug 2 (out-of-range format)
 
 - Fixed: a `file/format` outside 0-3 now gives PNG instead of undefined behaviour. New `Screenshot::formatFromSetting(QVariant)` (non-numbers and out-of-range values give PNG) is what `LightscreenWindow::screenshotAction` now uses to read the setting; the `Screenshot` constructor applies the same rule before its PNG quality rule, and `extensionFor` returns `.png` after the `switch`. Before the fix, GCC returned `.webp` for 7, 4 and -1.
