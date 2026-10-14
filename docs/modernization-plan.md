@@ -157,7 +157,7 @@ Numbered M12 for historical reasons but it runs right after M03, so that no dead
 - **What.**
   - **Taskbar overlay and progress: kept.** New `Taskbar` class (Windows-only implementation, empty inline implementation elsewhere; replaces the `QWinTaskbarDummy` classes in `lightscreenwindow.h`) wrapping `ITaskbarList3`: `setOverlayIcon(QIcon)`, `clearOverlayIcon()`, `setProgressState(NoProgress | Indeterminate | Normal | Paused)`, `setProgressValue(int percent)`, `setWindow(QWindow *)`. It calls `CoCreateInstance(CLSID_TaskbarList)` lazily and `HrInit()`. The six call sites in `lightscreenwindow.cpp` map one to one (`setPaused(true)+setVisible(true)` = `Paused`, `resume()` = `Normal`, `setVisible(false)`/`stop()`/`reset()` = `NoProgress`).
   - **DWM blur and frame extension: dropped.** Delete `lightscreenwindow.cpp:86-90` (`isCompositionEnabled`, `WA_NoSystemBackground`, `enableBlurBehindWindow`, `extendFrameIntoClientArea`). On Windows 10 that call produces a transparent, not blurred, background; the main window gets the normal window background.
-  - **Jump list: dropped** (open question 1 for the owner; if they want it back, it is S07). Delete the block in `main.cpp:49-78`.
+  - **Jump list: dropped** (owner decision; S07 can bring it back later). Delete the block in `main.cpp:49-78`.
   - `QtWin::fromHBITMAP`/`fromHICON` (`os.cpp:88,90,237`, `windowpicker.cpp:171`): route through `os::pixmapFromHBITMAP(HBITMAP, bool alpha)` and `os::pixmapFromHICON(HICON)`, which call `QtWin` under `#if QT_VERSION < QT_VERSION_CHECK(6,0,0)` and `QImage::fromHBITMAP`/`fromHICON` otherwise. `src.pri`: `lessThan(QT_MAJOR_VERSION, 6): QT += winextras` so the module is only linked on Qt 5. M10 removes the Qt 5 branch.
 - **Done-check.** Tests pass. CI green (Windows build). **Windows QA:** upload a screenshot and watch the taskbar progress and the overlay icon; take a failed capture and see the "no" overlay; window picker shows window icons (with the Stage 5 fix for bug 1); the main window looks acceptable without the glass.
 
@@ -255,7 +255,7 @@ The structural round starts after M11 (CMake) so that every structural PR builds
 
 ### S07 (optional, owner's call). Jump list via `ICustomDestinationList`
 
-- **Tag:** structural. **Depends on:** M07, M16 (the AppUserModelID should use the final name). **Merges:** owner. Windows QA only. Only if open question 1 is answered "keep".
+- **Tag:** structural. **Depends on:** M07, M16 (the AppUserModelID should use the final name). **Merges:** owner. Windows QA only. Not scheduled; the owner asks for it if the jump list is missed.
 
 ## 5. Merge order and parallelism
 
@@ -336,11 +336,11 @@ Two bugs found while reading the code for this plan, added to `docs/known-bugs.m
 
 Stage 5 sessions: bugs 1, 2, 5, 10 (local part), 13. Bug 1 and 5 can only be verified on the owner's machine; those sessions write the fix, get the Windows build from CI, and leave the PR for the owner to QA and merge.
 
-## 8. Open questions for the owner
+## 8. Questions for the owner
 
-Question 1 is still open; its default (drop) is what the plan uses.
+Both answered on 2026-10-14; kept here as the record.
 
-1. **Jump list** (the taskbar right-click menu with Screen / Area / Pick Window / Upload / Options entries). It goes with QtWinExtras in M07. *Drop* (recommended: the same actions are in the tray menu and the hotkeys; reinstating it is about 150 lines of COM that only the owner can test) or *keep later* (adds S07).
+1. ~~Jump list~~ **Decided 2026-10-14: drop** in M07, with possible re-addition later. S07 stays as an optional step for that; it is not scheduled.
 2. ~~Settings identity after the rename~~ **Decided 2026-10-14: keep.** The settings and history stay under organization `K`, application `Lightscreen`; upgrades are automatic and nothing is migrated.
 
 ## 9. Not in this plan, and why
