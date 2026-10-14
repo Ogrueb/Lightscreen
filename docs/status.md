@@ -178,6 +178,12 @@ What is done, what changed from the plan, and what is open. Newest first.
 - New test `tst_mainwindow::quitFlagBeforeEventLoopQuits` (fails before the fix: `exec()` ran until the 3 s guard). The CI Linux smoke gained a second step: `timeout 10 ./lightscreen --quit` with no instance running must exit 0. `docs/build.md` describes it.
 - Not changed: `--quit` still bypasses `LightscreenWindow::quit` (no confirmation while processing or uploading, no saved position, no `finished`), as recorded by `quitFlagQuitsTheApplication`.
 
+## 2026-10-14: Stage 5, bugs 16 and 18 (failed save, leftover temp file)
+
+- `Screenshot::save` emits `finished` once on `Failure` and returns before `saveHistory`, `optimize` and `upload` (bug 16). With file and clipboard both on, the clipboard gets the pixmap reloaded from the temporary file and the file branch renames it as before, so no `.screenshot.` file lingers (bug 18).
+- `tst_screenshot::save_failure`, `save_neither` and `confirm_true_afterUnload_withClipboard` now assert the fixed behaviour. All suites pass on Linux.
+- Left open, recorded under bug 16: an upload-only screenshot still reports `Failure` and emits `finished` twice; its early `finished` is what ends the screenshot when an upload fails, so it belongs with the uploader work.
+
 ## 2026-10-14: Stage 5, bug 28 fixed (second screenshot request during the delay)
 
 - `LightscreenWindow::screenshotAction` no longer parks the request in `mLastMode`: each request runs the pre-screenshot steps and starts its own delay timer, whose lambda captures the mode and calls the new private `takeScreenshot(mode)` (the old second half of `screenshotAction`, unchanged). `screenshotAction(None)` / `action(0)` do nothing. `mPendingScreenshots` counts requests still waiting; `cleanup` restores a window hidden by "hide while taking a screenshot" only when it is 0, so the second of two quick requests is also taken with the window hidden.
