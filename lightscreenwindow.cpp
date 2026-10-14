@@ -382,7 +382,9 @@ void LightscreenWindow::notify(const Screenshot::Result &result)
 {
     switch (result) {
     case Screenshot::Success:
-        mTrayIcon->setIcon(QIcon(":/icons/lightscreen.yes"));
+        if (mTrayIcon) {
+            mTrayIcon->setIcon(QIcon(":/icons/lightscreen.yes"));
+        }
 
         if (mHasTaskbarButton) {
             mTaskbarButton->setOverlayIcon(os::icon("yes"));
@@ -391,7 +393,10 @@ void LightscreenWindow::notify(const Screenshot::Result &result)
         setWindowTitle(tr("Success!"));
         break;
     case Screenshot::Failure:
-        mTrayIcon->setIcon(QIcon(":/icons/lightscreen.no"));
+        if (mTrayIcon) {
+            mTrayIcon->setIcon(QIcon(":/icons/lightscreen.no"));
+        }
+
         setWindowTitle(tr("Failed!"));
 
         if (mHasTaskbarButton) {
