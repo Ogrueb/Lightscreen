@@ -172,6 +172,12 @@ What is done, what changed from the plan, and what is open. Newest first.
 - `Screenshot::uniqueName` now counts only files named exactly `<name> (<n>)<extension>` (name and extension matched literally) and takes one more than the largest `n`, as before; it then keeps counting up while the candidate exists, so `save()` with `replace` off can no longer overwrite a file. Bug 15 (data loss with digits in the name) and bug 17 (prefix and nested-suffix matching) are fixed; `docs/known-bugs.md` updated.
 - `tst_screenshot`: `uniqueName_prefixMatch`, `uniqueName_nestedSuffix` and `uniqueName_returnsExistingName` flipped to the correct results; new `uniqueName_skipsExistingCandidate` (the existence loop) and `uniqueName_specialCharacters` (regex characters in the name). Everything else in the suite is unchanged. Linux: all suites pass.
 
+## 2026-10-14: Stage 5, bug 29 (`--quit` with no instance running)
+
+- `lightscreen --quit` with no instance running now exits with status 0 instead of leaving a hidden instance. `executeArgument("--quit")` queues the quit (`QTimer::singleShot(0, qApp, &QCoreApplication::quit)`), so it survives `main` running the arguments before `exec()`. The other flags and `main.cpp` are unchanged.
+- New test `tst_mainwindow::quitFlagBeforeEventLoopQuits` (fails before the fix: `exec()` ran until the 3 s guard). The CI Linux smoke gained a second step: `timeout 10 ./lightscreen --quit` with no instance running must exit 0. `docs/build.md` describes it.
+- Not changed: `--quit` still bypasses `LightscreenWindow::quit` (no confirmation while processing or uploading, no saved position, no `finished`), as recorded by `quitFlagQuitsTheApplication`.
+
 ## 2026-10-14: Stage 5, bug 28 fixed (second screenshot request during the delay)
 
 - `LightscreenWindow::screenshotAction` no longer parks the request in `mLastMode`: each request runs the pre-screenshot steps and starts its own delay timer, whose lambda captures the mode and calls the new private `takeScreenshot(mode)` (the old second half of `screenshotAction`, unchanged). `screenshotAction(None)` / `action(0)` do nothing. `mPendingScreenshots` counts requests still waiting; `cleanup` restores a window hidden by "hide while taking a screenshot" only when it is 0, so the second of two quick requests is also taken with the window hidden.

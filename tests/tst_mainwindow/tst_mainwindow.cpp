@@ -64,8 +64,9 @@ private slots:
     void actionOutOfRange();
     void emptyHotkeyShowsError();
 
-    // Last on purpose: it runs QApplication::exec() and quits it.
+    // Last on purpose: they run QApplication::exec() and quit it.
     void quitFlagQuitsTheApplication();
+    void quitFlagBeforeEventLoopQuits();
 
 public slots:
     void openUrl(const QUrl &url);
@@ -642,6 +643,19 @@ void tst_MainWindow::quitFlagQuitsTheApplication()
     QCOMPARE(qApp->exec(), 0);
     QCOMPARE(finished.count(), 0);
     QVERIFY(!mSettings->contains("position"));
+}
+
+// Bug 29: main() runs executeArguments before application.exec(). With no instance running, `lightscreen --quit`
+// used to call QApplication::quit() before the event loop existed; exec() reset the quit flag and the app stayed
+// running, hidden. The quit must survive into the event loop.
+void tst_MainWindow::quitFlagBeforeEventLoopQuits()
+{
+    startWindow();
+
+    mWindow->executeArguments(QStringList() << qApp->arguments().at(0) << "--quit");
+    QTimer::singleShot(3000, qApp, [] { QCoreApplication::exit(1); });
+
+    QCOMPARE(qApp->exec(), 0);
 }
 
 QTEST_MAIN(tst_MainWindow)
