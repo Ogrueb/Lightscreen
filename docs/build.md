@@ -90,7 +90,7 @@ Nothing needed fixing to build. Things noticed along the way, left unchanged on 
 
 The tests live under `tests/`, one directory per test (`tests/tst_<name>/`), all listed in `tests/tests.pro` (`TEMPLATE = subdirs`). Each test's `.pro` includes `tests/common.pri`, which includes `src.pri`: the tests compile the application's own sources (everything but `main.cpp`) rather than linking a library. `lightscreen.pro` includes the same `src.pri`, so a file added to the app goes into `src.pri`, not `lightscreen.pro`.
 
-So far there is one placeholder test, `tst_smoke`, which checks that the harness builds and that the seams below can be installed. The safety-net tests (Stage 4) go next to it.
+`tst_smoke` checks that the harness builds and that the seams below can be installed. The Stage 4 safety-net tests sit next to it, one directory per module: `tst_settings`, `tst_screenshot`, `tst_history`, `tst_uploader`, `tst_hotkeywidget`, `tst_areadialog`, `tst_mainwindow` and `tst_os` (what each records: `docs/status.md`). `tst_mainwindow` and the window tests in `tst_settings` skip on Windows and offscreen.
 
 ### Running the tests
 
