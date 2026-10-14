@@ -188,6 +188,15 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **Fix:** append a lower-case `x` for the X key (or split case-insensitively).
 - **Platform:** any. **Test:** `tst_AreaDialog::typing_upperCaseX` and the "upper case X" row of `keyboardResize` record it. Confirmed by the test.
 
+## Found by the Stage 4 os helpers tests
+
+### 25. "Run at startup" does nothing on Linux when `~/.config/autostart` is missing
+
+- **Where:** `tools/os.cpp`, `os::setStartup` (Linux branch).
+- **What happens:** it opens `~/.config/autostart/lightscreen.desktop` for writing without creating the directory or checking the result. On an account where the directory does not exist yet (common on a fresh install or a minimal desktop), the open fails, the write only logs `QIODevice::write ... device not open`, and the option is silently not applied. The file it does write also has no `Name=` key, which the Desktop Entry spec requires, and an unquoted `Exec` path, which breaks for a path with spaces.
+- **Fix:** `QDir().mkpath` the autostart directory, check `open()`, add `Name=Lightscreen`, quote the executable path.
+- **Platform:** Linux. **Test:** `tst_Os::startupWithoutAutostartDir` asserts that nothing is written (expected to change). Confirmed by the test.
+
 ## Still to add
 
 - Bugs the owner has hit on their own machine.
