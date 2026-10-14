@@ -30,7 +30,7 @@ The plan is `docs/modernization-plan.md`. The decisions it rests on, each with w
 
 **Release artifact: a Windows zip only, from a tag-triggered workflow, as a draft release.** Linux users build from source; the goals promise a zipped `windeployqt` output and nothing else. *Rejected:* AppImage or a Linux tarball (packaging work for a target nobody tests by hand); an installer (listed as a later nice-to-have).
 
-**The rename keeps the settings identity.** `setOrganizationName("K")` and `setApplicationName("Lightscreen")` stay so settings, history and the single-instance key are untouched by the rename; only the display name, executable, strings, icons and the autostart entry change. This is open question 2 in the plan (the owner may prefer a one-time migration). *Rejected by default:* migrating to a new settings location (more code and QA for a cosmetic folder name).
+**The rename keeps the settings identity** (owner decision, 2026-10-14: "keep for now"). `setOrganizationName("K")` and `setApplicationName("Lightscreen")` stay so settings, history and the single-instance key are untouched by the rename; only the display name, executable, strings, icons and the autostart entry change. *Rejected:* migrating to a new settings location (more code and QA for a cosmetic folder name). Can be revisited after the rename if the folder name bothers anyone.
 
 **The MinGW branch is removed.** It is unmaintained (`libgdi32`-style names, overwrites `QMAKE_CXXFLAGS`), was never tried in this fork, and CI builds with MSVC. *Rejected:* fixing it (no one would test it).
 

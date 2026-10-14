@@ -338,10 +338,10 @@ Stage 5 sessions: bugs 1, 2, 5, 10 (local part), 13. Bug 1 and 5 can only be ver
 
 ## 8. Open questions for the owner
 
-Both have a default the plan already uses; answering changes one step.
+Question 1 is still open; its default (drop) is what the plan uses.
 
 1. **Jump list** (the taskbar right-click menu with Screen / Area / Pick Window / Upload / Options entries). It goes with QtWinExtras in M07. *Drop* (recommended: the same actions are in the tray menu and the hotkeys; reinstating it is about 150 lines of COM that only the owner can test) or *keep later* (adds S07).
-2. **Settings identity after the rename.** The settings and history live under organization `K`, application `Lightscreen`. *Keep* (recommended: upgrades are automatic, nothing to migrate, the only cost is the folder name under `AppData`) or *migrate once* to the new name (M16 grows a one-time copy with a fallback read; more code, more to QA).
+2. ~~Settings identity after the rename~~ **Decided 2026-10-14: keep.** The settings and history stay under organization `K`, application `Lightscreen`; upgrades are automatic and nothing is migrated.
 
 ## 9. Not in this plan, and why
 
