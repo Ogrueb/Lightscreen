@@ -165,7 +165,19 @@ void WindowPicker::mouseMoveEvent(QMouseEvent *event)
     ///
 
     // Retrieving the application icon
-    icon = (HICON)::GetClassLong((HWND)mCurrentWindow, GCL_HICON);
+    icon = (HICON)::GetClassLongPtr((HWND)mCurrentWindow, GCLP_HICON);
+
+    if (icon == NULL) {
+        icon = (HICON)::GetClassLongPtr((HWND)mCurrentWindow, GCLP_HICONSM);
+    }
+
+    if (icon == NULL) {
+        DWORD_PTR result = 0;
+
+        if (::SendMessageTimeout((HWND)mCurrentWindow, WM_GETICON, ICON_BIG, 0, SMTO_ABORTIFHUNG, 100, &result)) {
+            icon = (HICON)result;
+        }
+    }
 
     if (icon != NULL) {
         mWindowIcon->setPixmap(QtWin::fromHICON(icon));
