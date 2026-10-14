@@ -2,12 +2,14 @@
 
 Mechanical survey of the codebase as of `master` at `dbdb12e` (2026-10-14). Findings only; no recommendations. File and line references are to that commit, and to the submodules at their pinned commits.
 
+**Update after PR #2 (merged after this survey):** the two submodules are now vendored as plain files at the same paths, `tools/SingleApplication` and `tools/UGlobalHotkey`. They are byte-identical to the pinned commits, so every line reference below still holds. `.gitmodules` is gone, and each directory has a `VENDORED.md` recording its origin, commit and license (see `docs/decisions.md`). Where this document says "submodule", read "vendored library". The same PR also verified the Linux build (Ubuntu 24.04, Qt 5.15.13); see `docs/status.md`.
+
 How it was gathered: reading `lightscreen.pro`, the `.pri` files and every source file; `grep` for `#include` lines, Qt class names and Win32/X11 calls; `git ls-remote` against upstream repositories for version data. Nothing was built for this survey. Items marked *(not verified here)* come from published sources or Stage 1 and were not re-checked in this session.
 
 ## 1. Size and history
 
 - 40 first-party C++ files (20 `.cpp`, 20 `.h`), 7,446 lines, plus 7 `.ui` forms, 1 `.qrc`, 46 resource entries.
-- 2 submodules, 816 lines of C++ in UGlobalHotkey and 274 in SingleApplication.
+- 2 vendored libraries (submodules until PR #2), 816 lines of C++ in UGlobalHotkey and 274 in SingleApplication.
 - 65 commits on `master`: 38 in 2016, 16 in 2017, 2 in 2018, 1 in 2019, 1 in 2020, 5 in 2021 (last upstream commit 2021-05-01, tag `v2.5`), 2 in 2026 (this fork).
 - `VERSION = 2.5` in `version.pri`.
 
@@ -21,7 +23,7 @@ How it was gathered: reading `lightscreen.pro`, the `.pri` files and every sourc
 | C++ standard | C++14 (`CONFIG += c++14`, `lightscreen.pro:56`) | C++23 | — |
 | Build system | qmake | — | Qt 6 still ships qmake; CMake is Qt's primary build system since Qt 6.0 *(not verified here)*. |
 | Compiler (Windows) | MSVC 2022 with the `msvc2019_64` Qt kit (Stage 1) | — | — |
-| Compiler (Linux) | not built yet | — | — |
+| Compiler (Linux) | GCC on Ubuntu 24.04 with Qt 5.15.13 from apt (build check in PR #2, see `docs/status.md`) | — | — |
 
 ### Qt modules
 
@@ -38,7 +40,7 @@ From `lightscreen.pro:58`, `:64` and `:91`, and the submodule `.pri` files.
 | x11extras (Linux only) | `tools/os.cpp`, `tools/screenshot.cpp`, `tools/windowpicker.cpp` | `QX11Info::display()`, `appRootWindow()` | removed in 6.0 |
 | gui-private (Linux only, via UGlobalHotkey) | `tools/UGlobalHotkey/uglobalhotkey-sources.pri`, `uglobalhotkeys.cpp:6,21` | `QPlatformNativeInterface` to get the xcb connection | private API, no compatibility guarantee |
 
-### Submodules
+### Vendored libraries (formerly submodules)
 
 | Submodule | Pinned | Origin | Upstream state | License |
 |---|---|---|---|---|
@@ -78,8 +80,8 @@ Line counts are `.cpp` + `.h`.
 | tools/uploader | `uploader`, `imageuploader`, `imguruploader`, `pomfuploader` | 756 | Upload queue and the two upload back ends |
 | updater | `updater` | 110 | Version check |
 | widgets | `hotkeywidget`, `imguroptionswidget`, `pomfoptionswidget` | 585 | Custom widgets used by `optionsdialog.ui` |
-| tools/SingleApplication | submodule | 274 | Single-instance guard |
-| tools/UGlobalHotkey | submodule | 816 | Global hotkeys (Win32, xcb, Carbon) |
+| tools/SingleApplication | vendored | 274 | Single-instance guard |
+| tools/UGlobalHotkey | vendored | 816 | Global hotkeys (Win32, xcb, Carbon) |
 
 Per-file sizes over 500 lines: `lightscreenwindow.cpp` 1,027; `dialogs/optionsdialog.cpp` 867; `dialogs/areadialog.cpp` 757; `tools/screenshot.cpp` 525.
 
@@ -217,17 +219,17 @@ Qt 5.15 is the reference. The "Qt 6" column comes from the Qt 6 porting document
 | tools/uploader | none |
 | updater | none |
 | widgets | none |
-| SingleApplication (submodule) | none at the pinned commit |
-| UGlobalHotkey (submodule) | none |
+| SingleApplication (vendored) | none at the pinned commit |
+| UGlobalHotkey (vendored) | none |
 
 No test framework is configured: no `QTest` usage, no test `.pro`, no `tests/` directory.
 
 ## 6. Build, CI and packaging
 
-**Build.** One qmake project, `lightscreen.pro`, `TEMPLATE = app`, which includes `version.pri` and the two submodule `.pri` files. No CMake. Branches:
+**Build.** One qmake project, `lightscreen.pro`, `TEMPLATE = app`, which includes `version.pri` and the two vendored libraries' `.pri` files. No CMake. Branches:
 
 - `windows`: MSVC branch (`contains(QMAKE_CC, cl)`) verified in Stage 1 with VS 2022 and Qt 5.15.2 (`docs/build.md`). MinGW branch (`contains(QMAKE_CC, gcc)`) not tried; it uses `libgdi32`-style library names and assigns `QMAKE_CXXFLAGS =` rather than appending.
-- `unix`: `-lX11`, `x11extras`; UGlobalHotkey adds `-lxcb -lxcb-keysyms` and `gui-private` under `linux`. Not built yet.
+- `unix`: `-lX11`, `x11extras`; UGlobalHotkey adds `-lxcb -lxcb-keysyms` and `gui-private` under `linux`. Built in PR #2's check; it also needs `qtbase5-private-dev` for `gui-private` (`docs/status.md`).
 - No macOS branch.
 - `DEFINES += QT_DEPRECATED_WARNINGS`; no `QT_DISABLE_DEPRECATED_BEFORE`. Stage 1 saw no deprecation warnings against 5.15.2.
 

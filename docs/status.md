@@ -1,22 +1,23 @@
 # Status
 
-## Done
+What is done, what changed from the plan, and what is open. Newest first.
 
-- **Stage 1: Fork and get it building** (PR #1). Builds on Windows with VS 2022 and Qt 5.15.2, no code changes. Details in `docs/build.md`.
-- **Stage 2: Inventory.** `docs/inventory.md`: dependencies, module map, deprecated APIs, test coverage, build/CI/packaging. Survey only; nothing was built and no code changed.
+## 2026-10-14: Stage 2 inventory
 
-## Changes from the plan
+- `docs/inventory.md`: dependencies, module map, deprecated and Qt 6-removed APIs, test coverage, build/CI/packaging. Survey only; no code changed.
+- Correction to `docs/build.md`: `Screenshot::extension()` (C4715) does handle WEBP inside its `switch`. The missing return is reached only when the format read from settings is outside 0-3. See `docs/inventory.md`, "Other compiler-flagged code".
+- Not checked from the Stage 2 session (outbound access limited), marked *(not verified here)* in the inventory: whether `lightscreen.com.ar` is still up (the updater and the pomf host list use it), and the end date of Qt 5.15 support.
+- Still open: CI for Windows and Linux; `docs/goals.md` and `docs/known-bugs.md` (owner), needed before Stage 3.
 
-- `docs/status.md` started in Stage 2 rather than Stage 4, so the CLAUDE.md "update status on exit" rule has a file to update.
+## 2026-10-14: Submodules vendored
 
-## Corrections to earlier notes
+- SingleApplication and UGlobalHotkey are now plain files in the repo instead of submodules (see `docs/decisions.md`). A plain `git clone` is enough to build; the `git submodule update --init` step is gone from `docs/build.md`.
+- Linux build check, done in the cloud container (Ubuntu 24.04, Qt 5.15.13 from apt): `qmake` and `make` succeed with the vendored sources, and the binary starts and keeps running under Xvfb. Two findings for whoever owns the Linux build:
+  - `qtbase5-private-dev` is needed in addition to the packages listed in `docs/build.md`, because UGlobalHotkey includes `qpa/qplatformnativeinterface.h`.
+  - With `QT_QPA_PLATFORM=offscreen` (no X server) the app segfaults at startup; it needs a real or virtual X display.
+- Windows build verified by the owner on a fresh clone (VS 2022, Qt 5.15.2): builds, launches, same 14 warnings as Stage 1. Existing checkouts should run `git submodule deinit --all` (or reclone) after pulling this change.
 
-- `docs/build.md` says `Screenshot::extension()` (C4715) has no return for formats outside its `switch` because WEBP is still in the enum. WEBP is handled inside the `switch`; the missing return is reached only when the format read from settings is outside 0-3. See `docs/inventory.md`, "Other compiler-flagged code".
+## 2026-10-14: Stage 1 done
 
-## Open items
-
-- Linux build not verified; no CI (Stage 1 leftovers).
-- Submodules still point at the original author's repos (vendoring in progress in a separate thread).
-- `docs/goals.md` and `docs/known-bugs.md` (owner), needed before Stage 3.
-- `docs/decisions.md` does not exist yet.
-- Version and status data that could not be checked from the Stage 2 session (outbound access limited): `lightscreen.com.ar` availability (used by the updater and the pomf host list), and the end of Qt 5.15 support. Marked *(not verified here)* in the inventory.
+- Windows x64 release build works on VS 2022 + Qt 5.15.2 with no source changes; see `docs/build.md`.
+- Open from Stage 1: Linux build verification, CI for Windows and Linux, `docs/goals.md` and `docs/known-bugs.md` (by the owner).

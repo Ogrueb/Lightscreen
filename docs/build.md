@@ -20,7 +20,6 @@ Qt 5.15.2 is the last Qt 5 release with official open-source Windows binaries, a
 winget install --id Microsoft.VisualStudio.2022.BuildTools --exact --source winget --override "--wait --passive --norestart --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
 python -m pip install --user aqtinstall
 python -m aqt install-qt windows desktop 5.15.2 win64_msvc2019_64 --outputdir C:\Qt
-git submodule update --init
 ```
 
 The Build Tools install needs an admin prompt (about 6 GB). Qt goes into `C:\Qt` (about 1.5 GB, no admin). Run the `aqt` command from outside the checkout: it writes `aqtinstall.log` to the current directory.
@@ -71,17 +70,6 @@ Nothing needed fixing to build. Things noticed along the way, left unchanged on 
 
 None: there are no tests yet.
 
-## Submodules: recommendation
+## Third-party libraries
 
-Both submodules point at the original author's own forks, which are as unmaintained as the app:
-
-| Submodule | Pinned commit | Size | Upstream status |
-|---|---|---|---|
-| `tools/SingleApplication` → `ckaiser/SingleApplication` | `c6378ee` (2016-06-07) | ~300 lines incl. header | Actively maintained upstream at `itay-grudev/SingleApplication` (supports Qt 5 and 6). The author's copy is based on an old v2.x with custom API (`instanceArguments` signal, `createMutex`) that `main.cpp` uses, so switching means code changes. |
-| `tools/UGlobalHotkey` → `ckaiser/UGlobalHotkey` | `231b101` (2016-08-07) | ~800 lines incl. headers | Original (`falceeffect/UGlobalHotkey`) is also unmaintained. No obvious maintained drop-in; the Qt 6 port will need changes either way (its Linux side uses X11/xcb). |
-
-**Recommendation: vendor both** (copy their sources into the repo, keep their LICENSE files and a note on the origin commit, drop `.gitmodules`). They are small, already diverge from any upstream, and the fork should not depend on someone else's dormant repos for every clone. Revisit SingleApplication as part of the Qt 6 decision: moving to the maintained `itay-grudev` version is the natural time to take the API change.
-
-Alternatives considered: forking both under the fork's account (keeps history but adds two more repos to maintain for ~1,100 lines), or switching SingleApplication now (a code change, which Stage 1 avoids).
-
-Not changed in Stage 1; needs your decision.
+SingleApplication and UGlobalHotkey used to be git submodules pointing at the original author's repos. They are now vendored (copied unchanged) under `tools/SingleApplication` and `tools/UGlobalHotkey`, so a plain clone builds with no `git submodule` step. Each directory has a `VENDORED.md` with its origin and pinned commit. The reasoning is in `docs/decisions.md`.
