@@ -66,7 +66,7 @@ make -j"$(nproc)"
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` runs on every push and pull request, with two jobs:
+`.github/workflows/ci.yml` runs on every pull request and every push to `master`, with two jobs:
 
 - **linux** (`ubuntu-latest`): installs the packages above, builds, then runs the *Linux smoke*. It writes a `config.ini` next to the binary (portable mode, so no user settings are touched) with `file/format`, `file/enabled` and `file/target` set so the first-run options dialog is skipped, `options/tray=false` so no system tray is needed, and `options/disableUpdater=true` so the run makes no network calls. Under `xvfb-run -a` it starts `./lightscreen`, waits two seconds, runs `./lightscreen --quit` (SingleApplication forwards it to the running instance), and fails unless the first process exits with status 0 within ten seconds.
 - **windows** (`windows-latest`): Qt 5.15.2 `win64_msvc2019_64` from `jurplel/install-qt-action` (cached), MSVC x64 from `ilammy/msvc-dev-cmd`, `qmake CONFIG+=release` and `nmake`, then `windeployqt --release --no-translations`. The deploy folder is uploaded as the `lightscreen-win64` artifact on the run's page; unzip it and run `lightscreen.exe`.
