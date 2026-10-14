@@ -112,7 +112,7 @@ Upstream's unmerged Linux build fixes (#40, #44) need no entry: `#undef Success`
 
 ## Found by the Stage 4 screenshot naming tests
 
-Recorded as current behaviour in `tests/tst_screenshot`; the test names below are the assertions a fix flips. Not yet triaged into the Stage 5 table.
+Recorded as current behaviour in `tests/tst_screenshot`; the test names below are the assertions a fix flips. Bugs 15 to 29 are triaged in `docs/modernization-plan.md`, section 7 (2026-10-14).
 
 ### 15. Collision naming can pick an existing file, which is then overwritten
 
@@ -120,6 +120,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **What happens:** for each file containing the name, it removes *every* occurrence of the name, `" ("` and `")"`, then parses what is left. With the name `2` and `2.png`, `2 (1).png`, `2 (2).png` on disk, `2 (2).png` reads as 0 (its `2` inside the suffix is removed too), the maximum is 1, and it returns `2 (2)`. `save()` does not check again and writes over `2 (2).png`. Any name containing digits can hit this (Numeric naming produces such names with `replace` off whenever a file already has the next number).
 - **Fix:** parse only an exact `<name> (<n>)<extension>` pattern, or loop until the candidate does not exist.
 - **Platform:** any. **Test:** `tst_screenshot::uniqueName_returnsExistingName` (confirmed).
+- **Triage:** fix now (Stage 5 session C, with 17); priority: data loss.
 - **Status:** fixed in Stage 5 (2026-10-14), with 17. `uniqueName` counts only files named exactly `<name> (<n>)<extension>` and then counts up until `<name> (<n>)<extension>` does not exist. Tests: `uniqueName_returnsExistingName` (now `2 (3)`), `uniqueName_skipsExistingCandidate`.
 
 ### 16. A failed save emits `finished` twice and still writes a history row
@@ -128,6 +129,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **What happens:** `if (!mOptions.result) emit finished();` fires for `Failure`, and the branch below then emits `finished` again (after `saveHistory` when file saving is on). `ScreenshotManager::finished` runs twice for one screenshot (`removeOne`, `activeCountChange` and `deleteLater` twice), and the history gets a row for a file that was never written. Same double `finished` when neither file nor clipboard is on.
 - **Fix:** return after the failure `finished`, or emit it once at the end; skip `saveHistory` on failure.
 - **Platform:** any. **Test:** `tst_screenshot::save_failure`, `tst_screenshot::save_neither` (confirmed).
+- **Triage:** fix now (Stage 5 session D, with 18), after the bug 10 PR merges.
 
 ### 17. Collision suffix counts any file that contains the name (lower severity)
 
@@ -135,6 +137,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **What happens:** `file.contains(name)` matches longer names, so `screenshot1` next to `screenshot12.png` becomes `screenshot1 (3)`, and `shot (1) (1).png` becomes `shot (12)`. Odd numbers, no data loss on its own (see 15 for the case that loses data).
 - **Fix:** the same pattern match as 15.
 - **Platform:** any. **Test:** `tst_screenshot::uniqueName_prefixMatch`, `tst_screenshot::uniqueName_nestedSuffix`.
+- **Triage:** fix now, with 15 (session C).
 - **Status:** fixed in Stage 5 (2026-10-14), with 15: the exact pattern match ignores longer names and nested suffixes (`screenshot1 (1)`, `shot (1)`).
 
 ### 18. Temporary `.screenshot.` file kept when file and clipboard are both on (lower severity)
@@ -143,6 +146,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **What happens:** with the clipboard on, `save()` reloads the unloaded pixmap from the temp file and clears `mUnloaded`, so the file branch saves the pixmap again (a second encode) instead of renaming. The hidden `.screenshot.<n><ext>` file stays in the screenshot folder until the `Screenshot` is destroyed; a crash in between leaves it behind.
 - **Fix:** keep the rename path when the pixmap was unloaded, reloading only for the clipboard.
 - **Platform:** any. **Test:** `tst_screenshot::confirm_true_afterUnload_withClipboard`.
+- **Triage:** fix now, with 16 (session D).
 
 ## Found by the Stage 4 settings tests
 
@@ -152,6 +156,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **What happens:** `Screenshot::Format` has a fourth value, WEBP (3), which the main window accepts. `QComboBox::setCurrentIndex(3)` on a three-item box leaves no current item, so opening the options and saving them writes `file/format=-1`. The window then passes format `-1` to `Screenshot`, which is the out-of-range case of bug 2 (inferred from the code, not exercised).
 - **Fix:** add WEBP to the combo box, and clamp or keep unknown indexes on load instead of saving `-1`.
 - **Platform:** any. **Test:** `tst_settings::dialogOutOfRangeIndexes` asserts the current `-1`; it flips when this is fixed. Confirmed by the test.
+- **Triage:** fix now (session E), unless the bug 2 PR already covers it.
 - **Since the bug 2 fix:** the saved `-1` is read back as PNG, so there is no undefined behaviour any more, but a WEBP choice still silently becomes PNG. The dialog part stays open.
 
 ### 20. PNG screenshots ignore the quality setting
@@ -160,6 +165,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **What happens:** for PNG it replaces `options/quality` with 80 before saving. For PNG, Qt maps the quality value to zlib compression (lossless), so the effect is a fixed compression level, not lower image quality. The options dialog greys out the quality slider for PNG, so this matches the UI; it is listed so the behaviour is a decision, not an accident.
 - **Fix:** none needed unless PNG compression should become configurable; S05 (PNG optimization) is the natural place to decide.
 - **Platform:** any. **Test:** `tst_settings::windowPngQualityIsForced` (Linux, under Xvfb). Confirmed by the test.
+- **Triage:** no change; revisit only if S05 makes PNG compression configurable.
 
 ## Found while writing the Stage 4 uploader tests
 
@@ -169,6 +175,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **What happens:** `upload()` does not check the factory result: the `connect` calls warn, then `uploader->upload(fileName)` dereferences the null pointer and the app crashes. Nothing passes an unknown name today (`Uploader::serviceName` maps every index to `imgur` or `pomf`, and the history dialog's key from bug 14 is never written, so it gets the `"imgur"` default), but M12 and S03 rename the services and must keep `serviceName`, `factory` and the history dialog call in step.
 - **Fix:** return early with `error` and `done(file, "", "")` when `factory` returns `nullptr`.
 - **Platform:** any. **Test:** headless, `upload(file, "unknown")`; not in `tests/tst_uploader` today because it would crash the test. Confirmed from the code.
+- **Triage:** deferred to M12 (factory falls back instead of returning `nullptr`); S03 keeps it. Both done-checks carry the test.
 
 ### 22. Cancelling an upload reports an error
 
@@ -176,6 +183,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **What happens:** `Uploader::cancel` makes each pomf uploader abort its reply. An aborted reply finishes with `OperationCanceledError` and an empty body, which the handler reports as `NetworkError` "Error reaching uploader" instead of `CancelError`. `Uploader` only suppresses `CancelError`, so every cancelled upload emits `error("Error reaching uploader")` then `done(file, "", "")`, and the main window shows an upload error after the user cancelled.
 - **Fix:** in the pomf (or S03 custom) uploader, map `OperationCanceledError` to `CancelError`.
 - **Platform:** any. **Test:** recorded by `tst_Uploader::cancel` (with a stub reply whose `abort()` behaves like Qt's HTTP reply); the fix flips that assertion. Not reproduced in the running app.
+- **Triage:** deferred to S03 (the uploader rewrite); its done-check flips `tst_Uploader::cancel`.
 
 ## Found while writing the Stage 4 area dialog tests
 
@@ -185,6 +193,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **What happens:** the selection's left, top, width and height are each multiplied by the pixmap's device pixel ratio and truncated to `int`. At 150%, the selection (3, 5) 7x9 becomes (4, 7) 10x13 instead of covering device pixels 4.5 to 15 and 7.5 to 21, so the saved image can be a pixel narrower or shorter than what was selected, and the far edge is off by up to one pixel. Integer ratios (100%, 200%) are exact. Related to bug 12; S04 replaces this mapping.
 - **Fix:** map the corners (`QRectF` scaled, then `toAlignedRect()` or rounded corners) instead of truncating origin and size separately.
 - **Platform:** Windows (or X11 with `QT_SCALE_FACTOR`) at 125%, 150% or 175%. **Test:** `tst_AreaDialog::resultRect` rows "ratio 1.5 truncates" and "ratio 1.25 truncates" record the current values. Confirmed by the test; not reproduced in the running app.
+- **Triage:** deferred to S04 (replaces the mapping); its done-check flips the fractional rows.
 
 ### 24. Typed area size ignores an upper-case X
 
@@ -192,6 +201,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **What happens:** `keyPressEvent` lets the X key through whatever its text, so Shift+X or Caps Lock adds `X` to the typed size, but `keyboardResize` only splits on a lower-case `x`. Typing `100X100` and Enter shows the text on screen, then silently does nothing. The "only one x" check is case-sensitive too, so `1X2x3` can be typed.
 - **Fix:** append a lower-case `x` for the X key (or split case-insensitively).
 - **Platform:** any. **Test:** `tst_AreaDialog::typing_upperCaseX` and the "upper case X" row of `keyboardResize` record it. Confirmed by the test.
+- **Triage:** fix now (session F).
 
 ## Found by the Stage 4 os helpers tests
 
@@ -201,6 +211,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **What happens:** it opens `~/.config/autostart/lightscreen.desktop` for writing without creating the directory or checking the result. On an account where the directory does not exist yet (common on a fresh install or a minimal desktop), the open fails, the write only logs `QIODevice::write ... device not open`, and the option is silently not applied. The file it does write also has no `Name=` key, which the Desktop Entry spec requires, and an unquoted `Exec` path, which breaks for a path with spaces.
 - **Fix:** `QDir().mkpath` the autostart directory, check `open()`, add `Name=Lightscreen`, quote the executable path.
 - **Platform:** Linux. **Test:** `tst_Os::startupWithoutAutostartDir` asserts that nothing is written (expected to change). Confirmed by the test.
+- **Triage:** fix now (session G).
 
 ## Found while writing the Stage 4 hotkey widget tests
 
@@ -210,6 +221,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **What happens:** when the hotkey button gets focus with Tab, it sets `mKeyboardFocus` and `keyPressEvent` then returns early for every key. Space and Enter never reach `QPushButton`, so the button cannot be pressed, and no other key is recorded: only a mouse click (any non-Tab focus) starts hotkey entry. Keyboard-only users cannot change a hotkey. The flag also stays set after focus leaves, until the next non-Tab focus.
 - **Fix:** let Space and Enter through when `mKeyboardFocus` is set, and have them start hotkey entry (the same as a click: "Type your hotkey" and `grabKeyboard`).
 - **Platform:** any. **Test:** `tst_HotkeyWidget::tabFocusIgnoresKeys` asserts that Space and Enter do nothing; the fix flips that assertion. Confirmed by the test; not tried in the running app.
+- **Triage:** fix now (session H).
 
 ## Found by the Stage 4 main window tests
 
@@ -219,6 +231,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **What happens:** with the tray icon disabled, any upload error (no pomf URL, unreadable file, network or host error, and every cancelled upload because of bug 22) dereferences the null tray icon and the app crashes. `cleanup` guards its own `notify` call with `options/tray && mTrayIcon`; `showUploaderError` does not.
 - **Fix:** check `mTrayIcon` in `notify` (the window title part still applies), or guard the call as `cleanup` does.
 - **Platform:** any. **Test:** confirmed under Xvfb by running `tst_mainwindow::uploadLastFlag` with `options/tray=false` (segfault in `QSystemTrayIcon::setIcon` from `notify`); the committed test turns the tray on so it can run, and can drop that line once this is fixed.
+- **Triage:** fix now (session A); priority: crash.
 
 ### 28. A second screenshot request during the delay takes the first one's mode, then a timer loops forever
 
@@ -226,6 +239,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **What happens:** every request waits at least 400 ms (plus `options/delay`), parked in the single field `mLastMode`. A second request while one is parked (two hotkeys in quick succession, or `lightscreen --screen --area`) takes the *parked* mode at once and clears `mLastMode`; its own mode is lost. When the first timer then fires it calls `screenshotAction(None)`, which parks `None` and re-arms itself every 400 ms for the life of the window. Each re-arm takes no screenshot but runs the pre-screenshot steps, so with "hide Lightscreen while taking a screenshot" on, the main window is hidden again right after the screenshot's cleanup showed it. `action(0)` starts the same loop. Later requests still work, handed over by the loop.
 - **Fix:** queue requests (or capture `mode` in the timer's lambda) instead of sharing `mLastMode`, and ignore `None`. S01/S02 restructure this code.
 - **Platform:** any. **Test:** `tst_mainwindow::twoScreenshotFlagsTakeOneScreenshot` and `tst_mainwindow::actionOutOfRange` record it (Linux, under Xvfb).
+- **Triage:** fix now (session B), after the bug 2 PR merges; priority: runaway timer.
 
 ### 29. `lightscreen --quit` with no instance running starts a hidden instance
 
@@ -233,6 +247,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **What happens:** when no instance is running, `--quit` calls `QCoreApplication::quit()` before the event loop exists. That only sets Qt's quit flag, which `exec()` resets when it starts, so the app keeps running. Because there was an argument, `main` does not show the window either: the result is a running, hidden Lightscreen (in the tray if the tray is on). With an instance running, SingleApplication forwards `--quit` and it works (the CI smoke). Separately, `--quit` bypasses `LightscreenWindow::quit`: no "are you sure" while screenshots are processing or uploading, no saved window position, no `finished` signal.
 - **Fix:** have the primary instance exit when its own arguments contain `--quit` (for example queue the quit with `QTimer::singleShot(0, ...)`, or return from `main` early), and route `--quit` through `LightscreenWindow::quit` if the confirmation is wanted.
 - **Platform:** any. **Test:** reproduced in the cloud container (Linux, Xvfb, portable `config.ini`): `timeout 8 xvfb-run -a ./lightscreen --quit` is still running when the timeout kills it. `tst_mainwindow::quitFlagQuitsTheApplication` records the bypass of `LightscreenWindow::quit` for an instance whose event loop runs.
+- **Triage:** fix now (session I).
 
 ## Still to add
 
