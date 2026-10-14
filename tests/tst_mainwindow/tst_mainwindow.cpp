@@ -56,7 +56,7 @@ private slots:
     void defaultArgumentMeansWake_data();
     void defaultArgumentMeansWake();
     void programPathIsSkippedAmongOtherArguments();
-    void twoScreenshotFlagsTakeOneScreenshot();
+    void twoScreenshotFlagsTakeTwoScreenshots();
     void hotkeyIdsFollowDocumentedOrder();
     void disabledHotkeysKeepTheirIds();
     void hotkeyIdsReachActions_data();
@@ -86,6 +86,7 @@ private:
     QTimer mDismisser;
 
     QList<int> mModes;          // Screenshot::Options::mode of every screenshot the manager finished
+    QList<bool> mVisibleAtCleanup; // whether the window was visible when each of those screenshots finished
     QStringList mDialogs;       // class name of every dialog the dismisser closed, in order
     QList<QUrl> mOpenedUrls;    // every file:// URL handed to QDesktopServices::openUrl
     QString mMessageBoxText;    // text of the last QMessageBox, which the dismisser answers with "Disable"
@@ -148,6 +149,7 @@ void tst_MainWindow::init()
 
     connect(mManager.data(), &ScreenshotManager::windowCleanup, this, [this](const Screenshot::Options &options) {
         mModes << options.mode;
+        mVisibleAtCleanup << (mWindow && mWindow->isVisible());
     });
 
     // Enough for the window to start quietly (no first-run options dialog, no tray, no update check) and for a
@@ -160,6 +162,7 @@ void tst_MainWindow::init()
     mSettings->setValue("options/disableUpdater", true);
 
     mModes.clear();
+    mVisibleAtCleanup.clear();
     mDialogs.clear();
     mOpenedUrls.clear();
     mMessageBoxText.clear();
@@ -415,11 +418,10 @@ void tst_MainWindow::programPathIsSkippedAmongOtherArguments()
     QVERIFY(!mWindow->isVisible());
 }
 
-// Current behaviour, recorded as a bug (docs/known-bugs.md): screenshotAction keeps a pending request in a single
-// mLastMode field. A second request while the first waits out its 400 ms delay takes the *first* request's mode at
-// once, the second mode is lost, and when the first timer fires with mLastMode reset to None it re-arms itself
-// forever. With "hide while taking a screenshot" on, every re-arm hides the window again.
-void tst_MainWindow::twoScreenshotFlagsTakeOneScreenshot()
+// Bug 28 (docs/known-bugs.md): a second request while the first waits out its delay is taken with its own mode, after
+// its own delay. With "hide while taking a screenshot" on, the window stays hidden until the last pending screenshot
+// is finished, then comes back and stays visible (no timer left re-arming itself).
+void tst_MainWindow::twoScreenshotFlagsTakeTwoScreenshots()
 {
     mSettings->setValue("options/hide", true);
     startWindow();
@@ -428,20 +430,26 @@ void tst_MainWindow::twoScreenshotFlagsTakeOneScreenshot()
 
     mWindow->executeArguments(QStringList() << "--screen" << "--area");
 
-    // The second flag took the first flag's mode synchronously; cleanup showed the window again.
-    COMPARE_LIST(mModes, QList<int>() << int(Screenshot::WholeScreen));
-    QVERIFY(mWindow->isVisible());
-
-    // The first timer then fires with mode None: nothing is taken, the window is hidden, and it stays that way.
-    QTest::qWait(1500);
-    COMPARE_LIST(mModes, QList<int>() << int(Screenshot::WholeScreen));
-    QVERIFY(mDialogs.isEmpty());
+    // Nothing is taken before the delay.
+    QVERIFY(mModes.isEmpty());
     QVERIFY(!mWindow->isVisible());
 
-    // A later request still works (the loop hands it over), it just lands on the loop's schedule.
-    mWindow->executeArgument("--screen");
+    // The area selector is rejected by the dismisser, so the second one ends as a cancelled screenshot.
     QVERIFY(waitForModes(2));
-    COMPARE_LIST(mModes, QList<int>() << int(Screenshot::WholeScreen) << int(Screenshot::WholeScreen));
+    COMPARE_LIST(mModes, QList<int>() << int(Screenshot::WholeScreen) << int(Screenshot::SelectedArea));
+    COMPARE_LIST(mVisibleAtCleanup, QList<bool>() << false << false);
+    COMPARE_LIST(mDialogs, QStringList("AreaDialog"));
+    QVERIFY(mWindow->isVisible());
+
+    QTest::qWait(1500);
+    QCOMPARE(mModes.size(), 2);
+    QVERIFY(mWindow->isVisible());
+
+    // A later request is taken normally.
+    mWindow->executeArgument("--screen");
+    QVERIFY(waitForModes(3));
+    QCOMPARE(mModes.last(), int(Screenshot::WholeScreen));
+    QVERIFY(mWindow->isVisible());
 }
 
 #ifdef Q_OS_LINUX
@@ -586,12 +594,14 @@ void tst_MainWindow::hotkeyIdsReachActions()
     QCOMPARE(mOpenedUrls.size(), folder ? 1 : 0);
 }
 
-// action() outside 1-6: 7 and above only warn; 0 (Screenshot::None) passes the "mode <= SelectedWindow" check and
-// starts screenshotAction(None), which never takes anything (its delay timer re-arms itself, see
-// twoScreenshotFlagsTakeOneScreenshot).
+// action() outside 1-6: 7 and above only warn; 0 (Screenshot::None) does nothing (bug 28: it used to start a delay
+// timer that re-armed itself forever, hiding the window when "hide while taking a screenshot" is on).
 void tst_MainWindow::actionOutOfRange()
 {
+    mSettings->setValue("options/hide", true);
     startWindow();
+    mWindow->show();
+    QVERIFY(QTest::qWaitForWindowExposed(mWindow.data()));
 
     QTest::ignoreMessage(QtWarningMsg, "Unknown hotkey ID:  7");
     mWindow->action(7);
@@ -600,7 +610,7 @@ void tst_MainWindow::actionOutOfRange()
     QTest::qWait(1000);
 
     QVERIFY(mModes.isEmpty());
-    QVERIFY(!mWindow->isVisible());
+    QVERIFY(mWindow->isVisible());
     QVERIFY(mOpenedUrls.isEmpty());
 }
 
