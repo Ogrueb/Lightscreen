@@ -2,7 +2,7 @@
 
 Technical description of each known bug, for Stage 5 (one session per bug marked "fix now"). Line references are to `master` after PR #3. Each entry says where the bug is, how it shows, how to reproduce it, and which platform can reproduce it, since cloud threads can only run Linux.
 
-Draft status: first draft, 2026-10-14. Bugs 1-3 are confirmed from the code; 4-8 are inferred from the code and still need a reproduction; 9-10 were reported by the owner on 2026-10-14. Upstream's GitHub issue tracker is disabled, so there is no issue list to mine; bugs 11-12 come from the upstream pull requests (`docs/upstream-prs.md`), and 9-10 from the owner.
+Draft status: second draft, 2026-10-14. Bugs 1-3 are confirmed from the code; 4-8 are inferred from the code and still need a reproduction; 9-10 were reported by the owner on 2026-10-14; 13-14 were found while writing the Stage 3 plan. The Stage 5 triage (fix now or defer, and where) is in `docs/modernization-plan.md`, section 7. Upstream's GitHub issue tracker is disabled, so there is no issue list to mine; bugs 11-12 come from the upstream pull requests (`docs/upstream-prs.md`), and 9-10 from the owner.
 
 ## Confirmed from the code
 
@@ -91,6 +91,22 @@ Upstream's unmerged Linux build fixes (#40, #44) need no entry: `#undef Success`
 - **Where:** `dialogs/areadialog.cpp` (painting at `:488`, `resultRect()` at `:101-108`).
 - **What happens:** upstream PR #35 (merged in 2016) fixed the area dialog showing the screenshot magnified by the device pixel ratio. The dialog has been reworked since, and `resultRect()` now scales the selection by the pixmap's single device pixel ratio. On mixed-DPI setups that combines with bug 4, and the selection may not match what ends up in the file. Inferred, needs reproduction.
 - **Platform:** Windows with scaling above 100%, especially mixed. **Test:** by hand; select a known region and compare pixel sizes.
+
+## Found while writing the Stage 3 plan
+
+### 13. `updateHistory` never updates, it inserts
+
+- **Where:** `tools/screenshotmanager.cpp:117-137`, `ScreenshotManager::updateHistory`.
+- **What happens:** the lookup is `SELECT fileName FROM history WHERE URL IS NOT EMPTY AND fileName = ?`. `EMPTY` is not SQLite syntax, so `prepare` fails, `query.record().count()` is 0, and the function falls through to `saveHistory`, which inserts a second row for the file instead of filling in its URL. Visible as duplicate rows in the history dialog after uploading a screenshot that was already recorded.
+- **Fix:** `WHERE fileName = ?` (and decide whether an existing URL should be overwritten), then test `exec()` and `next()` instead of `record().count()`.
+- **Platform:** any. **Test:** headless, save a file then upload it, expect one row with the URL. Inferred from the code; the Stage 4 history test will show it. Triage: fix now (Stage 5).
+
+### 14. Uploads from the history dialog ignore the chosen service
+
+- **Where:** `dialogs/historydialog.cpp:170`, `HistoryDialog::upload`.
+- **What happens:** it reads `options/upload/service` (default `"imgur"`) and passes the raw value as the service name. Every other site reads `upload/service` as an index and maps it through `Uploader::serviceName`. So an upload started from the history dialog always goes to the default service, whatever the options say.
+- **Fix:** read `upload/service` and map it through `Uploader::serviceName`.
+- **Platform:** any. **Test:** headless with a stub network manager. Triage: fixed in plan step M12 (one line), not a Stage 5 session.
 
 ## Still to add
 
