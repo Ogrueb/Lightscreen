@@ -359,7 +359,9 @@ void LightscreenWindow::executeArgument(const QString &message)
     } else if (message == "--options") {
         showOptions();
     } else if (message == "--quit") {
-        qApp->quit();
+        // Queued, so that it also works before the event loop starts (main runs our own arguments before exec,
+        // which would reset an immediate quit; bug 29).
+        QTimer::singleShot(0, qApp, &QCoreApplication::quit);
     }
 }
 
