@@ -559,7 +559,7 @@ private slots:
         QCOMPARE(historyRows(expected), 1);
     }
 
-    // Quirk: with neither file nor clipboard the result is Failure and finished is emitted twice.
+    // With neither file nor clipboard the result is Failure and finished is emitted once (bug 16).
     void save_neither()
     {
         QTemporaryDir dir;
@@ -571,10 +571,10 @@ private slots:
 
         QCOMPARE(screenshot.options().result, Screenshot::Failure);
         QCOMPARE(screenshot.options().fileName, QString());
-        QCOMPARE(log, QStringList() << "finished" << "finished");
+        QCOMPARE(log, QStringList() << "finished");
     }
 
-    // Quirk: a failed file save emits finished twice and still writes a history row for the file.
+    // A failed file save emits finished once and writes no history row (bug 16).
     void save_failure()
     {
         QTemporaryDir dir;
@@ -592,8 +592,8 @@ private slots:
         const QString expected = native(dir.filePath("shot.png"));
         QCOMPARE(screenshot.options().result, Screenshot::Failure);
         QCOMPARE(screenshot.options().fileName, expected);
-        QCOMPARE(log, QStringList() << "finished" << "finished");
-        QCOMPARE(historyRows(expected), 1);
+        QCOMPARE(log, QStringList() << "finished");
+        QCOMPARE(historyRows(expected), 0);
     }
 
     void save_replaceOff()
@@ -822,8 +822,8 @@ private slots:
         QCOMPARE(historyRows(expected), 1);
     }
 
-    // Quirk: with the clipboard on as well, save() reloads the pixmap from the temp file for the clipboard and then
-    // saves it again under the final name instead of renaming, so the temp file stays until the destructor.
+    // With the clipboard on as well, the clipboard gets the pixmap reloaded from the temp file and the file is still
+    // renamed into place, so no temp file is left behind (bug 18).
     void confirm_true_afterUnload_withClipboard()
     {
         QTemporaryDir dir;
@@ -846,10 +846,10 @@ private slots:
         QCOMPARE(QImageReader(expected).size(), QSize(64, 48));
         QCOMPARE(QApplication::clipboard()->pixmap().size(), QSize(64, 48));
         QCOMPARE(log, QStringList() << "askConfirmation" << "finished" << "cleanup");
-        QVERIFY(QFile::exists(temp));
+        QVERIFY(!QFile::exists(temp));
+        QCOMPARE(historyRows(expected), 1);
 
         delete screenshot;
-        QVERIFY(!QFile::exists(temp));
     }
 
     // confirm(false): result Cancel, finished then cleanup, nothing saved. The temp file stays until the destructor.

@@ -261,12 +261,8 @@ void Screenshot::save()
     }
 
     if (mOptions.clipboard && !(mOptions.upload && mOptions.urlClipboard)) {
-        if (mUnloaded) {
-            mUnloaded = false;
-            mPixmap = QPixmap(mUnloadFilename);
-        }
-
-        QApplication::clipboard()->setPixmap(mPixmap, QClipboard::Clipboard);
+        // An unloaded pixmap is reloaded for the clipboard only, so the file branch below still renames the temp file.
+        QApplication::clipboard()->setPixmap(mUnloaded ? QPixmap(mUnloadFilename) : mPixmap, QClipboard::Clipboard);
 
         if (!mOptions.file) {
             result = Screenshot::Success;
@@ -290,8 +286,14 @@ void Screenshot::save()
     mOptions.fileName = fileName;
     mOptions.result   = result;
 
-    if (!mOptions.result) {
+    if (mOptions.result == Screenshot::Failure) {
         emit finished();
+
+        // A failed save, or nothing to do, ends here: no history row, no optimize or upload.
+        // Upload-only (no file, no clipboard image) also reports Failure and still uploads below.
+        if (mOptions.file || !mOptions.upload) {
+            return;
+        }
     }
 
     if (mOptions.format == Screenshot::PNG && mOptions.optimize && mOptions.file) {
