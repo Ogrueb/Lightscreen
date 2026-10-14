@@ -2,6 +2,12 @@
 
 What is done, what changed from the plan, and what is open. Newest first.
 
+## 2026-10-14: Stage 4 session 6, area dialog geometry tests
+
+- `tests/tst_areadialog` (59 cases, offscreen-safe; the dialog is never shown): `resultRect` at pixmap ratios 1, 2, 1.5 and 1.25, `keyboardResize` parsing (direct and typed through `keyPressEvent`), `limitPointToRect`, and the eight handle rectangles after `updateHandles`. A test subclass opens the protected members; the screenshot's pixmap is set through `pixmap()` to skip the confirmation path. No production code changed.
+- Current behaviour the tests record (not fixed): `resultRect` truncates each of left, top, width and height after scaling, so fractional ratios lose up to a pixel (now bug 23), and it does not normalize the selection; Shift+X adds an `X` that `keyboardResize` ignores (now bug 24); a typed size with no selection is placed at the dialog's top left; a size that would leave the dialog is dropped silently, while one that reaches the edges exactly is accepted; each typed digit is checked against the dialog's larger side (the whole number is not); handles sit on the selection shrunk by one pixel at the right and bottom, and for a selection smaller than 10 pixels the right and bottom handles land left of and above it; `limitPointToRect` clamps to the inclusive right/bottom edge and does not normalize an inverted rectangle.
+- Verified in the cloud container (Ubuntu 24.04, Qt 5.15.13): all test suites pass under `xvfb-run -a make check`, and `tst_areadialog` with `QT_QPA_PLATFORM=offscreen`. Windows through CI.
+
 ## 2026-10-14: Stage 4 session 4, uploader core tests
 
 - `tests/tst_uploader` (32 cases, offscreen-safe): `serviceName`, `factory`, `ImageUploader` settings round trip (static and per-instance), `Uploader::upload` to `done`, progress over two uploads, `cancel`, the error path, and the pomf request (`files[]` field, multipart body, `<pomf_url>/upload.php`) and response parsing as S03's baseline. Network is a `QNetworkAccessManager` subclass returning `CannedReply`; its `abort()` mirrors Qt's HTTP reply (error `OperationCanceledError`, `finished` emitted at once). No production code changed.
