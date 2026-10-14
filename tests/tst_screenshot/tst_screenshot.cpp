@@ -426,28 +426,27 @@ private slots:
         QCOMPARE(Screenshot::uniqueName(dir.filePath("shot"), ".png"), dir.filePath("shot (1)"));
     }
 
-    // Quirk: any file containing the name counts, so a longer numeric name raises the suffix.
+    // Bug 17: only "<name> (<n>)<extension>" counts, so a longer name sharing the prefix does not raise the suffix.
     void uniqueName_prefixMatch()
     {
         QTemporaryDir dir;
         touch(dir.path(), "screenshot1.png");
         touch(dir.path(), "screenshot12.png");
 
-        QCOMPARE(Screenshot::uniqueName(dir.filePath("screenshot1"), ".png"), dir.filePath("screenshot1 (3)"));
+        QCOMPARE(Screenshot::uniqueName(dir.filePath("screenshot1"), ".png"), dir.filePath("screenshot1 (1)"));
     }
 
-    // Quirk: every " (" and ")" is removed and the digits left over are joined.
+    // Bug 17: a nested suffix is not "<name> (<n>)", so it does not count.
     void uniqueName_nestedSuffix()
     {
         QTemporaryDir dir;
         touch(dir.path(), "shot.png");
         touch(dir.path(), "shot (1) (1).png");
 
-        QCOMPARE(Screenshot::uniqueName(dir.filePath("shot"), ".png"), dir.filePath("shot (12)"));
+        QCOMPARE(Screenshot::uniqueName(dir.filePath("shot"), ".png"), dir.filePath("shot (1)"));
     }
 
-    // Quirk: every occurrence of the name is removed, digits inside the suffix included. With the name "2",
-    // "2 (2).png" reads as 0, so the result names a file that already exists (save() would overwrite it).
+    // Bug 15: digits in the name no longer confuse the suffix parsing, and the result never names an existing file.
     void uniqueName_returnsExistingName()
     {
         QTemporaryDir dir;
@@ -456,8 +455,30 @@ private slots:
         touch(dir.path(), "2 (2).png");
 
         const QString name = Screenshot::uniqueName(dir.filePath("2"), ".png");
-        QCOMPARE(name, dir.filePath("2 (2)"));
-        QVERIFY(QFile::exists(name + ".png"));
+        QCOMPARE(name, dir.filePath("2 (3)"));
+        QVERIFY(!QFile::exists(name + ".png"));
+    }
+
+    // Bug 15: the candidate is checked against the disk, so something the pattern scan skips (here a directory
+    // named like the next file) is not overwritten either.
+    void uniqueName_skipsExistingCandidate()
+    {
+        QTemporaryDir dir;
+        touch(dir.path(), "shot.png");
+        QVERIFY(QDir(dir.path()).mkdir("shot (1).png"));
+
+        QCOMPARE(Screenshot::uniqueName(dir.filePath("shot"), ".png"), dir.filePath("shot (2)"));
+    }
+
+    // Regular-expression characters in the name are taken literally.
+    void uniqueName_specialCharacters()
+    {
+        QTemporaryDir dir;
+        touch(dir.path(), "a+b.png");
+        touch(dir.path(), "a+b (2).png");
+        touch(dir.path(), "aab (7).png");
+
+        QCOMPARE(Screenshot::uniqueName(dir.filePath("a+b"), ".png"), dir.filePath("a+b (3)"));
     }
 
     // Files in other directories are not looked at.
