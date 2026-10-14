@@ -2,6 +2,12 @@
 
 Decisions, their reasons and the alternatives rejected. Newest first.
 
+## 2026-10-14 (Stage 4, settings): how the settings round-trip test records the contract
+
+- **Golden lists are plain `key=value` files next to the test** (`tests/tst_settings/defaults.golden`, `roundtrip.golden`), read back from the INI file the dialog wrote, with machine paths replaced by `<documents>`, `<tmp>`, `<cwd>`. Platform differences are `linux:`/`windows:` lines that replace the common line. `LIGHTSCREEN_PRINT_GOLDEN=1` prints the actual list, so a step that changes a default (M12, M13, M16, S03, S06) regenerates and reviews the diff. *Rejected:* expected values inline in C++ (harder to diff in review); one golden file per platform (the two would drift).
+- **The `LightscreenWindow` tests are skipped on Windows,** not run offscreen. The window's `applySettings` calls `os::setStartup`, which on Windows writes the real `HKCU\...\Run` key and would remove the owner's autostart entry when the tests run on their checkout. On Linux the test points `HOME` at a temporary directory instead, which covers the equivalent `~/.config/autostart` file. *Rejected:* a seam for `os::setStartup` (a production change in a tests-only session).
+- **What `screenshotAction` reads is observed without a seam:** the test calls it with mode 5 (not a `Screenshot::Mode` enumerator), so `Screenshot::take()` captures nothing and cancels, and `ScreenshotManager::windowCleanup` still carries the options. *Rejected:* a real capture under Xvfb (writes files and the clipboard, slower, and depends on the X server).
+
 ## 2026-10-14 (Stage 4, screenshot naming): bug 2 is recorded as a skipped assertion
 
 - **`extensionFor` with an out-of-range format is not called.** The plan asks to record its current behaviour, but today it falls off the end of a non-void function (undefined behaviour), so there is no behaviour to record and calling it could crash the test run. `tst_screenshot::extensionFor_outOfRange` holds the intended assertion (`.png`) behind a `QSKIP`; the Stage 5 fix deletes the `QSKIP` line. *Rejected:* calling it and asserting whatever GCC and MSVC happen to return (undefined, and could differ between runs or compilers).

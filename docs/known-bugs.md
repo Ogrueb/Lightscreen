@@ -140,6 +140,22 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **Fix:** keep the rename path when the pixmap was unloaded, reloading only for the clipboard.
 - **Platform:** any. **Test:** `tst_screenshot::confirm_true_afterUnload_withClipboard`.
 
+## Found by the Stage 4 settings tests
+
+### 19. WEBP (and any out-of-range index) is lost when the options dialog is saved
+
+- **Where:** `dialogs/optionsdialog.cpp:180` loads `file/format` into `formatComboBox`, which lists only PNG, JPG and BMP; `:332` saves `currentIndex()` back. The same load/save pattern applies to `file/naming`, `options/previewPosition` and `upload/service`.
+- **What happens:** `Screenshot::Format` has a fourth value, WEBP (3), which the main window accepts. `QComboBox::setCurrentIndex(3)` on a three-item box leaves no current item, so opening the options and saving them writes `file/format=-1`. The window then passes format `-1` to `Screenshot`, which is the out-of-range case of bug 2 (inferred from the code, not exercised).
+- **Fix:** add WEBP to the combo box, and clamp or keep unknown indexes on load instead of saving `-1`.
+- **Platform:** any. **Test:** `tst_settings::dialogOutOfRangeIndexes` asserts the current `-1`; it flips when this is fixed. Confirmed by the test.
+
+### 20. PNG screenshots ignore the quality setting
+
+- **Where:** `tools/screenshot.cpp:57-58`, the `Screenshot` constructor.
+- **What happens:** for PNG it replaces `options/quality` with 80 before saving. For PNG, Qt maps the quality value to zlib compression (lossless), so the effect is a fixed compression level, not lower image quality. The options dialog greys out the quality slider for PNG, so this matches the UI; it is listed so the behaviour is a decision, not an accident.
+- **Fix:** none needed unless PNG compression should become configurable; S05 (PNG optimization) is the natural place to decide.
+- **Platform:** any. **Test:** `tst_settings::windowPngQualityIsForced` (Linux, under Xvfb). Confirmed by the test.
+
 ## Still to add
 
 - Bugs the owner has hit on their own machine.
