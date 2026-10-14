@@ -2,7 +2,7 @@
 
 Technical description of each known bug, for Stage 5 (one session per bug marked "fix now"). Line references are to `master` after PR #3. Each entry says where the bug is, how it shows, how to reproduce it, and which platform can reproduce it, since cloud threads can only run Linux.
 
-Draft status: first draft, 2026-10-14. Bugs 1-3 are confirmed from the code; 4-8 are inferred from the code and still need a reproduction; 9-10 were reported by the owner on 2026-10-14. Upstream's GitHub issue tracker is disabled, so there is no issue list to mine; the unmerged upstream PRs (see `docs/upstream-prs.md` once it lands) and the owner's own reports are the other sources, still to be added.
+Draft status: first draft, 2026-10-14. Bugs 1-3 are confirmed from the code; 4-8 are inferred from the code and still need a reproduction; 9-10 were reported by the owner on 2026-10-14. Upstream's GitHub issue tracker is disabled, so there is no issue list to mine; bugs 11-12 come from the upstream pull requests (`docs/upstream-prs.md`), and 9-10 from the owner.
 
 ## Confirmed from the code
 
@@ -34,6 +34,7 @@ Draft status: first draft, 2026-10-14. Bugs 1-3 are confirmed from the code; 4-8
 - **Where:** `tools/screenshot.cpp:405-437`, `grabDesktop()`.
 - **What happens:** the united geometry of all screens is grabbed through `primaryScreen()->grabWindow(desktop()->winId(), ...)` and tagged with the primary screen's device pixel ratio. When monitors have different scale factors, the secondary monitor is captured at the wrong size or offset, and the cursor overlay lands in the wrong place. The cursor offset arithmetic (`cursorPosition.x() + screenRect.width()` for any screen with a negative left edge) only works when that screen sits exactly at `-width`.
 - **Platform:** Windows (Qt 5 with `AA_EnableHighDpiScaling`). **Test:** by hand on a two-monitor setup with different scaling.
+- **Upstream:** related to #38 and #35 (see bugs 11-12); test them in the same session.
 
 ### 5. Window capture margins on Windows 10/11
 
@@ -75,7 +76,22 @@ Draft status: first draft, 2026-10-14. Bugs 1-3 are confirmed from the code; 4-8
 - **Fix direction:** one worker queue (`QThreadPool` with one or two slots, or a serial `QProcess` chain) owned by `ScreenshotManager`; have `optipng` write to a temp file and rename over the original only on success (`-out` plus `QFile::rename`), so an interrupted run leaves the original intact; persist the pending list so a restart resumes it; show a count in the tray tooltip.
 - **Platform:** any (Linux CI can run `optipng`). **Test:** headless, with a stub executable in place of `optipng`.
 
+## From upstream pull requests
+
+Upstream's unmerged Linux build fixes (#40, #44) need no entry: `#undef Success` is already in `tools/screenshot.cpp:47`, and the fork builds on Linux. #37 (Print Screen hotkey registered as id 0) was merged upstream and is in the fork.
+
+### 11. "Current monitor" capture: re-test the monitor under the cursor
+
+- **Where:** `tools/screenshot.cpp:410-414`, `grabDesktop()` when `currentMonitor` is set.
+- **What happens:** upstream PR #38 reported that this option captured the primary monitor instead of the one under the cursor. The current code picks the screen via `qApp->desktop()->screenNumber(QCursor::pos())`, so the original report looks fixed. That is inferred, not reproduced. `QDesktopWidget` is removed in Qt 6, so the Qt 6 port will rewrite this path anyway (`QGuiApplication::screenAt`).
+- **Platform:** any multi-monitor setup. **Test:** by hand with the cursor on a non-primary monitor; after the port, a check that `screenAt` drives the choice.
+
+### 12. Area selection on HiDPI and mixed-DPI screens
+
+- **Where:** `dialogs/areadialog.cpp` (painting at `:488`, `resultRect()` at `:101-108`).
+- **What happens:** upstream PR #35 (merged in 2016) fixed the area dialog showing the screenshot magnified by the device pixel ratio. The dialog has been reworked since, and `resultRect()` now scales the selection by the pixmap's single device pixel ratio. On mixed-DPI setups that combines with bug 4, and the selection may not match what ends up in the file. Inferred, needs reproduction.
+- **Platform:** Windows with scaling above 100%, especially mixed. **Test:** by hand; select a known region and compare pixel sizes.
+
 ## Still to add
 
-- Anything the five unmerged upstream PRs describe (`docs/upstream-prs.md`): #40 Linux conflicting symbols, #44 build error, #38 active-monitor capture.
 - Bugs the owner has hit on their own machine.

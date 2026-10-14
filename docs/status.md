@@ -2,6 +2,11 @@
 
 What is done, what changed from the plan, and what is open. Newest first.
 
+## 2026-10-14: Upstream PRs recorded
+
+- The upstream issue tracker (`ckaiser/Lightscreen`) is disabled, so there are no upstream issues to draw on. The 10 upstream PRs are summarized in `docs/upstream-prs.md`. The Linux `Success` clash (#40) and the active-monitor capture bug (#38) are already fixed in the code. Multi-monitor and HiDPI capture (#38, #35) are worth re-testing.
+- Folded the upstream PR findings into `docs/known-bugs.md` (bugs 11 and 12, plus a note on bug 4). #40 and #44 need no entry, since the Linux build already works.
+
 ## 2026-10-14: goals.md and known-bugs.md drafted
 
 - `docs/goals.md`: purpose, the six-point definition of "resilient", platform and compatibility commitments, out-of-scope list. Decisions taken by the owner in the drafting thread: Qt 6, Windows 10 minimum, Linux X11 kept as a CI-tested target, update check moved to GitHub Releases. Recorded in `docs/decisions.md`. Only the fork's name is still open, and it is not needed before Stage 3.
