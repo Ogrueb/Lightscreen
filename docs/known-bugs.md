@@ -2,7 +2,7 @@
 
 Technical description of each known bug, for Stage 5 (one session per bug marked "fix now"). Line references are to `master` after PR #3. Each entry says where the bug is, how it shows, how to reproduce it, and which platform can reproduce it, since cloud threads can only run Linux.
 
-Draft status: second draft, 2026-10-14. Bugs 1-3 are confirmed from the code; 4-8 are inferred from the code and still need a reproduction; 9-10 were reported by the owner on 2026-10-14; 13-14 were found while writing the Stage 3 plan. The Stage 5 triage (fix now or defer, and where) is in `docs/modernization-plan.md`, section 7. Upstream's GitHub issue tracker is disabled, so there is no issue list to mine; bugs 11-12 come from the upstream pull requests (`docs/upstream-prs.md`), and 9-10 from the owner.
+Draft status: second draft, 2026-10-14. Bugs 1-3 are confirmed from the code; 4-8 are inferred from the code and still need a reproduction; 9-10 were reported by the owner on 2026-10-14; 13-14 were found while writing the Stage 3 plan; 15-18 by the Stage 4 screenshot naming tests; 19-20 by the Stage 4 settings tests; 21-22 while writing the Stage 4 uploader tests. The Stage 5 triage (fix now or defer, and where) is in `docs/modernization-plan.md`, section 7. Upstream's GitHub issue tracker is disabled, so there is no issue list to mine; bugs 11-12 come from the upstream pull requests (`docs/upstream-prs.md`), and 9-10 from the owner.
 
 ## Confirmed from the code
 
@@ -155,6 +155,22 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **What happens:** for PNG it replaces `options/quality` with 80 before saving. For PNG, Qt maps the quality value to zlib compression (lossless), so the effect is a fixed compression level, not lower image quality. The options dialog greys out the quality slider for PNG, so this matches the UI; it is listed so the behaviour is a decision, not an accident.
 - **Fix:** none needed unless PNG compression should become configurable; S05 (PNG optimization) is the natural place to decide.
 - **Platform:** any. **Test:** `tst_settings::windowPngQualityIsForced` (Linux, under Xvfb). Confirmed by the test.
+
+## Found while writing the Stage 4 uploader tests
+
+### 21. `Uploader::upload` crashes on an unknown service name
+
+- **Where:** `tools/uploader/uploader.cpp:93-128` (`Uploader::upload`); `ImageUploader::factory` (`tools/uploader/imageuploader.cpp:9-18`) returns `nullptr` for any name but `"imgur"` and `"pomf"`.
+- **What happens:** `upload()` does not check the factory result: the `connect` calls warn, then `uploader->upload(fileName)` dereferences the null pointer and the app crashes. Nothing passes an unknown name today (`Uploader::serviceName` maps every index to `imgur` or `pomf`, and the history dialog's key from bug 14 is never written, so it gets the `"imgur"` default), but M12 and S03 rename the services and must keep `serviceName`, `factory` and the history dialog call in step.
+- **Fix:** return early with `error` and `done(file, "", "")` when `factory` returns `nullptr`.
+- **Platform:** any. **Test:** headless, `upload(file, "unknown")`; not in `tests/tst_uploader` today because it would crash the test. Confirmed from the code.
+
+### 22. Cancelling an upload reports an error
+
+- **Where:** `tools/uploader/pomfuploader.cpp:84` (cancel aborts the reply) and `:94-99` (the `finished` handler).
+- **What happens:** `Uploader::cancel` makes each pomf uploader abort its reply. An aborted reply finishes with `OperationCanceledError` and an empty body, which the handler reports as `NetworkError` "Error reaching uploader" instead of `CancelError`. `Uploader` only suppresses `CancelError`, so every cancelled upload emits `error("Error reaching uploader")` then `done(file, "", "")`, and the main window shows an upload error after the user cancelled.
+- **Fix:** in the pomf (or S03 custom) uploader, map `OperationCanceledError` to `CancelError`.
+- **Platform:** any. **Test:** recorded by `tst_Uploader::cancel` (with a stub reply whose `abort()` behaves like Qt's HTTP reply); the fix flips that assertion. Not reproduced in the running app.
 
 ## Still to add
 
