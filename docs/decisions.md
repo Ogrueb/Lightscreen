@@ -2,6 +2,10 @@
 
 Decisions, their reasons and the alternatives rejected. Newest first.
 
+## 2026-10-14 (Stage 5, bug 1): `WM_GETICON` is sent with a timeout
+
+- **The window picker's last icon fallback uses `SendMessageTimeout(..., SMTO_ABORTIFHUNG, 100 ms)`,** not the plain `SendMessage` the triage table names. The picker asks on every mouse move, and a plain `SendMessage` to a hung window would freeze the picker until that window answers. A window that times out simply shows no icon. *Rejected:* plain `SendMessage` (can block indefinitely).
+
 ## 2026-10-14 (Stage 4, main window): observing `LightscreenWindow` without seams
 
 - **Screenshot modes are read from `ScreenshotManager::windowCleanup`,** which carries the `Screenshot::Options` of every finished screenshot. The test lets the real capture run under Xvfb with file and clipboard off, and a 20 ms timer rejects the area selector and closes the window picker, so those end as cancelled screenshots. *Rejected:* a `ScreenshotManager` subclass (`take` is not virtual) or reading the private `mLastMode` (would need `#define private public`).

@@ -2,6 +2,11 @@
 
 What is done, what changed from the plan, and what is open. Newest first.
 
+## 2026-10-14: Stage 5, bug 1 (window picker icon on 64-bit Windows)
+
+- `tools/windowpicker.cpp`: the icon is now read with `GetClassLongPtr(GCLP_HICON)`, falling back to `GCLP_HICONSM`, then to `WM_GETICON` with `ICON_BIG` (sent with `SendMessageTimeout`, 100 ms, abort if hung; why: `docs/decisions.md`). Windows-only code; Linux unchanged.
+- Verified: Windows build on CI and the `lightscreen-win64` artifact. Not verifiable headless; needs the owner's Windows QA (hover a few windows in the picker, including a modern app such as Settings or a browser, and see their icons).
+
 ## 2026-10-14: Stage 4 session 7, main window plumbing tests
 
 - `tests/tst_mainwindow` (16 test functions, 33 rows with data): every `executeArgument` flag reaches its slot (`--wake` shows the window; `--screen`, `--area`, `--activewindow`, `--pickwindow` reach `ScreenshotManager::take` with their mode; `--folder` opens `file/target`; `--uploadlast` uploads the `lastScreenshot` setting; `--viewhistory` and `--options` open their dialogs; `--quit` quits the event loop); the "one argument that is the program means `--wake`" branch; `connectHotkeys` ids 1 to 6 in the order screen, window, area, windowPicker, open, directory, with disabled actions keeping their ids; ids 1 to 6 reaching `action()`. No production code changed.
