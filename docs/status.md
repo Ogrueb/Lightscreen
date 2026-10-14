@@ -167,6 +167,11 @@ What is done, what changed from the plan, and what is open. Newest first.
 - Windows x64 release build works on VS 2022 + Qt 5.15.2 with no source changes; see `docs/build.md`.
 - Open from Stage 1: Linux build verification, CI for Windows and Linux, `docs/goals.md` and `docs/known-bugs.md` (by the owner).
 
+## 2026-10-14: Stage 5, bugs 15 and 17 (collision naming)
+
+- `Screenshot::uniqueName` now counts only files named exactly `<name> (<n>)<extension>` (name and extension matched literally) and takes one more than the largest `n`, as before; it then keeps counting up while the candidate exists, so `save()` with `replace` off can no longer overwrite a file. Bug 15 (data loss with digits in the name) and bug 17 (prefix and nested-suffix matching) are fixed; `docs/known-bugs.md` updated.
+- `tst_screenshot`: `uniqueName_prefixMatch`, `uniqueName_nestedSuffix` and `uniqueName_returnsExistingName` flipped to the correct results; new `uniqueName_skipsExistingCandidate` (the existence loop) and `uniqueName_specialCharacters` (regex characters in the name). Everything else in the suite is unchanged. Linux: all suites pass.
+
 ## 2026-10-14: Stage 5, bug 27 fixed (upload error with the tray icon off)
 
 - `LightscreenWindow::notify` no longer dereferences a null `mTrayIcon`: with `options/tray` off, an upload error (or a cancelled upload, bug 22) used to crash the app. The title and taskbar overlay are unchanged.
