@@ -36,6 +36,7 @@ private slots:
     void windowReadsEmptySettings();
     void windowReadsDialogDefaults();
     void windowCachesOptions();
+    void windowPngQualityIsForced();
 
 private:
     QStringList dump() const;
@@ -364,7 +365,8 @@ void tst_Settings::dialogRoundTrip()
     COMPARE_LINES(dump(), expected);
 }
 
-// Indexes the dialog's combo boxes cannot show. The format combo box has PNG, JPG and BMP only, so a WEBP setting
+// Indexes the dialog's combo boxes cannot show (known-bugs.md, bug 19). The format combo box has PNG, JPG and BMP
+// only, so a WEBP setting
 // (3, which Screenshot::Format and the window accept) does not survive opening and saving the options.
 void tst_Settings::dialogOutOfRangeIndexes()
 {
@@ -504,6 +506,31 @@ void tst_Settings::windowCachesOptions()
     mSettings->setValue("file/prefix", "after");
     QVERIFY(probeWindow(window, &options));
     QCOMPARE(options.prefix, QStringLiteral("before"));
+}
+
+// For PNG the Screenshot constructor replaces options/quality with 80 (known-bugs.md, bug 20). Other formats keep it.
+void tst_Settings::windowPngQualityIsForced()
+{
+    REQUIRE_WINDOW_PLATFORM();
+
+    mSettings->setValue("file/format", Screenshot::PNG);
+    mSettings->setValue("options/quality", 30);
+    mSettings->setValue("options/tray", false);
+    mSettings->setValue("options/disableUpdater", true);
+
+    {
+        LightscreenWindow window;
+        Screenshot::Options options;
+        QVERIFY(probeWindow(window, &options));
+        QCOMPARE(options.quality, 80);
+    }
+
+    mSettings->setValue("file/format", Screenshot::JPEG);
+
+    LightscreenWindow window;
+    Screenshot::Options options;
+    QVERIFY(probeWindow(window, &options));
+    QCOMPARE(options.quality, 30);
 }
 
 QTEST_MAIN(tst_Settings)
