@@ -197,6 +197,15 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **Fix:** `QDir().mkpath` the autostart directory, check `open()`, add `Name=Lightscreen`, quote the executable path.
 - **Platform:** Linux. **Test:** `tst_Os::startupWithoutAutostartDir` asserts that nothing is written (expected to change). Confirmed by the test.
 
+## Found while writing the Stage 4 hotkey widget tests
+
+### 26. A hotkey cannot be set from the keyboard
+
+- **Where:** `widgets/hotkeywidget.cpp:85-91` (`event`, `FocusIn`) and `:110-112` (`keyPressEvent`).
+- **What happens:** when the hotkey button gets focus with Tab, it sets `mKeyboardFocus` and `keyPressEvent` then returns early for every key. Space and Enter never reach `QPushButton`, so the button cannot be pressed, and no other key is recorded: only a mouse click (any non-Tab focus) starts hotkey entry. Keyboard-only users cannot change a hotkey. The flag also stays set after focus leaves, until the next non-Tab focus.
+- **Fix:** let Space and Enter through when `mKeyboardFocus` is set, and have them start hotkey entry (the same as a click: "Type your hotkey" and `grabKeyboard`).
+- **Platform:** any. **Test:** `tst_HotkeyWidget::tabFocusIgnoresKeys` asserts that Space and Enter do nothing; the fix flips that assertion. Confirmed by the test; not tried in the running app.
+
 ## Still to add
 
 - Bugs the owner has hit on their own machine.
