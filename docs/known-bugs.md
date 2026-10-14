@@ -250,6 +250,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **Fix:** have the primary instance exit when its own arguments contain `--quit` (for example queue the quit with `QTimer::singleShot(0, ...)`, or return from `main` early), and route `--quit` through `LightscreenWindow::quit` if the confirmation is wanted.
 - **Platform:** any. **Test:** reproduced in the cloud container (Linux, Xvfb, portable `config.ini`): `timeout 8 xvfb-run -a ./lightscreen --quit` is still running when the timeout kills it. `tst_mainwindow::quitFlagQuitsTheApplication` records the bypass of `LightscreenWindow::quit` for an instance whose event loop runs.
 - **Triage:** fix now (session I).
+- **Status:** fixed in Stage 5 (2026-10-14). `executeArgument("--quit")` queues `QCoreApplication::quit` with `QTimer::singleShot(0, ...)`, so a quit requested before `exec()` runs once the event loop starts; a forwarded `--quit` still quits the running instance. Tests: `tst_mainwindow::quitFlagBeforeEventLoopQuits`, and the CI Linux smoke now also runs `./lightscreen --quit` with no instance and fails unless it exits with status 0 within ten seconds. Still open: `--quit` bypasses `LightscreenWindow::quit` (no confirmation, no saved position, no `finished`); `tst_mainwindow::quitFlagQuitsTheApplication` keeps recording that.
 
 ## Still to add
 
