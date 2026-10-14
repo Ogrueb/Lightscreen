@@ -95,6 +95,7 @@ signals:
 private:
     void connectHotkeys();
     void createTrayIcon();
+    void takeScreenshot(Screenshot::Mode mode);
 
 #ifdef Q_OS_WIN
     bool winEvent(MSG *message, long *result);
@@ -111,7 +112,7 @@ private:
     bool mReviveMain;
     bool mWasVisible;
     int  mLastMessage;
-    Screenshot::Mode  mLastMode;
+    int  mPendingScreenshots; // Requests still waiting out their delay.
     QString mLastScreenshot;
     QPointer<QSystemTrayIcon> mTrayIcon;
     QPointer<PreviewDialog> mPreviewDialog;

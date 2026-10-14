@@ -62,7 +62,7 @@ LightscreenWindow::LightscreenWindow(QWidget *parent) :
     mReviveMain(false),
     mWasVisible(true),
     mLastMessage(0),
-    mLastMode(Screenshot::None),
+    mPendingScreenshots(0),
     mLastScreenshot(),
     mHasTaskbarButton(false)
 {
@@ -175,8 +175,8 @@ void LightscreenWindow::checkForUpdates()
 
 void LightscreenWindow::cleanup(const Screenshot::Options &options)
 {
-    // Reversing settings
-    if (settings()->value("options/hide").toBool()) {
+    // Reversing settings, once no other request is waiting to be taken with the window hidden
+    if (settings()->value("options/hide").toBool() && mPendingScreenshots == 0) {
 #ifndef Q_OS_LINUX // X is not quick enough and the notification ends up everywhere but in the icon
         if (settings()->value("options/tray").toBool() && mTrayIcon) {
             mTrayIcon->show();
@@ -468,6 +468,10 @@ void LightscreenWindow::restoreNotification()
 
 void LightscreenWindow::screenshotAction(Screenshot::Mode mode)
 {
+    if (mode == Screenshot::None) {
+        return;
+    }
+
     int delayms = -1;
 
     bool optionsHide = settings()->value("options/hide").toBool(); // Option cache, used a couple of times.
@@ -500,22 +504,17 @@ void LightscreenWindow::screenshotAction(Screenshot::Mode mode)
         }
     }
 
-    // The delayed functions works using the static variable lastMode
-    // which keeps the argument so a QTimer can call this function again.
-    if (delayms > 0) {
-        if (mLastMode == Screenshot::None) {
-            mLastMode = mode;
+    // Each request waits out its own delay and keeps its own mode.
+    ++mPendingScreenshots;
 
-            QTimer::singleShot(delayms, this, [&] {
-                screenshotAction(mLastMode);
-            });
-            return;
-        } else {
-            mode = mLastMode;
-            mLastMode = Screenshot::None;
-        }
-    }
+    QTimer::singleShot(delayms, this, [this, mode] {
+        --mPendingScreenshots;
+        takeScreenshot(mode);
+    });
+}
 
+void LightscreenWindow::takeScreenshot(Screenshot::Mode mode)
+{
     static Screenshot::Options options;
 
     if (!mDoCache) {
