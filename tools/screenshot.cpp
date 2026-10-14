@@ -54,6 +54,8 @@ Screenshot::Screenshot(QObject *parent, Screenshot::Options options):
     mUnloaded(false),
     mUnloadFilename()
 {
+    mOptions.format = formatFromSetting(int(mOptions.format));
+
     if (mOptions.format == Screenshot::PNG) {
         mOptions.quality = 80;
     }
@@ -385,6 +387,21 @@ QString Screenshot::extensionFor(Format format)
         return QStringLiteral(".jpg");
         break;
     }
+
+    return QStringLiteral(".png");
+}
+
+// Reads a "file/format" value; anything that is not a known format falls back to PNG.
+Screenshot::Format Screenshot::formatFromSetting(const QVariant &value)
+{
+    bool ok = false;
+    const int format = value.toInt(&ok);
+
+    if (!ok || format < Screenshot::PNG || format > Screenshot::WEBP) {
+        return Screenshot::PNG;
+    }
+
+    return Screenshot::Format(format);
 }
 
 // Appends " (n)" to the name, n being one more than the largest number found among the files in the same

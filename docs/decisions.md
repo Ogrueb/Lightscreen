@@ -2,6 +2,10 @@
 
 Decisions, their reasons and the alternatives rejected. Newest first.
 
+## 2026-10-14 (Stage 5, bug 2): where an out-of-range format is caught
+
+- **Checked twice, one rule:** `Screenshot::formatFromSetting` is used when the window reads `file/format`, and the `Screenshot` constructor passes `mOptions.format` through it too, so any caller that builds `Options` by hand also gets PNG. `extensionFor` keeps its own `.png` default for direct callers. *Rejected:* fixing only `extensionFor` (the file would be named `.png` while `Options::format` still holds the bad value, and the PNG-only paths, quality 80 and optimization, would be skipped).
+
 ## 2026-10-14 (Stage 4, main window): observing `LightscreenWindow` without seams
 
 - **Screenshot modes are read from `ScreenshotManager::windowCleanup`,** which carries the `Screenshot::Options` of every finished screenshot. The test lets the real capture run under Xvfb with file and clipboard off, and a 20 ms timer rejects the area selector and closes the window picker, so those end as cancelled screenshots. *Rejected:* a `ScreenshotManager` subclass (`take` is not virtual) or reading the private `mLastMode` (would need `#define private public`).

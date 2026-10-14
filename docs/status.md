@@ -2,6 +2,13 @@
 
 What is done, what changed from the plan, and what is open. Newest first.
 
+## 2026-10-14: Stage 5, bug 2 (out-of-range format)
+
+- Fixed: a `file/format` outside 0-3 now gives PNG instead of undefined behaviour. New `Screenshot::formatFromSetting(QVariant)` (non-numbers and out-of-range values give PNG) is what `LightscreenWindow::screenshotAction` now uses to read the setting; the `Screenshot` constructor applies the same rule before its PNG quality rule, and `extensionFor` returns `.png` after the `switch`. Before the fix, GCC returned `.webp` for 7, 4 and -1.
+- Tests: the skipped `tst_screenshot::extensionFor_outOfRange` is now a data test (7, 4, -1) with no `QSKIP`; new `formatFromSetting` and `save_outOfRangeFormat` (an out-of-range format saves `shot.png`, quality 80). All three failed before the fix. No other safety-net assertion changed.
+- Bug 19: the `-1` the options dialog saves for WEBP goes through the same read, so the fallback covers its undefined-behaviour part (shown by the `-1` rows; the dialog round trip itself is not exercised end to end). WEBP is still lost: the screenshot is saved as PNG. The dialog is unchanged; bug 19 stays open.
+- Verified in the cloud container (Ubuntu 24.04, Qt 5.15.13): all nine suites pass under `xvfb-run -a make check`. Windows through CI.
+
 ## 2026-10-14: Stage 4 session 7, main window plumbing tests
 
 - `tests/tst_mainwindow` (16 test functions, 33 rows with data): every `executeArgument` flag reaches its slot (`--wake` shows the window; `--screen`, `--area`, `--activewindow`, `--pickwindow` reach `ScreenshotManager::take` with their mode; `--folder` opens `file/target`; `--uploadlast` uploads the `lastScreenshot` setting; `--viewhistory` and `--options` open their dialogs; `--quit` quits the event loop); the "one argument that is the program means `--wake`" branch; `connectHotkeys` ids 1 to 6 in the order screen, window, area, windowPicker, open, directory, with disabled actions keeping their ids; ids 1 to 6 reaching `action()`. No production code changed.
