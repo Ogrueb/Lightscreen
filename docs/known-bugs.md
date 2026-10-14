@@ -2,7 +2,7 @@
 
 Technical description of each known bug, for Stage 5 (one session per bug marked "fix now"). Line references are to `master` after PR #3. Each entry says where the bug is, how it shows, how to reproduce it, and which platform can reproduce it, since cloud threads can only run Linux.
 
-Draft status: second draft, 2026-10-14. Bugs 1-3 are confirmed from the code; 4-8 are inferred from the code and still need a reproduction; 9-10 were reported by the owner on 2026-10-14; 13-14 were found while writing the Stage 3 plan; 15-18 by the Stage 4 screenshot naming tests; 19-20 by the Stage 4 settings tests; 21-22 while writing the Stage 4 uploader tests. The Stage 5 triage (fix now or defer, and where) is in `docs/modernization-plan.md`, section 7. Upstream's GitHub issue tracker is disabled, so there is no issue list to mine; bugs 11-12 come from the upstream pull requests (`docs/upstream-prs.md`), and 9-10 from the owner.
+Draft status: second draft, 2026-10-14. Bugs 1-3 are confirmed from the code; 4-8 are inferred from the code and still need a reproduction; 9-10 were reported by the owner on 2026-10-14; 13-14 were found while writing the Stage 3 plan; 15-18 by the Stage 4 screenshot naming tests; 19-20 by the Stage 4 settings tests; 21-22 while writing the Stage 4 uploader tests; 23-24 while writing the Stage 4 area dialog tests; 25 by the Stage 4 os helpers tests; 26 by the Stage 4 hotkey widget tests; 27-29 by the Stage 4 main window tests. The Stage 5 triage (fix now or defer, and where) is in `docs/modernization-plan.md`, section 7. Upstream's GitHub issue tracker is disabled, so there is no issue list to mine; bugs 11-12 come from the upstream pull requests (`docs/upstream-prs.md`), and 9-10 from the owner.
 
 ## Confirmed from the code
 
@@ -205,6 +205,29 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **What happens:** when the hotkey button gets focus with Tab, it sets `mKeyboardFocus` and `keyPressEvent` then returns early for every key. Space and Enter never reach `QPushButton`, so the button cannot be pressed, and no other key is recorded: only a mouse click (any non-Tab focus) starts hotkey entry. Keyboard-only users cannot change a hotkey. The flag also stays set after focus leaves, until the next non-Tab focus.
 - **Fix:** let Space and Enter through when `mKeyboardFocus` is set, and have them start hotkey entry (the same as a click: "Type your hotkey" and `grabKeyboard`).
 - **Platform:** any. **Test:** `tst_HotkeyWidget::tabFocusIgnoresKeys` asserts that Space and Enter do nothing; the fix flips that assertion. Confirmed by the test; not tried in the running app.
+
+## Found by the Stage 4 main window tests
+
+### 27. An upload error crashes the app when the tray icon is off
+
+- **Where:** `lightscreenwindow.cpp:667-677` (`showUploaderError`) calls `notify(Screenshot::Failure)` unconditionally; `notify` (`:379-406`) calls `mTrayIcon->setIcon` without checking `mTrayIcon`, which is null when `options/tray` is off.
+- **What happens:** with the tray icon disabled, any upload error (no pomf URL, unreadable file, network or host error, and every cancelled upload because of bug 22) dereferences the null tray icon and the app crashes. `cleanup` guards its own `notify` call with `options/tray && mTrayIcon`; `showUploaderError` does not.
+- **Fix:** check `mTrayIcon` in `notify` (the window title part still applies), or guard the call as `cleanup` does.
+- **Platform:** any. **Test:** confirmed under Xvfb by running `tst_mainwindow::uploadLastFlag` with `options/tray=false` (segfault in `QSystemTrayIcon::setIcon` from `notify`); the committed test turns the tray on so it can run, and can drop that line once this is fixed.
+
+### 28. A second screenshot request during the delay takes the first one's mode, then a timer loops forever
+
+- **Where:** `lightscreenwindow.cpp:503-518` (`screenshotAction`, the `mLastMode` delay logic).
+- **What happens:** every request waits at least 400 ms (plus `options/delay`), parked in the single field `mLastMode`. A second request while one is parked (two hotkeys in quick succession, or `lightscreen --screen --area`) takes the *parked* mode at once and clears `mLastMode`; its own mode is lost. When the first timer then fires it calls `screenshotAction(None)`, which parks `None` and re-arms itself every 400 ms for the life of the window. Each re-arm takes no screenshot but runs the pre-screenshot steps, so with "hide Lightscreen while taking a screenshot" on, the main window is hidden again right after the screenshot's cleanup showed it. `action(0)` starts the same loop. Later requests still work, handed over by the loop.
+- **Fix:** queue requests (or capture `mode` in the timer's lambda) instead of sharing `mLastMode`, and ignore `None`. S01/S02 restructure this code.
+- **Platform:** any. **Test:** `tst_mainwindow::twoScreenshotFlagsTakeOneScreenshot` and `tst_mainwindow::actionOutOfRange` record it (Linux, under Xvfb).
+
+### 29. `lightscreen --quit` with no instance running starts a hidden instance
+
+- **Where:** `main.cpp:83-84` runs `executeArguments` before `application.exec()`; `lightscreenwindow.cpp:361-362` handles `--quit` with `qApp->quit()`.
+- **What happens:** when no instance is running, `--quit` calls `QCoreApplication::quit()` before the event loop exists. That only sets Qt's quit flag, which `exec()` resets when it starts, so the app keeps running. Because there was an argument, `main` does not show the window either: the result is a running, hidden Lightscreen (in the tray if the tray is on). With an instance running, SingleApplication forwards `--quit` and it works (the CI smoke). Separately, `--quit` bypasses `LightscreenWindow::quit`: no "are you sure" while screenshots are processing or uploading, no saved window position, no `finished` signal.
+- **Fix:** have the primary instance exit when its own arguments contain `--quit` (for example queue the quit with `QTimer::singleShot(0, ...)`, or return from `main` early), and route `--quit` through `LightscreenWindow::quit` if the confirmation is wanted.
+- **Platform:** any. **Test:** reproduced in the cloud container (Linux, Xvfb, portable `config.ini`): `timeout 8 xvfb-run -a ./lightscreen --quit` is still running when the timeout kills it. `tst_mainwindow::quitFlagQuitsTheApplication` records the bypass of `LightscreenWindow::quit` for an instance whose event loop runs.
 
 ## Still to add
 
