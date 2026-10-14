@@ -120,6 +120,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **What happens:** for each file containing the name, it removes *every* occurrence of the name, `" ("` and `")"`, then parses what is left. With the name `2` and `2.png`, `2 (1).png`, `2 (2).png` on disk, `2 (2).png` reads as 0 (its `2` inside the suffix is removed too), the maximum is 1, and it returns `2 (2)`. `save()` does not check again and writes over `2 (2).png`. Any name containing digits can hit this (Numeric naming produces such names with `replace` off whenever a file already has the next number).
 - **Fix:** parse only an exact `<name> (<n>)<extension>` pattern, or loop until the candidate does not exist.
 - **Platform:** any. **Test:** `tst_screenshot::uniqueName_returnsExistingName` (confirmed).
+- **Status:** fixed in Stage 5 (2026-10-14), with 17. `uniqueName` counts only files named exactly `<name> (<n>)<extension>` and then counts up until `<name> (<n>)<extension>` does not exist. Tests: `uniqueName_returnsExistingName` (now `2 (3)`), `uniqueName_skipsExistingCandidate`.
 
 ### 16. A failed save emits `finished` twice and still writes a history row
 
@@ -134,6 +135,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **What happens:** `file.contains(name)` matches longer names, so `screenshot1` next to `screenshot12.png` becomes `screenshot1 (3)`, and `shot (1) (1).png` becomes `shot (12)`. Odd numbers, no data loss on its own (see 15 for the case that loses data).
 - **Fix:** the same pattern match as 15.
 - **Platform:** any. **Test:** `tst_screenshot::uniqueName_prefixMatch`, `tst_screenshot::uniqueName_nestedSuffix`.
+- **Status:** fixed in Stage 5 (2026-10-14), with 15: the exact pattern match ignores longer names and nested suffixes (`screenshot1 (1)`, `shot (1)`).
 
 ### 18. Temporary `.screenshot.` file kept when file and clipboard are both on (lower severity)
 
