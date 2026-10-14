@@ -5,13 +5,21 @@ What is done, what changed from the plan, and what is open. Newest first.
 ## 2026-10-14: Upstream PRs recorded
 
 - The upstream issue tracker (`ckaiser/Lightscreen`) is disabled, so there are no upstream issues to draw on. The 10 upstream PRs are summarized in `docs/upstream-prs.md`. The Linux `Success` clash (#40) and the active-monitor capture bug (#38) are already fixed in the code. Multi-monitor and HiDPI capture (#38, #35) are worth re-testing.
+- Folded the upstream PR findings into `docs/known-bugs.md` (bugs 11 and 12, plus a note on bug 4). #40 and #44 need no entry, since the Linux build already works.
+
+## 2026-10-14: goals.md and known-bugs.md drafted
+
+- `docs/goals.md`: purpose, the six-point definition of "resilient", platform and compatibility commitments, out-of-scope list. Decisions taken by the owner in the drafting thread: Qt 6, Windows 10 minimum, Linux X11 kept as a CI-tested target, update check moved to GitHub Releases. Recorded in `docs/decisions.md`. Only the fork's name is still open, and it is not needed before Stage 3.
+- `docs/known-bugs.md`: ten entries. Three confirmed from the code (window-picker icon handle, `extension()` missing return, missing Linux error sound), five inferred from the code and awaiting reproduction (mixed-DPI desktop capture, window capture margins, silent update failure, dead SSL workaround, dead macOS block), two reported by the owner (HDR browser brightness, PNG optimization queue).
+- Upstream's issue tracker is disabled, so there was no issue list to mine. `docs/upstream-prs.md` (being written by another thread) may add entries from the five unmerged upstream PRs; fold those in when it lands.
+- Stage 3 can start once this PR is merged.
 
 ## 2026-10-14: Stage 2 inventory
 
 - `docs/inventory.md`: dependencies, module map, deprecated and Qt 6-removed APIs, test coverage, build/CI/packaging. Survey only; no code changed.
 - Correction to `docs/build.md`: `Screenshot::extension()` (C4715) does handle WEBP inside its `switch`. The missing return is reached only when the format read from settings is outside 0-3. See `docs/inventory.md`, "Other compiler-flagged code".
 - Not checked from the Stage 2 session (outbound access limited), marked *(not verified here)* in the inventory: whether `lightscreen.com.ar` is still up (the updater and the pomf host list use it), and the end date of Qt 5.15 support.
-- Still open: CI for Windows and Linux; `docs/goals.md` and `docs/known-bugs.md` (owner), needed before Stage 3.
+- Still open: CI for Windows and Linux. (`docs/goals.md` and `docs/known-bugs.md`: see the entry above.)
 
 ## 2026-10-14: Submodules vendored
 
