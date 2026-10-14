@@ -2,6 +2,17 @@
 
 What is done, what changed from the plan, and what is open. Newest first.
 
+## 2026-10-14: Stage 4 session 5, hotkey widget tests
+
+- `tests/tst_hotkeywidget` (37 cases) covers `widgets/hotkeywidget` as plan section 6 item 5 describes: `setHotkey`/`hotkey` round trip for the six `OptionsDialog` defaults (incl. `Print`, `Ctrl+Print`, `Ctrl+Alt+Print`, `Ctrl+PgUp`), key presses (the `event->key() + modifiers` line M09 rewrites), modifier-only keys, `Escape` and other invalid keys, mouse vs Tab focus, and `LanguageChange`. Runs under Xvfb (the focus tests activate the window by hand, since Xvfb has no window manager) and offscreen. No production code changed.
+- Current behaviour the tests record (not fixed):
+  - With focus (the real case), `Escape` gives "Invalid hotkey" only for an instant: the widget moves focus to its parent, and the `FocusOut` handler emits `invalidHotkeyError`, turns the text red for a second and puts the old hotkey's text back. So the user sees the old hotkey in red, never the words "Invalid hotkey". Nothing connects `invalidHotkeyError`. Without focus the "Invalid hotkey" text stays.
+  - Tab focus makes the widget ignore every key, Space and Enter included, so a hotkey can only be set with the mouse. Now bug 26.
+  - The keypad flag is stripped (`Ctrl`+keypad 5 saves as `Ctrl+5`); the context-menu key counts as a modifier; `setHotkey("")` leaves an empty button (the "Click to select hotkey..." prompt is gone); a two-key sequence (`Ctrl+A, B`) survives `setHotkey`/`hotkey` although typing can only produce one key; an unknown name gives an empty hotkey.
+- Not tested, found while reading: `HotkeyWidget` without a parent crashes in `setHotkey` (`parentWidget()->setFocus()` unchecked). Every instance lives in the options dialog, so it cannot happen today. In `event()`, the `KeyPress` part of the last `else if` is dead code, since an earlier branch handles `KeyPress`.
+- `QTest::keyClick` asserts on keys without an ASCII value (AltGr, Super, `Key_unknown`); the test sends those with `QTest::sendKeyEvent` and an empty text.
+- Verified in the cloud container (Ubuntu 24.04, Qt 5.15.13) under `xvfb-run -a` and with `QT_QPA_PLATFORM=offscreen`, five runs each. Windows through CI only; Print Screen on a real Windows keyboard (which may deliver only a key release) is not covered and stays on M09's Windows QA list.
+
 ## 2026-10-14: Stage 4 session 8, os helpers tests
 
 - `tests/tst_os` (11 test functions, offscreen-safe) covers `tools/os` as plan section 6 item 8 describes: `getDocumentsPath` (non-empty and absolute everywhere; on Linux `$HOME/Documents`, not created), `icon()` choosing `:/icons/` or `:/icons/inv/` by the HSV value of the given colour or, without one, of the palette's `Button` colour, and on Linux `setStartup` with `HOME` pointed at a temporary directory. `setStartup` is not called on Windows, where it writes the real `HKCU\...\Run` key; those tests are compiled out there. No production code changed.
