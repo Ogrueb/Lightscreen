@@ -6,6 +6,12 @@ What is done, what changed from the plan, and what is open. Newest first.
 
 - `ScreenshotManager::updateHistory` now looks up `WHERE fileName = ?` and checks `exec()` and `next()`, so uploading a screenshot that already has a history row fills in that row's URL instead of adding a second row. Details and the two small choices (newer URL wins; empty delete hash gives an empty delete URL) in `docs/decisions.md`. Rows duplicated by the bug in existing databases are left as they are; a later update writes to all rows of that file.
 - `tst_history`: the three `expected to change (bug 13)` assertions are flipped (`updateHistoryExistingFile`, `updateHistoryTwice`, `uploaderDoneUpdatesHistory`); they failed before the fix and pass after. Verified in the cloud container (Ubuntu 24.04, Qt 5.15.13): all suites pass under `xvfb-run -a make check`. Windows through CI.
+## 2026-10-14: Stage 5, bug 2 (out-of-range format)
+
+- Fixed: a `file/format` outside 0-3 now gives PNG instead of undefined behaviour. New `Screenshot::formatFromSetting(QVariant)` (non-numbers and out-of-range values give PNG) is what `LightscreenWindow::screenshotAction` now uses to read the setting; the `Screenshot` constructor applies the same rule before its PNG quality rule, and `extensionFor` returns `.png` after the `switch`. Before the fix, GCC returned `.webp` for 7, 4 and -1.
+- Tests: the skipped `tst_screenshot::extensionFor_outOfRange` is now a data test (7, 4, -1) with no `QSKIP`; new `formatFromSetting` and `save_outOfRangeFormat` (an out-of-range format saves `shot.png`, quality 80). All three failed before the fix. No other safety-net assertion changed.
+- Bug 19: the `-1` the options dialog saves for WEBP goes through the same read, so the fallback covers its undefined-behaviour part (shown by the `-1` rows; the dialog round trip itself is not exercised end to end). WEBP is still lost: the screenshot is saved as PNG. The dialog is unchanged; bug 19 stays open.
+- Verified in the cloud container (Ubuntu 24.04, Qt 5.15.13): all nine suites pass under `xvfb-run -a make check`. Windows through CI.
 
 ## 2026-10-14: Stage 4 session 7, main window plumbing tests
 

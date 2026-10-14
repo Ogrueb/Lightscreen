@@ -323,13 +323,76 @@ private slots:
         QCOMPARE(Screenshot::extensionFor(Screenshot::Format(format)), expected);
     }
 
-    // Bug 2 (docs/known-bugs.md). EXPECTED TO CHANGE. Today extensionFor() has no return for a value outside 0-3,
-    // which is undefined behaviour, so the current behaviour cannot be called, let alone recorded. The Stage 5 fix
-    // gives it a default; it then deletes the QSKIP line and the assertion below becomes the test.
+    // Bug 2 (docs/known-bugs.md), fixed in Stage 5: a format outside 0-3 falls back to PNG. -1 is what the options
+    // dialog saves for WEBP (bug 19).
+    void extensionFor_outOfRange_data()
+    {
+        QTest::addColumn<int>("format");
+
+        QTest::newRow("7") << 7;
+        QTest::newRow("4") << 4;
+        QTest::newRow("-1") << -1;
+    }
+
     void extensionFor_outOfRange()
     {
-        QSKIP("Bug 2: extensionFor(Format(7)) is undefined behaviour until the Stage 5 fix");
-        QCOMPARE(Screenshot::extensionFor(Screenshot::Format(7)), QString(".png"));
+        QFETCH(int, format);
+
+        QCOMPARE(Screenshot::extensionFor(Screenshot::Format(format)), QString(".png"));
+    }
+
+    void formatFromSetting_data()
+    {
+        QTest::addColumn<QVariant>("value");
+        QTest::addColumn<int>("expected");
+
+        QTest::newRow("PNG") << QVariant(0) << int(Screenshot::PNG);
+        QTest::newRow("JPEG") << QVariant(1) << int(Screenshot::JPEG);
+        QTest::newRow("BMP") << QVariant(2) << int(Screenshot::BMP);
+        QTest::newRow("WEBP") << QVariant(3) << int(Screenshot::WEBP);
+        QTest::newRow("INI string") << QVariant(QStringLiteral("1")) << int(Screenshot::JPEG);
+        QTest::newRow("7") << QVariant(7) << int(Screenshot::PNG);
+        QTest::newRow("-1") << QVariant(-1) << int(Screenshot::PNG);
+        QTest::newRow("text") << QVariant(QStringLiteral("jpg")) << int(Screenshot::PNG);
+        QTest::newRow("missing") << QVariant() << int(Screenshot::PNG);
+    }
+
+    // What the window uses to read "file/format".
+    void formatFromSetting()
+    {
+        QFETCH(QVariant, value);
+        QFETCH(int, expected);
+
+        QCOMPARE(int(Screenshot::formatFromSetting(value)), expected);
+    }
+
+    // A Screenshot built with an out-of-range format saves a PNG, with PNG's quality rule (bug 20).
+    void save_outOfRangeFormat_data()
+    {
+        extensionFor_outOfRange_data();
+    }
+
+    void save_outOfRangeFormat()
+    {
+        QFETCH(int, format);
+
+        QTemporaryDir dir;
+        auto opts = options(dir.path());
+        opts.file = true;
+        opts.format = Screenshot::Format(format);
+        opts.quality = 10;
+
+        Screenshot screenshot(nullptr, opts);
+        QCOMPARE(screenshot.options().format, Screenshot::PNG);
+        QCOMPARE(screenshot.options().quality, 80);
+
+        screenshot.pixmap() = testPixmap();
+        screenshot.save();
+
+        const QString expected = native(dir.filePath("shot.png"));
+        QCOMPARE(screenshot.options().result, Screenshot::Success);
+        QCOMPARE(screenshot.options().fileName, expected);
+        QCOMPARE(QImageReader(expected).format(), QByteArray("png"));
     }
 
     // uniqueName

@@ -521,7 +521,7 @@ void LightscreenWindow::screenshotAction(Screenshot::Mode mode)
     if (!mDoCache) {
         // Populating the option object that will then be passed to the screenshot engine (sounds fancy huh?)
         options.file           = settings()->value("file/enabled").toBool();
-        options.format         = (Screenshot::Format) settings()->value("file/format").toInt();
+        options.format         = Screenshot::formatFromSetting(settings()->value("file/format"));
         options.prefix         = settings()->value("file/prefix").toString();
 
         QDir dir(settings()->value("file/target").toString());

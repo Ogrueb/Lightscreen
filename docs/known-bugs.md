@@ -19,6 +19,7 @@ Draft status: second draft, 2026-10-14. Bugs 1-3 are confirmed from the code; 4-
 - **What happens:** the `switch` covers `PNG`, `BMP`, `WEBP`, `JPEG` (0-3) and there is no `return` after it. A `file/format` value outside 0-3 (hand-edited `config.ini`, a corrupt settings file, or a future enum change) is undefined behavior: typically garbage or a crash when the file name is built. MSVC C4715.
 - **Fix:** validate the setting when read (fall back to PNG) and give `extension()` a default branch.
 - **Platform:** any. **Test:** headless, `Screenshot` with `format = (Format) 7`.
+- **Status:** fixed in Stage 5. `Screenshot::formatFromSetting` reads `file/format` and falls back to PNG for anything outside 0-3; the `Screenshot` constructor applies the same rule and `extensionFor` returns `.png` by default. Tests: `tst_screenshot::extensionFor_outOfRange`, `formatFromSetting`, `save_outOfRangeFormat`.
 
 ### 3. Linux error sound file does not exist
 
@@ -148,6 +149,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **What happens:** `Screenshot::Format` has a fourth value, WEBP (3), which the main window accepts. `QComboBox::setCurrentIndex(3)` on a three-item box leaves no current item, so opening the options and saving them writes `file/format=-1`. The window then passes format `-1` to `Screenshot`, which is the out-of-range case of bug 2 (inferred from the code, not exercised).
 - **Fix:** add WEBP to the combo box, and clamp or keep unknown indexes on load instead of saving `-1`.
 - **Platform:** any. **Test:** `tst_settings::dialogOutOfRangeIndexes` asserts the current `-1`; it flips when this is fixed. Confirmed by the test.
+- **Since the bug 2 fix:** the saved `-1` is read back as PNG, so there is no undefined behaviour any more, but a WEBP choice still silently becomes PNG. The dialog part stays open.
 
 ### 20. PNG screenshots ignore the quality setting
 

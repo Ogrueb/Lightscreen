@@ -6,6 +6,9 @@ Decisions, their reasons and the alternatives rejected. Newest first.
 
 - **The newer upload overwrites the URL and delete URL** of every row for that file name, and refreshes the time. Re-uploading means the user wants the new link; the old delete link is lost from history, as it was for files never recorded. *Rejected:* keeping the first URL (the history would show a link the user replaced); a new row per upload (that is the bug).
 - **An empty delete hash stores an empty delete URL,** matching `saveHistory`, instead of the bare `https://imgur.com/delete/` the update branch used to write. *Rejected:* keeping the bare prefix (a dead link in the history dialog for uploaders without a delete hash, such as pomf).
+## 2026-10-14 (Stage 5, bug 2): where an out-of-range format is caught
+
+- **Checked twice, one rule:** `Screenshot::formatFromSetting` is used when the window reads `file/format`, and the `Screenshot` constructor passes `mOptions.format` through it too, so any caller that builds `Options` by hand also gets PNG. `extensionFor` keeps its own `.png` default for direct callers. *Rejected:* fixing only `extensionFor` (the file would be named `.png` while `Options::format` still holds the bad value, and the PNG-only paths, quality 80 and optimization, would be skipped).
 
 ## 2026-10-14 (Stage 4, main window): observing `LightscreenWindow` without seams
 
