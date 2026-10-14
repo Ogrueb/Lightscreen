@@ -2,6 +2,11 @@
 
 What is done, what changed from the plan, and what is open. Newest first.
 
+## 2026-10-14: Stage 5, bug 1 (window picker icon on 64-bit Windows)
+
+- `tools/windowpicker.cpp`: the icon is now read with `GetClassLongPtr(GCLP_HICON)`, falling back to `GCLP_HICONSM`, then to `WM_GETICON` with `ICON_BIG` (sent with `SendMessageTimeout`, 100 ms, abort if hung; why: `docs/decisions.md`). Windows-only code; Linux unchanged.
+- Verified: Windows build on CI and the `lightscreen-win64` artifact. Not verifiable headless; needs the owner's Windows QA (hover a few windows in the picker, including a modern app such as Settings or a browser, and see their icons).
+
 ## 2026-10-14: Stage 5 triage of bugs 15 to 29
 
 - `docs/modernization-plan.md`, section 7: a row per bug 15 to 29 (decision, where, verification) and a session table for the new fix-now work. Reasoning: `docs/decisions.md`, Stage 5 triage entry. Each bug in `docs/known-bugs.md` now has a **Triage** line. Docs only; nothing was fixed.
@@ -16,6 +21,7 @@ What is done, what changed from the plan, and what is open. Newest first.
   - **G, bug 25** (Linux autostart directory missing). `os::setStartup`. Can start now; shares `tools/os.cpp` with bug 5.
   - **H, bug 26** (hotkey not settable from the keyboard). Can start now.
   - **I, bug 29** (`--quit` with no instance). `main.cpp` and a CI smoke step. Can start now.
+
 ## 2026-10-14: Stage 5, bug 10 local part (PNG optimization)
 
 - `Screenshot::optimize` fixed as plan section 7 describes: `optimizationDone` exactly once (early return when `optipng` is missing, `errorOccurred` for a failed start, process `deleteLater`), pointer-to-member `finished`, and `optipng -out <file>.optipng.tmp` with a replace over the original only on exit code 0. On Linux the binary is now looked up on `PATH` (`QStandardPaths::findExecutable`); before, the check looked in the working directory, so `finished` fired twice whenever `optipng` was installed. Details: `docs/known-bugs.md`, bug 10.
