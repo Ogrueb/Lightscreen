@@ -2,6 +2,10 @@
 
 Decisions, their reasons and the alternatives rejected. Newest first.
 
+## 2026-10-14 (Stage 5, bug 1): `WM_GETICON` is sent with a timeout
+
+- **The window picker's last icon fallback uses `SendMessageTimeout(..., SMTO_ABORTIFHUNG, 100 ms)`,** not the plain `SendMessage` the triage table names. The picker asks on every mouse move, and a plain `SendMessage` to a hung window would freeze the picker until that window answers. A window that times out simply shows no icon. *Rejected:* plain `SendMessage` (can block indefinitely).
+
 ## 2026-10-14 (Stage 5 triage): bugs 15 to 29
 
 Applied the plan's section 7 rule to the bugs the Stage 4 tests found: fix now when the code survives the structural round and a headless test (or a short Windows QA) proves the fix; defer when a named step rewrites the code and its done-check carries the fix.
@@ -14,6 +18,7 @@ Applied the plan's section 7 rule to the bugs the Stage 4 tests found: fix now w
 - **19 may already be done by bug 2's session**, which checks whether its fix covers it; session E runs only if it did not. `upload/service` out-of-range values are left to M12, which maps them.
 - **29 fixes only the no-instance case.** `--quit` keeps bypassing `LightscreenWindow::quit`, so a scripted quit never waits on a modal "are you sure". Routing it through the confirmation is a behaviour choice for the owner, not part of this fix.
 - **Sequencing with the first Stage 5 round.** B (28) waits for bug 2, which validates `file/format` in the same function; D (16, 18) waits for bug 10, which changes the save to optimize hand-off in `save`; E (19) waits for bug 2. A, C and G share a file but not a function with bugs 2, 10 or 5 and can start now with a rebase.
+
 ## 2026-10-14 (Stage 5, bug 13): what `updateHistory` does with a row that already has a URL
 
 - **The newer upload overwrites the URL and delete URL** of every row for that file name, and refreshes the time. Re-uploading means the user wants the new link; the old delete link is lost from history, as it was for files never recorded. *Rejected:* keeping the first URL (the history would show a link the user replaced); a new row per upload (that is the bug).
