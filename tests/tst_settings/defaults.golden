@@ -1,0 +1,66 @@
+# What OptionsDialog writes when opened on empty settings and saved unchanged (tst_settings dialogDefaults).
+# One key=value per line as read back from the INI file. <documents> is os::getDocumentsPath(), separators shown as /.
+# "linux:" and "windows:" lines replace the common line for that key on that platform.
+# Print the actual list with LIGHTSCREEN_PRINT_GOLDEN=1 ./tst_settings dialogDefaults.
+#
+# Quirks recorded here:
+# - upload/imgur/access_token, refresh_token, account_username and expires_in are written by loadSettings
+#   (ImgurOptionsWidget::setUser("") clears them), not by saveSettings.
+# - options/cursor is forced off on Linux; on Windows it defaults on (any version above XP).
+# - options/flip, options/naming/* and options/animations are not written: flip and naming come from the naming
+#   dialog, animations has no widget.
+
+actions/area/enabled=false
+actions/area/hotkey=Ctrl+Print
+actions/directory/enabled=false
+actions/directory/hotkey=Ctrl+PgDown
+actions/open/enabled=false
+actions/open/hotkey=Ctrl+PgUp
+actions/screen/enabled=true
+actions/screen/hotkey=Print
+actions/window/enabled=false
+actions/window/hotkey=Alt+Print
+actions/windowPicker/enabled=false
+actions/windowPicker/hotkey=Ctrl+Alt+Print
+file/enabled=true
+file/format=1
+file/naming=0
+file/prefix=screenshot.
+file/target=<documents>/Screenshots
+options/areaAutoclose=false
+options/clipboard=true
+options/closeHide=true
+options/currentMonitor=false
+options/cursor=false
+windows:options/cursor=true
+options/delay=0
+options/disableUpdater=false
+options/hide=true
+options/history=true
+options/magnify=false
+options/message=true
+options/optimize=false
+options/playSound=false
+options/preview=false
+options/previewAutoclose=false
+options/previewAutocloseAction=0
+options/previewAutocloseTime=15
+options/previewDefaultAction=0
+options/previewPosition=3
+options/previewSize=300
+options/quality=100
+options/replace=false
+options/saveAs=false
+options/startup=false
+options/startupHide=true
+options/tray=true
+options/uploadAuto=false
+options/urlClipboard=false
+upload/imgur/access_token=
+upload/imgur/account_username=
+upload/imgur/album=
+upload/imgur/anonymous=true
+upload/imgur/expires_in=0
+upload/imgur/refresh_token=
+upload/pomf/pomf_url=
+upload/service=0

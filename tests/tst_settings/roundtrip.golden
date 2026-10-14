@@ -1,0 +1,62 @@
+# What OptionsDialog writes after every widget is set to a non-default value (tst_settings dialogRoundTrip).
+# Same format as defaults.golden; <tmp> is the test's temporary directory.
+#
+# Quirks recorded here:
+# - upload/imgur/* keep their cleared values: the dialog has no widget whose value saveSettings persists for the
+#   Imgur account, and upload/imgur/album is the album combo box's current data (empty without an account).
+# - On Linux the test turns the cursor on; on Windows it turns it off (the opposite of each platform's default).
+
+actions/area/enabled=true
+actions/area/hotkey=Ctrl+Shift+A
+actions/directory/enabled=true
+actions/directory/hotkey=Ctrl+Shift+D
+actions/open/enabled=true
+actions/open/hotkey=Ctrl+Shift+O
+actions/screen/enabled=false
+actions/screen/hotkey=Shift+Print
+actions/window/enabled=true
+actions/window/hotkey=Ctrl+Shift+W
+actions/windowPicker/enabled=true
+actions/windowPicker/hotkey=Ctrl+Shift+P
+file/enabled=false
+file/format=2
+file/naming=2
+file/prefix=shot-
+file/target=<tmp>/shots
+options/areaAutoclose=true
+options/clipboard=false
+options/closeHide=false
+options/currentMonitor=true
+options/cursor=true
+windows:options/cursor=false
+options/delay=7
+options/disableUpdater=true
+options/hide=false
+options/history=false
+options/magnify=true
+options/message=false
+options/optimize=true
+options/playSound=true
+options/preview=true
+options/previewAutoclose=true
+options/previewAutocloseAction=2
+options/previewAutocloseTime=30
+options/previewDefaultAction=1
+options/previewPosition=0
+options/previewSize=500
+options/quality=42
+options/replace=true
+options/saveAs=true
+options/startup=true
+options/startupHide=false
+options/tray=false
+options/uploadAuto=true
+options/urlClipboard=true
+upload/imgur/access_token=
+upload/imgur/account_username=
+upload/imgur/album=
+upload/imgur/anonymous=true
+upload/imgur/expires_in=0
+upload/imgur/refresh_token=
+upload/pomf/pomf_url=https://pomf.example.invalid/upload.php
+upload/service=1
