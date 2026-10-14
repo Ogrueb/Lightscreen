@@ -2,6 +2,14 @@
 
 Decisions, their reasons and the alternatives rejected. Newest first.
 
+## 2026-10-14 (Stage 5, bug 13): what `updateHistory` does with a row that already has a URL
+
+- **The newer upload overwrites the URL and delete URL** of every row for that file name, and refreshes the time. Re-uploading means the user wants the new link; the old delete link is lost from history, as it was for files never recorded. *Rejected:* keeping the first URL (the history would show a link the user replaced); a new row per upload (that is the bug).
+- **An empty delete hash stores an empty delete URL,** matching `saveHistory`, instead of the bare `https://imgur.com/delete/` the update branch used to write. *Rejected:* keeping the bare prefix (a dead link in the history dialog for uploaders without a delete hash, such as pomf).
+## 2026-10-14 (Stage 5, bug 2): where an out-of-range format is caught
+
+- **Checked twice, one rule:** `Screenshot::formatFromSetting` is used when the window reads `file/format`, and the `Screenshot` constructor passes `mOptions.format` through it too, so any caller that builds `Options` by hand also gets PNG. `extensionFor` keeps its own `.png` default for direct callers. *Rejected:* fixing only `extensionFor` (the file would be named `.png` while `Options::format` still holds the bad value, and the PNG-only paths, quality 80 and optimization, would be skipped).
+
 ## 2026-10-14 (Stage 4, main window): observing `LightscreenWindow` without seams
 
 - **Screenshot modes are read from `ScreenshotManager::windowCleanup`,** which carries the `Screenshot::Options` of every finished screenshot. The test lets the real capture run under Xvfb with file and clipboard off, and a 20 ms timer rejects the area selector and closes the window picker, so those end as cancelled screenshots. *Rejected:* a `ScreenshotManager` subclass (`take` is not virtual) or reading the private `mLastMode` (would need `#define private public`).

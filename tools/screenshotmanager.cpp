@@ -29,7 +29,6 @@
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlQuery>
-#include <QtSql/QSqlRecord>
 
 ScreenshotManager::ScreenshotManager(QObject *parent) : ScreenshotManager(nullptr, QString(), parent)
 {
@@ -127,15 +126,20 @@ void ScreenshotManager::updateHistory(const QString &fileName, const QString &ur
     }
 
     QSqlQuery query;
-    query.prepare("SELECT fileName FROM history WHERE URL IS NOT EMPTY AND fileName = ?");
+    query.prepare("SELECT fileName FROM history WHERE fileName = ?");
     query.addBindValue(fileName);
-    query.exec();
 
-    if (query.record().count() > 0) {
+    if (query.exec() && query.next()) {
+        QString deleteUrl;
+
+        if (!deleteHash.isEmpty()) {
+            deleteUrl = "https://imgur.com/delete/" + deleteHash;
+        }
+
         QSqlQuery updateQuery;
         updateQuery.prepare("UPDATE history SET URL = ?, deleteURL = ?, time = ? WHERE fileName = ?");
         updateQuery.addBindValue(url);
-        updateQuery.addBindValue("https://imgur.com/delete/" + deleteHash);
+        updateQuery.addBindValue(deleteUrl);
         updateQuery.addBindValue(QDateTime::currentMSecsSinceEpoch());
         updateQuery.addBindValue(fileName);
 
