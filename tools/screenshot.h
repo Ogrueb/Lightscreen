@@ -22,6 +22,7 @@
 #include <QObject>
 #include <QDir>
 #include <QPixmap>
+#include <QVariant>
 
 class Screenshot : public QObject
 {
@@ -101,6 +102,7 @@ public:
     QPixmap &pixmap();
     static QString getName(const NamingOptions &options, const QString &prefix, const QDir &directory);
     static QString extensionFor(Format format);
+    static Format formatFromSetting(const QVariant &value);
     static QString uniqueName(const QString &nameWithoutExtension, const QString &extension);
     const QString &unloadedFileName();
 

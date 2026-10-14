@@ -19,6 +19,7 @@ Draft status: second draft, 2026-10-14. Bugs 1-3 are confirmed from the code; 4-
 - **What happens:** the `switch` covers `PNG`, `BMP`, `WEBP`, `JPEG` (0-3) and there is no `return` after it. A `file/format` value outside 0-3 (hand-edited `config.ini`, a corrupt settings file, or a future enum change) is undefined behavior: typically garbage or a crash when the file name is built. MSVC C4715.
 - **Fix:** validate the setting when read (fall back to PNG) and give `extension()` a default branch.
 - **Platform:** any. **Test:** headless, `Screenshot` with `format = (Format) 7`.
+- **Status:** fixed in Stage 5. `Screenshot::formatFromSetting` reads `file/format` and falls back to PNG for anything outside 0-3; the `Screenshot` constructor applies the same rule and `extensionFor` returns `.png` by default. Tests: `tst_screenshot::extensionFor_outOfRange`, `formatFromSetting`, `save_outOfRangeFormat`.
 
 ### 3. Linux error sound file does not exist
 
@@ -75,6 +76,7 @@ Draft status: second draft, 2026-10-14. Bugs 1-3 are confirmed from the code; 4-
 - **What happens:** every screenshot starts its own `optipng` process at once; there is no queue and no concurrency limit, so a burst of captures spikes CPU, and under load a long tail of files stays unoptimized. `optipng` rewrites the file in place, so if the machine shuts down mid-run the screenshot is left half-written next to its backup copy. Two smaller defects in the same function: when the `optipng` binary is missing it emits `optimizationDone()` and then still calls `process->start()`, so `optimizationDone` can fire twice (and on Windows it starts a process that does not exist); the `finished` signal is connected with a string-based `SIGNAL()` whose argument list must match exactly.
 - **Fix direction:** one worker queue (`QThreadPool` with one or two slots, or a serial `QProcess` chain) owned by `ScreenshotManager`; have `optipng` write to a temp file and rename over the original only on success (`-out` plus `QFile::rename`), so an interrupted run leaves the original intact; persist the pending list so a restart resumes it; show a count in the tray tooltip.
 - **Platform:** any (Linux CI can run `optipng`). **Test:** headless, with a stub executable in place of `optipng`.
+- **Status:** local part fixed in Stage 5 (`tests/tst_optimize`). `optimizationDone` runs exactly once per call: the missing-binary branch returns, a process that fails to start is handled through `errorOccurred`, and `finished` is connected pointer-to-member. `optipng -out <file>.optipng.tmp <file>` writes beside the original, which is replaced (`rename` / `MoveFileEx`) only on exit code 0; on failure the temporary file is removed. Also fixed: on Linux the binary check was `QFile::exists("optipng")`, a path relative to the working directory, so it almost always failed and `finished` fired once at once and again when `optipng` exited; it is now `QStandardPaths::findExecutable`. Open for S05: queue, concurrency bound, persisted pending list, tray count, and cleaning up a `.optipng.tmp` left by a crash (the next run on the same file replaces it).
 
 ## From upstream pull requests
 
@@ -99,7 +101,7 @@ Upstream's unmerged Linux build fixes (#40, #44) need no entry: `#undef Success`
 - **Where:** `tools/screenshotmanager.cpp:117-137`, `ScreenshotManager::updateHistory`.
 - **What happens:** the lookup is `SELECT fileName FROM history WHERE URL IS NOT EMPTY AND fileName = ?`. `EMPTY` is not SQLite syntax, so `prepare` fails, `query.record().count()` is 0, and the function falls through to `saveHistory`, which inserts a second row for the file instead of filling in its URL. Visible as duplicate rows in the history dialog after uploading a screenshot that was already recorded.
 - **Fix:** `WHERE fileName = ?` (and decide whether an existing URL should be overwritten), then test `exec()` and `next()` instead of `record().count()`.
-- **Platform:** any. **Test:** headless, save a file then upload it, expect one row with the URL. Inferred from the code; the Stage 4 history test will show it. Triage: fix now (Stage 5).
+- **Platform:** any. **Test:** headless, save a file then upload it, expect one row with the URL. Confirmed by the Stage 4 history test. **Status: fixed in Stage 5 (2026-10-14).** The lookup is `WHERE fileName = ?`, checked with `exec()` and `next()`; an existing URL is overwritten by the newer upload; an empty delete hash now stores an empty delete URL, as `saveHistory` does. `tst_history` asserts one row with the URL.
 
 ### 14. Uploads from the history dialog ignore the chosen service
 
@@ -153,6 +155,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **Fix:** add WEBP to the combo box, and clamp or keep unknown indexes on load instead of saving `-1`.
 - **Platform:** any. **Test:** `tst_settings::dialogOutOfRangeIndexes` asserts the current `-1`; it flips when this is fixed. Confirmed by the test.
 - **Triage:** fix now (session E), unless the bug 2 PR already covers it.
+- **Since the bug 2 fix:** the saved `-1` is read back as PNG, so there is no undefined behaviour any more, but a WEBP choice still silently becomes PNG. The dialog part stays open.
 
 ### 20. PNG screenshots ignore the quality setting
 

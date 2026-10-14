@@ -14,6 +14,13 @@ Applied the plan's section 7 rule to the bugs the Stage 4 tests found: fix now w
 - **19 may already be done by bug 2's session**, which checks whether its fix covers it; session E runs only if it did not. `upload/service` out-of-range values are left to M12, which maps them.
 - **29 fixes only the no-instance case.** `--quit` keeps bypassing `LightscreenWindow::quit`, so a scripted quit never waits on a modal "are you sure". Routing it through the confirmation is a behaviour choice for the owner, not part of this fix.
 - **Sequencing with the first Stage 5 round.** B (28) waits for bug 2, which validates `file/format` in the same function; D (16, 18) waits for bug 10, which changes the save to optimize hand-off in `save`; E (19) waits for bug 2. A, C and G share a file but not a function with bugs 2, 10 or 5 and can start now with a rebase.
+## 2026-10-14 (Stage 5, bug 13): what `updateHistory` does with a row that already has a URL
+
+- **The newer upload overwrites the URL and delete URL** of every row for that file name, and refreshes the time. Re-uploading means the user wants the new link; the old delete link is lost from history, as it was for files never recorded. *Rejected:* keeping the first URL (the history would show a link the user replaced); a new row per upload (that is the bug).
+- **An empty delete hash stores an empty delete URL,** matching `saveHistory`, instead of the bare `https://imgur.com/delete/` the update branch used to write. *Rejected:* keeping the bare prefix (a dead link in the history dialog for uploaders without a delete hash, such as pomf).
+## 2026-10-14 (Stage 5, bug 2): where an out-of-range format is caught
+
+- **Checked twice, one rule:** `Screenshot::formatFromSetting` is used when the window reads `file/format`, and the `Screenshot` constructor passes `mOptions.format` through it too, so any caller that builds `Options` by hand also gets PNG. `extensionFor` keeps its own `.png` default for direct callers. *Rejected:* fixing only `extensionFor` (the file would be named `.png` while `Options::format` still holds the bad value, and the PNG-only paths, quality 80 and optimization, would be skipped).
 
 ## 2026-10-14 (Stage 4, main window): observing `LightscreenWindow` without seams
 

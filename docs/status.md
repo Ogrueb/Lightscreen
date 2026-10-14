@@ -16,6 +16,22 @@ What is done, what changed from the plan, and what is open. Newest first.
   - **G, bug 25** (Linux autostart directory missing). `os::setStartup`. Can start now; shares `tools/os.cpp` with bug 5.
   - **H, bug 26** (hotkey not settable from the keyboard). Can start now.
   - **I, bug 29** (`--quit` with no instance). `main.cpp` and a CI smoke step. Can start now.
+## 2026-10-14: Stage 5, bug 10 local part (PNG optimization)
+
+- `Screenshot::optimize` fixed as plan section 7 describes: `optimizationDone` exactly once (early return when `optipng` is missing, `errorOccurred` for a failed start, process `deleteLater`), pointer-to-member `finished`, and `optipng -out <file>.optipng.tmp` with a replace over the original only on exit code 0. On Linux the binary is now looked up on `PATH` (`QStandardPaths::findExecutable`); before, the check looked in the working directory, so `finished` fired twice whenever `optipng` was installed. Details: `docs/known-bugs.md`, bug 10.
+- New test `tests/tst_optimize` with a stub `optipng` (`tests/optipng_stub`, a small C++ program built into `tst_optimize/stub/`): success, a stale temporary file, a failing run leaving the original byte-identical, a run that writes nothing, and a missing binary. On master four of the five fail. Linux puts the stub on `PATH`; Windows copies it next to the test executable as `optipng.exe`, where the app looks.
+- Verified in the cloud container (Qt 5.15.13): all test suites pass under `xvfb-run -a make check`; the `-out` behaviour was checked by hand against real `optipng` 0.7.8, including an already optimized file (it still writes the output). Windows through CI.
+- Left for S05: the queue, concurrency bound, persistence and tray count.
+## 2026-10-14: Stage 5, bug 13 (`updateHistory` inserted duplicates)
+
+- `ScreenshotManager::updateHistory` now looks up `WHERE fileName = ?` and checks `exec()` and `next()`, so uploading a screenshot that already has a history row fills in that row's URL instead of adding a second row. Details and the two small choices (newer URL wins; empty delete hash gives an empty delete URL) in `docs/decisions.md`. Rows duplicated by the bug in existing databases are left as they are; a later update writes to all rows of that file.
+- `tst_history`: the three `expected to change (bug 13)` assertions are flipped (`updateHistoryExistingFile`, `updateHistoryTwice`, `uploaderDoneUpdatesHistory`); they failed before the fix and pass after. Verified in the cloud container (Ubuntu 24.04, Qt 5.15.13): all suites pass under `xvfb-run -a make check`. Windows through CI.
+## 2026-10-14: Stage 5, bug 2 (out-of-range format)
+
+- Fixed: a `file/format` outside 0-3 now gives PNG instead of undefined behaviour. New `Screenshot::formatFromSetting(QVariant)` (non-numbers and out-of-range values give PNG) is what `LightscreenWindow::screenshotAction` now uses to read the setting; the `Screenshot` constructor applies the same rule before its PNG quality rule, and `extensionFor` returns `.png` after the `switch`. Before the fix, GCC returned `.webp` for 7, 4 and -1.
+- Tests: the skipped `tst_screenshot::extensionFor_outOfRange` is now a data test (7, 4, -1) with no `QSKIP`; new `formatFromSetting` and `save_outOfRangeFormat` (an out-of-range format saves `shot.png`, quality 80). All three failed before the fix. No other safety-net assertion changed.
+- Bug 19: the `-1` the options dialog saves for WEBP goes through the same read, so the fallback covers its undefined-behaviour part (shown by the `-1` rows; the dialog round trip itself is not exercised end to end). WEBP is still lost: the screenshot is saved as PNG. The dialog is unchanged; bug 19 stays open.
+- Verified in the cloud container (Ubuntu 24.04, Qt 5.15.13): all nine suites pass under `xvfb-run -a make check`. Windows through CI.
 
 ## 2026-10-14: Stage 4 session 7, main window plumbing tests
 

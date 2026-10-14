@@ -122,35 +122,30 @@ private slots:
         QCOMPARE(rows().count(), 0);
     }
 
-    // Bug 13, expected to change: updating a file that already has a row inserts a second row instead of filling in
-    // the URL of the first. The lookup query does not prepare ("IS NOT EMPTY" is not SQLite), so the function always
-    // falls through to saveHistory.
+    // Bug 13 (fixed): updating a file that already has a row fills in that row's URL and delete URL.
     void updateHistoryExistingFile()
     {
         mManager->saveHistory("/shots/a.png");
         mManager->updateHistory("/shots/a.png", "https://example.com/a.png", "hash123");
 
         const QList<HistoryRow> all = rows();
-        QCOMPARE(all.count(), 2); // expected to change (bug 13): 1
+        QCOMPARE(all.count(), 1);
         QCOMPARE(all[0].fileName, QStringLiteral("/shots/a.png"));
-        QCOMPARE(all[0].url, QString(""));  // expected to change (bug 13): the URL
-        QCOMPARE(all[0].deleteUrl, QString(""));
-        QCOMPARE(all[1].fileName, QStringLiteral("/shots/a.png"));
-        QCOMPARE(all[1].url, QStringLiteral("https://example.com/a.png"));
-        QCOMPARE(all[1].deleteUrl, QStringLiteral("https://imgur.com/delete/hash123"));
+        QCOMPARE(all[0].url, QStringLiteral("https://example.com/a.png"));
+        QCOMPARE(all[0].deleteUrl, QStringLiteral("https://imgur.com/delete/hash123"));
     }
 
-    // A second update for the same file adds yet another row (same cause as above).
+    // A second update for the same file overwrites the first URL. With no delete hash the delete URL stays empty,
+    // as saveHistory writes it.
     void updateHistoryTwice()
     {
-        mManager->updateHistory("/shots/a.png", "https://example.com/1.png", "");
+        mManager->updateHistory("/shots/a.png", "https://example.com/1.png", "hash1");
         mManager->updateHistory("/shots/a.png", "https://example.com/2.png", "");
 
         const QList<HistoryRow> all = rows();
-        QCOMPARE(all.count(), 2); // expected to change (bug 13): 1, with the second URL
-        QCOMPARE(all[0].url, QStringLiteral("https://example.com/1.png"));
-        QCOMPARE(all[1].url, QStringLiteral("https://example.com/2.png"));
-        QCOMPARE(all[1].deleteUrl, QString(""));
+        QCOMPARE(all.count(), 1);
+        QCOMPARE(all[0].url, QStringLiteral("https://example.com/2.png"));
+        QCOMPARE(all[0].deleteUrl, QString(""));
     }
 
     // A file with no row gets one, with the URL and delete URL.
@@ -196,8 +191,8 @@ private slots:
         emit mUploader.done("/shots/a.png", "https://example.com/a.png", "hash123");
 
         const QList<HistoryRow> all = rows();
-        QCOMPARE(all.count(), 2); // expected to change (bug 13): 1
-        QCOMPARE(all[1].url, QStringLiteral("https://example.com/a.png"));
+        QCOMPARE(all.count(), 1);
+        QCOMPARE(all[0].url, QStringLiteral("https://example.com/a.png"));
     }
 
     // removeHistory deletes only the row matching both the file name and the time.

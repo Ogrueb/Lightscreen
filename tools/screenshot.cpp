@@ -26,6 +26,7 @@
 #include <QProcess>
 #include <QTextStream>
 #include <QScreen>
+#include <QStandardPaths>
 #include <QStringBuilder>
 
 #include <tools/screenshot.h>
@@ -47,6 +48,24 @@
     #undef Success
 #endif
 
+#include <cstdio>
+
+namespace {
+
+// Moves source over target in one step, replacing target (QFile::rename refuses to replace an existing file).
+bool replaceFile(const QString &source, const QString &target)
+{
+#ifdef Q_OS_WIN
+    return MoveFileExW(reinterpret_cast<const wchar_t *>(QDir::toNativeSeparators(source).utf16()),
+                       reinterpret_cast<const wchar_t *>(QDir::toNativeSeparators(target).utf16()),
+                       MOVEFILE_REPLACE_EXISTING) != 0;
+#else
+    return std::rename(QFile::encodeName(source).constData(), QFile::encodeName(target).constData()) == 0;
+#endif
+}
+
+} // namespace
+
 Screenshot::Screenshot(QObject *parent, Screenshot::Options options):
     QObject(parent),
     mOptions(options),
@@ -54,6 +73,8 @@ Screenshot::Screenshot(QObject *parent, Screenshot::Options options):
     mUnloaded(false),
     mUnloadFilename()
 {
+    mOptions.format = formatFromSetting(int(mOptions.format));
+
     if (mOptions.format == Screenshot::PNG) {
         mOptions.quality = 80;
     }
@@ -167,30 +188,50 @@ void Screenshot::markUpload()
 
 void Screenshot::optimize()
 {
-    QProcess *process = new QProcess(this);
-
-    // Delete the QProcess once it's done.
-    connect(process, SIGNAL(finished(int, QProcess::ExitStatus)), this   , SLOT(optimizationDone()));
-    connect(process, SIGNAL(finished(int, QProcess::ExitStatus)), process, SLOT(deleteLater()));
-
     QString optiPNG;
 
 #ifdef Q_OS_UNIX
-    optiPNG = "optipng";
+    optiPNG = QStandardPaths::findExecutable("optipng");
 #else
     optiPNG = qApp->applicationDirPath() % QDir::separator() % "optipng.exe";
-#endif
 
     if (!QFile::exists(optiPNG)) {
-        emit optimizationDone();
+        optiPNG.clear();
+    }
+#endif
+
+    if (optiPNG.isEmpty()) {
+        optimizationDone();
+        return;
     }
 
-    process->start(optiPNG, QStringList() << mOptions.fileName);
+    // optipng writes to a temporary file that replaces the original only on success, so an interrupted run leaves
+    // the original intact. optipng refuses to overwrite an existing output, such as one left by an earlier crash.
+    const QString original  = mOptions.fileName;
+    const QString temporary = original % ".optipng.tmp";
+    QFile::remove(temporary);
 
-    if (process->state() == QProcess::NotRunning) {
-        emit optimizationDone();
+    QProcess *process = new QProcess(this);
+
+    connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this,
+            [this, process, original, temporary](int exitCode, QProcess::ExitStatus exitStatus) {
+        if (exitStatus != QProcess::NormalExit || exitCode != 0 || !QFile::exists(temporary) || !replaceFile(temporary, original)) {
+            QFile::remove(temporary);
+        }
+
         process->deleteLater();
-    }
+        optimizationDone();
+    });
+
+    // finished is not emitted when the process cannot be started.
+    connect(process, &QProcess::errorOccurred, this, [this, process](QProcess::ProcessError error) {
+        if (error == QProcess::FailedToStart) {
+            process->deleteLater();
+            optimizationDone();
+        }
+    });
+
+    process->start(optiPNG, QStringList() << "-out" << temporary << original);
 }
 
 void Screenshot::optimizationDone()
@@ -385,6 +426,21 @@ QString Screenshot::extensionFor(Format format)
         return QStringLiteral(".jpg");
         break;
     }
+
+    return QStringLiteral(".png");
+}
+
+// Reads a "file/format" value; anything that is not a known format falls back to PNG.
+Screenshot::Format Screenshot::formatFromSetting(const QVariant &value)
+{
+    bool ok = false;
+    const int format = value.toInt(&ok);
+
+    if (!ok || format < Screenshot::PNG || format > Screenshot::WEBP) {
+        return Screenshot::PNG;
+    }
+
+    return Screenshot::Format(format);
 }
 
 // Appends " (n)" to the name, n being one more than the largest number found among the files in the same
