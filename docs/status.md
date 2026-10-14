@@ -2,6 +2,11 @@
 
 What is done, what changed from the plan, and what is open. Newest first.
 
+## 2026-10-14: Stage 5, bug 13 (`updateHistory` inserted duplicates)
+
+- `ScreenshotManager::updateHistory` now looks up `WHERE fileName = ?` and checks `exec()` and `next()`, so uploading a screenshot that already has a history row fills in that row's URL instead of adding a second row. Details and the two small choices (newer URL wins; empty delete hash gives an empty delete URL) in `docs/decisions.md`. Rows duplicated by the bug in existing databases are left as they are; a later update writes to all rows of that file.
+- `tst_history`: the three `expected to change (bug 13)` assertions are flipped (`updateHistoryExistingFile`, `updateHistoryTwice`, `uploaderDoneUpdatesHistory`); they failed before the fix and pass after. Verified in the cloud container (Ubuntu 24.04, Qt 5.15.13): all suites pass under `xvfb-run -a make check`. Windows through CI.
+
 ## 2026-10-14: Stage 4 session 7, main window plumbing tests
 
 - `tests/tst_mainwindow` (16 test functions, 33 rows with data): every `executeArgument` flag reaches its slot (`--wake` shows the window; `--screen`, `--area`, `--activewindow`, `--pickwindow` reach `ScreenshotManager::take` with their mode; `--folder` opens `file/target`; `--uploadlast` uploads the `lastScreenshot` setting; `--viewhistory` and `--options` open their dialogs; `--quit` quits the event loop); the "one argument that is the program means `--wake`" branch; `connectHotkeys` ids 1 to 6 in the order screen, window, area, windowPicker, open, directory, with disabled actions keeping their ids; ids 1 to 6 reaching `action()`. No production code changed.
