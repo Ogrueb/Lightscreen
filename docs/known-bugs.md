@@ -2,7 +2,7 @@
 
 Technical description of each known bug, for Stage 5 (one session per bug marked "fix now"). Line references are to `master` after PR #3. Each entry says where the bug is, how it shows, how to reproduce it, and which platform can reproduce it, since cloud threads can only run Linux.
 
-Draft status: first draft, 2026-10-14. Bugs 1-3 are confirmed from the code; 4-8 are inferred from the code and still need a reproduction. Upstream's GitHub issue tracker could not be read from the cloud thread (API access to `ckaiser/Lightscreen` is not enabled for this session); bugs reported there, and bugs the owner has hit, are still to be added.
+Draft status: first draft, 2026-10-14. Bugs 1-3 are confirmed from the code; 4-8 are inferred from the code and still need a reproduction. Upstream's GitHub issue tracker is disabled, so there is no issue list to mine; the unmerged upstream PRs (see `docs/upstream-prs.md` once it lands) and the owner's own reports are the other sources, still to be added.
 
 ## Confirmed from the code
 
@@ -61,5 +61,5 @@ Draft status: first draft, 2026-10-14. Bugs 1-3 are confirmed from the code; 4-8
 
 ## Still to add
 
-- Bugs from upstream's issue tracker (`github.com/ckaiser/Lightscreen/issues`), once someone with access lists them.
+- Anything the five unmerged upstream PRs describe (`docs/upstream-prs.md`): #40 Linux conflicting symbols, #44 build error, #38 active-monitor capture.
 - Bugs the owner has hit on their own machine.
