@@ -9,3 +9,7 @@ SUBDIRS += tst_areadialog
 SUBDIRS += tst_os
 SUBDIRS += tst_hotkeywidget
 SUBDIRS += tst_mainwindow
+SUBDIRS += optipng_stub
+SUBDIRS += tst_optimize
+
+tst_optimize.depends = optipng_stub
