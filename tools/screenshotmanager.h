@@ -38,7 +38,9 @@ public:
     Q_ENUM(State)
 
     ScreenshotManager(QObject *parent = 0);
+    ScreenshotManager(QSettings *settings, const QString &historyPath, QObject *parent = 0);
     static ScreenshotManager *instance();
+    static void setInstance(ScreenshotManager *manager);
 
     void initHistory();
     int activeCount() const;

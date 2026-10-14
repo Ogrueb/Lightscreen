@@ -100,6 +100,8 @@ public:
     const Screenshot::Options &options();
     QPixmap &pixmap();
     static QString getName(const NamingOptions &options, const QString &prefix, const QDir &directory);
+    static QString extensionFor(Format format);
+    static QString uniqueName(const QString &nameWithoutExtension, const QString &extension);
     const QString &unloadedFileName();
 
 public slots:

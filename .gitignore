@@ -2,3 +2,6 @@
 *.autosave
 *.pro.*
 build/
+
+# Out-of-tree test builds (docs/build.md)
+build-tests/

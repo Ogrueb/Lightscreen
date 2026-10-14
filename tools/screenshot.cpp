@@ -215,28 +215,7 @@ void Screenshot::save()
     }
 
     if (!mOptions.replace && QFile::exists(name % extension())) {
-        // Ugly? You should see my wife!
-        int count = 0;
-        int cunt  = 0;
-
-        QString naming = QFileInfo(name).fileName();
-
-        for (auto file : QFileInfo(name % extension()).dir().entryList(QDir::Files)) {
-            if (file.contains(naming)) {
-                file.remove(naming);
-                file.remove(" (");
-                file.remove(")");
-                file.remove(extension());
-
-                cunt = file.toInt();
-
-                if (cunt > count) {
-                    count = cunt;
-                }
-            }
-        }
-
-        name = name % " (" % QString::number(count + 1) % ")";
+        name = uniqueName(name, extension());
     }
 
     if (mOptions.clipboard && !(mOptions.upload && mOptions.urlClipboard)) {
@@ -387,7 +366,12 @@ void Screenshot::activeWindow()
 
 const QString Screenshot::extension() const
 {
-    switch (mOptions.format) {
+    return extensionFor(mOptions.format);
+}
+
+QString Screenshot::extensionFor(Format format)
+{
+    switch (format) {
     case Screenshot::PNG:
         return QStringLiteral(".png");
         break;
@@ -401,6 +385,34 @@ const QString Screenshot::extension() const
         return QStringLiteral(".jpg");
         break;
     }
+}
+
+// Appends " (n)" to the name, n being one more than the largest number found among the files in the same
+// directory whose name contains this one.
+QString Screenshot::uniqueName(const QString &nameWithoutExtension, const QString &extension)
+{
+    // Ugly? You should see my wife!
+    int count = 0;
+    int cunt  = 0;
+
+    QString naming = QFileInfo(nameWithoutExtension).fileName();
+
+    for (auto file : QFileInfo(nameWithoutExtension % extension).dir().entryList(QDir::Files)) {
+        if (file.contains(naming)) {
+            file.remove(naming);
+            file.remove(" (");
+            file.remove(")");
+            file.remove(extension);
+
+            cunt = file.toInt();
+
+            if (cunt > count) {
+                count = cunt;
+            }
+        }
+    }
+
+    return nameWithoutExtension % " (" % QString::number(count + 1) % ")";
 }
 
 void Screenshot::grabDesktop()

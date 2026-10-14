@@ -31,7 +31,7 @@
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlRecord>
 
-ScreenshotManager::ScreenshotManager(QObject *parent) : QObject(parent), mHistoryInitialized(false)
+ScreenshotManager::ScreenshotManager(QObject *parent) : ScreenshotManager(nullptr, QString(), parent)
 {
     if (QFile::exists(qApp->applicationDirPath() + QDir::separator() + "config.ini")) {
         mSettings     = new QSettings(qApp->applicationDirPath() + QDir::separator() + "config.ini", QSettings::IniFormat, this);
@@ -42,7 +42,13 @@ ScreenshotManager::ScreenshotManager(QObject *parent) : QObject(parent), mHistor
         mPortableMode = false;
         mHistoryPath  = QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QDir::separator();
     }
+}
 
+// Test seam: uses the given settings (not owned) and history directory (with a trailing separator) instead of
+// the user's configuration.
+ScreenshotManager::ScreenshotManager(QSettings *settings, const QString &historyPath, QObject *parent) : QObject(parent),
+    mSettings(settings), mHistoryPath(historyPath), mPortableMode(false), mHistoryInitialized(false)
+{
     connect(Uploader::instance(), &Uploader::done, this, &ScreenshotManager::uploadDone);
 }
 
@@ -231,4 +237,10 @@ ScreenshotManager *ScreenshotManager::instance()
     }
 
     return mInstance;
+}
+
+// Test seam: replaces the singleton. The previous instance is not deleted.
+void ScreenshotManager::setInstance(ScreenshotManager *manager)
+{
+    mInstance = manager;
 }

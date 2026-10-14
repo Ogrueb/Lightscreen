@@ -2,6 +2,14 @@
 
 Decisions, their reasons and the alternatives rejected. Newest first.
 
+## 2026-10-14 (M02): details of the test harness the plan left open
+
+- **`version.pri` is included from `src.pri`**, not `lightscreen.pro`, so the tests compile with exactly the app's defines (it defines `APP_VERSION`). *Rejected:* keeping it in `lightscreen.pro` (tests and app would build with different defines).
+- **The MSVC branch is split by kind:** compile flags and libraries (`_ATL_XP_TARGETING`, `_USING_V110_SDK71`, the Win32 `LIBS`) go to `src.pri`; the linker subsystem and manifest flags and `embed_manifest_exe` stay in `lightscreen.pro`, since they describe the executable, not the code. M03 removes the XP flags from both places. *Rejected:* moving the whole block (the test executables would get the app's icon, manifest and subsystem settings).
+- **The seams do not take ownership.** `setInstance` and `setNetwork` replace a pointer and delete nothing; the test owns what it installs and resets the singleton to `nullptr` afterwards. *Rejected:* deleting the previous instance (the app's own singleton has no owner to notify, and a test-owned stack object must not be deleted).
+- **The original `ScreenshotManager` constructor delegates to the new one, then sets the settings, history path and portable flag as before.** This keeps its body unchanged rather than computing the arguments in the initializer list. *Rejected:* computing them in the delegation call (three `config.ini` checks or a helper, for no gain).
+- **Out-of-tree builds:** the tests build in `build-tests/`, git-ignored next to `build/`.
+
 ## 2026-10-14 (M01): details of the CI workflow
 
 The plan left these open; each is the simplest option that fits the decisions above.

@@ -34,7 +34,9 @@ public:
     Uploader(QObject *parent = 0);
 
     static Uploader *instance();
+    static void setInstance(Uploader *uploader);
     static QNetworkAccessManager *network();
+    void setNetwork(QNetworkAccessManager *network);
     static QString serviceName(int index);
 
     QString lastUrl() const;
