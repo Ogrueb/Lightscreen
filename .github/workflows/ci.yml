@@ -68,7 +68,14 @@ jobs:
           status=0
           wait "$pid" || status=$?
           echo "lightscreen exit status: $status"
-          exit "$status"
+          [ "$status" -eq 0 ] || exit "$status"
+          # Bug 29: with no instance running, --quit must exit instead of staying up hidden.
+          status=0
+          timeout 10 ./lightscreen --quit || status=$?
+          if [ "$status" -ne 0 ]; then
+            echo "lightscreen --quit with no instance running did not exit cleanly (status $status, 124 is a timeout)"
+            exit 1
+          fi
           SMOKE
           xvfb-run -a bash smoke.sh
 

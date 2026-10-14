@@ -146,3 +146,9 @@ What is done, what changed from the plan, and what is open. Newest first.
 
 - Windows x64 release build works on VS 2022 + Qt 5.15.2 with no source changes; see `docs/build.md`.
 - Open from Stage 1: Linux build verification, CI for Windows and Linux, `docs/goals.md` and `docs/known-bugs.md` (by the owner).
+
+## 2026-10-14: Stage 5, bug 29 (`--quit` with no instance running)
+
+- `lightscreen --quit` with no instance running now exits with status 0 instead of leaving a hidden instance. `executeArgument("--quit")` queues the quit (`QTimer::singleShot(0, qApp, &QCoreApplication::quit)`), so it survives `main` running the arguments before `exec()`. The other flags and `main.cpp` are unchanged.
+- New test `tst_mainwindow::quitFlagBeforeEventLoopQuits` (fails before the fix: `exec()` ran until the 3 s guard). The CI Linux smoke gained a second step: `timeout 10 ./lightscreen --quit` with no instance running must exit 0. `docs/build.md` describes it.
+- Not changed: `--quit` still bypasses `LightscreenWindow::quit` (no confirmation while processing or uploading, no saved position, no `finished`), as recorded by `quitFlagQuitsTheApplication`.
