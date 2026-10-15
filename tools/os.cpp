@@ -19,7 +19,6 @@
 #include <QApplication>
 #include <QBitmap>
 #include <QDesktopServices>
-#include <QDesktopWidget>
 #include <QDialog>
 #include <QDir>
 #include <QGraphicsDropShadowEffect>

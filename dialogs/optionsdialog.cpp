@@ -20,7 +20,7 @@
 #include <QCompleter>
 #include <QDate>
 #include <QDesktopServices>
-#include <QDesktopWidget>
+#include <QScreen>
 #include <QFileDialog>
 #include <QFileSystemModel>
 #include <QKeyEvent>
@@ -474,7 +474,7 @@ bool OptionsDialog::event(QEvent *event)
         if (settings()->contains("geometry/optionsDialog")) {
             restoreGeometry(settings()->value("geometry/optionsDialog").toByteArray());
         } else {
-            move(QApplication::desktop()->screenGeometry(this).center() - rect().center());
+            move(screen()->geometry().center() - rect().center());
         }
     }
 

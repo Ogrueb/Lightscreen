@@ -27,7 +27,7 @@
 #include <tools/screenshotmanager.h>
 
 #include <QApplication>
-#include <QDesktopWidget>
+#include <QScreen>
 #include <QHBoxLayout>
 #include <QMouseEvent>
 #include <QPainter>
@@ -506,7 +506,7 @@ void AreaDialog::paintEvent(QPaintEvent *e)
 
     if (mShowHelp) {
         //Drawing the explanatory text.
-        QRect helpRect = qApp->desktop()->screenGeometry(qApp->desktop()->primaryScreen());
+        QRect helpRect = QGuiApplication::primaryScreen()->geometry();
         QString helpTxt = tr("Use your mouse to draw a rectangle to capture. Press any key or right click to exit.\nType \"100x100\" or similar and press enter for precise sizing. Ctrl+M toggles magnifier.");
 
         helpRect.setHeight(qRound((float)(helpRect.height() / 10))); // We get a decently sized rect where the text should be drawn (centered)
@@ -530,7 +530,7 @@ void AreaDialog::paintEvent(QPaintEvent *e)
     }
 
     if (!mKeyboardSize.isEmpty()) {
-        QRect keyboardSizeRect = qApp->desktop()->screenGeometry(qApp->desktop()->primaryScreen());
+        QRect keyboardSizeRect = QGuiApplication::primaryScreen()->geometry();
 
         QFont originalFont = painter.font();
         QFont font = originalFont;
@@ -711,10 +711,16 @@ void AreaDialog::showEvent(QShowEvent *e)
 {
     Q_UNUSED(e)
 
-    QRect geometry = qApp->desktop()->geometry();
+    QRect geometry = QGuiApplication::primaryScreen()->virtualGeometry();
 
     if (mScreenshot->options().currentMonitor) {
-        geometry = qApp->desktop()->screenGeometry(qApp->desktop()->screenNumber(QCursor::pos()));
+        QScreen *cursorScreen = QGuiApplication::screenAt(QCursor::pos());
+
+        if (!cursorScreen) {
+            cursorScreen = QGuiApplication::primaryScreen();
+        }
+
+        geometry = cursorScreen->geometry();
     }
 
     resize(geometry.size());
