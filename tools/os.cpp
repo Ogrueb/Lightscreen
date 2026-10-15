@@ -45,6 +45,7 @@
     #include <QtWin>
     #include <qt_windows.h>
     #include <ShlObj.h>
+    #include <dwmapi.h>
 
     // Define for MinGW
     #ifndef SM_CXPADDEDBORDER
@@ -172,23 +173,30 @@ QPixmap os::grabWindow(WId winId)
 {
 #ifdef Q_OS_WIN
     RECT rcWindow;
+    RECT rcFull;
 
     HWND hwndId = (HWND)winId;
 
-    GetWindowRect(hwndId, &rcWindow);
+    GetWindowRect(hwndId, &rcFull);
 
-    int margin = GetSystemMetrics(SM_CXSIZEFRAME) + GetSystemMetrics(SM_CXPADDEDBORDER) / 2;
+    // Since Windows 10 the visible frame sits inside an invisible resize border;
+    // DWM reports the visible bounds directly.
+    if (FAILED(DwmGetWindowAttribute(hwndId, DWMWA_EXTENDED_FRAME_BOUNDS, &rcWindow, sizeof(rcWindow)))) {
+        rcWindow = rcFull;
 
-    rcWindow.right -= margin;
-    rcWindow.left += margin;
+        int margin = GetSystemMetrics(SM_CXSIZEFRAME) + GetSystemMetrics(SM_CXPADDEDBORDER) / 2;
 
-    if (IsZoomed(hwndId)) {
-        rcWindow.top += margin;
-    } else {
-        rcWindow.top += GetSystemMetrics(SM_CXPADDEDBORDER);
+        rcWindow.right -= margin;
+        rcWindow.left += margin;
+
+        if (IsZoomed(hwndId)) {
+            rcWindow.top += margin;
+        } else {
+            rcWindow.top += GetSystemMetrics(SM_CXPADDEDBORDER);
+        }
+
+        rcWindow.bottom -= margin;
     }
-
-    rcWindow.bottom -= margin;
 
     int width, height;
     width = rcWindow.right - rcWindow.left;
@@ -228,7 +236,7 @@ QPixmap os::grabWindow(WId winId)
         hbmCapture = CreateCompatibleBitmap(hdcWindow, width, height);
         SelectObject(hdcMem, hbmCapture);
 
-        BitBlt(hdcMem, 0, 0, width, height, hdcWindow, 0, 0, SRCCOPY);
+        BitBlt(hdcMem, 0, 0, width, height, hdcWindow, rcWindow.left - rcFull.left, rcWindow.top - rcFull.top, SRCCOPY);
     }
 
     ReleaseDC(hwndId, hdcMem);
