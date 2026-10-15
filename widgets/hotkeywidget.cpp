@@ -77,15 +77,20 @@ bool HotkeyWidget::event(QEvent *event)
     if (event->type() == QEvent::LanguageChange) {
         setHotkeyText();
     } else if (event->type() == QEvent::KeyPress) {
-        keyPressEvent(static_cast<QKeyEvent *>(event));
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+
+        // With Tab focus the button is only highlighted, so Tab and Backtab keep moving focus.
+        if (mKeyboardFocus && (keyEvent->key() == Qt::Key_Tab || keyEvent->key() == Qt::Key_Backtab)) {
+            return QPushButton::event(event);
+        }
+
+        keyPressEvent(keyEvent);
         return true;
     } else if (event->type() == QEvent::FocusIn) {
         QFocusEvent *focusEvent = static_cast<QFocusEvent *>(event);
 
-        if (focusEvent->reason() != Qt::TabFocusReason) {
-            setText(tr("Type your hotkey"));
-            mKeyboardFocus = false;
-            grabKeyboard();
+        if (focusEvent->reason() != Qt::TabFocusReason && focusEvent->reason() != Qt::BacktabFocusReason) {
+            startHotkeyEntry();
         } else {
             mKeyboardFocus = true;
         }
@@ -95,8 +100,11 @@ bool HotkeyWidget::event(QEvent *event)
             showError();
         }
 
+        mKeyboardFocus = false;
         releaseKeyboard();
-        setHotkeyText(); // Reset the text
+        // Reset the text without setHotkeyText's parentWidget()->setFocus(), which would take focus from the widget
+        // that is receiving it (Tab would never get past the hotkey button).
+        setText(mHotkey.toString(QKeySequence::NativeText));
     } else if ((event->type() == QEvent::KeyPress || event->type() == QEvent::ShortcutOverride || event->type() == QEvent::Shortcut) && hasFocus()) {
         event->accept();
         return true;
@@ -108,6 +116,15 @@ bool HotkeyWidget::event(QEvent *event)
 void HotkeyWidget::keyPressEvent(QKeyEvent *event)
 {
     if (mKeyboardFocus) {
+        // Space and Enter press the button, which starts hotkey entry as a click does; other keys are ignored.
+        switch (event->key()) {
+        case Qt::Key_Space:
+        case Qt::Key_Return:
+        case Qt::Key_Enter:
+            startHotkeyEntry();
+            break;
+        }
+
         return;
     }
 
@@ -124,6 +141,13 @@ void HotkeyWidget::keyPressEvent(QKeyEvent *event)
     mHotkey = QKeySequence(event->key() + (event->modifiers() & ~Qt::KeypadModifier));
 
     setHotkeyText();
+}
+
+void HotkeyWidget::startHotkeyEntry()
+{
+    setText(tr("Type your hotkey"));
+    mKeyboardFocus = false;
+    grabKeyboard();
 }
 
 void HotkeyWidget::hideError()

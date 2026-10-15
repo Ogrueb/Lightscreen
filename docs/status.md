@@ -200,3 +200,9 @@ What is done, what changed from the plan, and what is open. Newest first.
 - The bug 2 fix (PR #22) only made a saved `-1` read back as PNG, so a WEBP choice still became PNG after opening and saving the options. The format combo box now lists WEBP (index 3, matching `Screenshot::WEBP`), and `OptionsDialog::saveSettings` leaves `file/format`, `file/naming` and `options/previewPosition` untouched when the box has no current item (a stored index it does not list) instead of writing `-1`.
 - `tst_settings::dialogOutOfRangeIndexes` flipped (fails before the fix): WEBP shows as "WEBP" and saves as 3, naming and preview position 9 survive. `upload/service` still saves `-1`, left to M12. Goldens unchanged. All suites pass on Linux under Xvfb.
 - Windows QA (optional, short): choose WEBP, take a screenshot, check the `.webp` file opens. Writing WEBP needs Qt's `qwebp` image format plugin, which `windeployqt` deploys when the Qt install has it.
+
+## 2026-10-14: Stage 5, bug 26 fixed (hotkey from the keyboard)
+
+- `HotkeyWidget`: with Tab or Shift+Tab focus, Space, Return and Enter start hotkey entry ("Type your hotkey", keyboard grabbed), the same as a click; other keys are still ignored, so tabbing through the options dialog cannot change a hotkey. Tab and Shift+Tab move on instead of being swallowed, and leaving the widget no longer moves focus to its parent (it used to, so Tab could never reach the next control). The Tab-focus flag is cleared on focus out.
+- `tst_hotkeywidget`: `tabFocusIgnoresKeys` flipped (the flag no longer outlives focus); new `tabFocusThenKeyStartsEntry` (Space, Return, Enter) and `tabFocusMovesOnWithTab`. All failed before the fix. All suites pass under Xvfb on Linux.
+- Needs a short check by hand on Windows (keyboard focus and `grabKeyboard` are platform code): see the PR.
