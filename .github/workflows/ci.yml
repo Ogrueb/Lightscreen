@@ -32,7 +32,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            qtbase5-dev qtbase5-private-dev qtmultimedia5-dev libqt5x11extras5-dev \
+            qtbase5-dev qtbase5-private-dev libqt5x11extras5-dev \
             libqt5sql5-sqlite libx11-dev libxcb-keysyms1-dev xvfb
 
       - name: Build

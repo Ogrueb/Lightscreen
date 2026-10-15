@@ -34,6 +34,11 @@ class QIcon;
 #endif
 
 namespace os {
+enum class Sound { Screenshot, Error };
+
+// Plays a sound cue without waiting for it to finish (Windows only; does nothing elsewhere).
+void playSound(Sound sound);
+
 // Returns the cursor pixmap in Windows
 QPair<QPixmap, QPoint> cursor();
 
