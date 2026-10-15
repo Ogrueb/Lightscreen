@@ -80,7 +80,8 @@ Nothing needed fixing to build. Things noticed along the way, left unchanged on 
 
 - **Windows XP targeting flags are obsolete.** The MSVC branch of `lightscreen.pro` sets `_ATL_XP_TARGETING`, `/D _USING_V110_SDK71` and `/SUBSYSTEM:WINDOWS,5.01`. With VS 2022 the linker ignores the 5.01 version (`LNK4010: invalid subsystem version number 5.01; default subsystem version assumed`) and the other two are no-ops. Harmless for now; remove them when the minimum Windows version is decided in `docs/goals.md`.
 - **The MinGW branch of `lightscreen.pro` looks unmaintained** (library names like `libgdi32`, and it overwrites `QMAKE_CXXFLAGS` instead of appending). Not tried.
-- **README badges** pointed at the original author's AppVeyor and Coverity projects. Replaced by the fork's CI badge in M01.
+- **README badges** pointed at the original author's AppVeyor and Coverity projects. Replaced by the fork's CI badge in M01; M14 rewrote the README as a fork notice that points here for building.
+- **Dead files.** `dialogs/aboutdialog.ui` (not in `FORMS`, never used) and the `OTHER_FILES += TODO.txt` line in `lightscreen.pro` (the file never existed) were removed in M14.
 - **Compiler warnings worth a look** (14 in total, the rest are `size_t` to `int` narrowing in UGlobalHotkey and `lightscreenwindow.cpp:113`):
   - `tools/windowpicker.cpp:168` (C4312): `GetClassLong(..., GCL_HICON)` returns a 32-bit value, which truncates the icon handle on 64-bit builds. `GetClassLongPtr` / `GCLP_HICON` is the 64-bit-safe call. Likely a real bug in the window picker's icon on x64.
   - `tools/screenshot.cpp:404` (C4715): `Screenshot::extension()` has no return for formats outside its `switch` (WEBP was removed from the UI but is still in the enum). Undefined behavior if it is ever hit.
