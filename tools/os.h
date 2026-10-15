@@ -52,6 +52,9 @@ void setForegroundWindow(QWidget *window);
 // Adds lightscreen to the startup list in Windows & Linux (KDE, Gnome and Xfce for now).
 void setStartup(bool startup, bool hide);
 
+// Returns the Exec= value of a Linux autostart entry for program: quoted and escaped per the Desktop Entry spec.
+QString desktopExec(const QString &program, bool hide);
+
 // Creates a new QGraphicsDropShadowEffect to apply to widgets.
 QGraphicsEffect *shadow(const QColor &color = Qt::black, int blurRadius = 6, int offset = 1);
 

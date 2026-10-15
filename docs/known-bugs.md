@@ -215,6 +215,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **Fix:** `QDir().mkpath` the autostart directory, check `open()`, add `Name=Lightscreen`, quote the executable path.
 - **Platform:** Linux. **Test:** `tst_Os::startupWithoutAutostartDir` asserts that nothing is written (expected to change). Confirmed by the test.
 - **Triage:** fix now (session G).
+- **Fixed** (Stage 5): `setStartup` creates the directory, writes `Name=Lightscreen` and a quoted, escaped `Exec` (new `os::desktopExec`), and warns when the file cannot be written. Tests: `startupWithoutAutostartDir` flipped, new `startupUnwritableWarns` and `desktopExec`.
 
 ## Found while writing the Stage 4 hotkey widget tests
 

@@ -121,7 +121,7 @@ private slots:
 
         os::setStartup(true, false);
 
-        QCOMPARE(readDesktopFile(), "[Desktop Entry]\nExec=" + appPath() + "\nType=Application");
+        QCOMPARE(readDesktopFile(), expectedDesktopFile(false));
     }
 
     void startupHideAddsFlag()
@@ -130,7 +130,7 @@ private slots:
 
         os::setStartup(true, true);
 
-        QCOMPARE(readDesktopFile(), "[Desktop Entry]\nExec=" + appPath() + " -h\nType=Application");
+        QCOMPARE(readDesktopFile(), expectedDesktopFile(true));
     }
 
     // An existing file (ours or the user's) is replaced, not appended to.
@@ -144,7 +144,7 @@ private slots:
 
         os::setStartup(true, false);
 
-        QCOMPARE(readDesktopFile(), "[Desktop Entry]\nExec=" + appPath() + "\nType=Application");
+        QCOMPARE(readDesktopFile(), expectedDesktopFile(false));
     }
 
     void startupFalseRemovesDesktopFile()
@@ -162,19 +162,55 @@ private slots:
         QVERIFY(!QFile::exists(desktopFilePath()));
     }
 
-    // Expected to change (bug 25): with no ~/.config/autostart directory, setStartup(true) writes nothing and
-    // reports nothing; it does not create the directory.
+    // With no ~/.config/autostart directory, setStartup(true) creates it and writes the file (bug 25).
     void startupWithoutAutostartDir()
     {
         QVERIFY(!QDir(mHome->path() + "/.config").exists());
 
-        // The failed open is not checked; the write that follows warns.
-        QTest::ignoreMessage(QtWarningMsg,
-                             QRegularExpression("QIODevice::write .*lightscreen\\.desktop.*device not open"));
         os::setStartup(true, false);
 
-        QVERIFY(!QFile::exists(desktopFilePath())); // expected to change (bug 25)
-        QVERIFY(!QDir(mHome->path() + "/.config/autostart").exists()); // expected to change (bug 25)
+        QVERIFY(QDir(mHome->path() + "/.config/autostart").exists());
+        QCOMPARE(readDesktopFile(), expectedDesktopFile(false));
+    }
+
+    // When the directory cannot be created (here a plain file is in the way), setStartup warns instead of
+    // failing silently.
+    void startupUnwritableWarns()
+    {
+        QVERIFY(QDir(mHome->path()).mkpath(".config"));
+        QFile blocker(mHome->path() + "/.config/autostart");
+        QVERIFY(blocker.open(QIODevice::WriteOnly));
+        blocker.close();
+
+        QTest::ignoreMessage(QtWarningMsg, QRegularExpression("Could not write .*lightscreen\\.desktop"));
+        os::setStartup(true, false);
+
+        QVERIFY(!QFile::exists(desktopFilePath()));
+    }
+
+    // The Exec value quotes the program per the Desktop Entry spec: spaces survive, and ", `, $ and \ are
+    // escaped inside the quotes (\ twice, once more for the string-value escape). % is doubled.
+    void desktopExec_data()
+    {
+        QTest::addColumn<QString>("program");
+        QTest::addColumn<bool>("hide");
+        QTest::addColumn<QString>("exec");
+
+        QTest::newRow("plain") << "/usr/bin/lightscreen" << false << "\"/usr/bin/lightscreen\"";
+        QTest::newRow("hide") << "/usr/bin/lightscreen" << true << "\"/usr/bin/lightscreen\" -h";
+        QTest::newRow("space") << "/home/a b/lightscreen" << false << "\"/home/a b/lightscreen\"";
+        QTest::newRow("reserved") << "/x/\"`$/ls" << false << "\"/x/\\\\\"\\\\`\\\\$/ls\"";
+        QTest::newRow("backslash") << "/x\\y/ls" << false << "\"/x\\\\\\\\y/ls\"";
+        QTest::newRow("percent") << "/x/100%/ls" << false << "\"/x/100%%/ls\"";
+    }
+
+    void desktopExec()
+    {
+        QFETCH(QString, program);
+        QFETCH(bool, hide);
+        QFETCH(QString, exec);
+
+        QCOMPARE(os::desktopExec(program, hide), exec);
     }
 
     void init()
@@ -224,7 +260,12 @@ private:
         if (!file.open(QIODevice::ReadOnly)) {
             return QString();
         }
-        return QString::fromLatin1(file.readAll());
+        return QString::fromUtf8(file.readAll());
+    }
+
+    static QString expectedDesktopFile(bool hide)
+    {
+        return "[Desktop Entry]\nType=Application\nName=Lightscreen\nExec=" + os::desktopExec(appPath(), hide) + "\n";
     }
 
     static QString appPath()
