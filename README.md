@@ -11,8 +11,9 @@ This is a fork of [Lightscreen](https://github.com/ckaiser/Lightscreen) by Chris
 - A test suite (QtTest) covering settings, screenshot naming and saving, history, the uploader, the hotkey widget, the area selector, the main window and the OS helpers.
 - Many known bugs fixed: see [docs/known-bugs.md](docs/known-bugs.md) and the files under `docs/known-bugs/`.
 - The SingleApplication and UGlobalHotkey submodules are vendored under `tools/`, so a plain clone builds.
+- Windows 10 is the minimum; code for older Windows versions and the XP build flags are gone.
 
-Still to come (see [docs/modernization-plan.md](docs/modernization-plan.md)): Qt 6 with C++17, Windows 10 as the minimum, a CMake build, a user-configurable uploader in place of Imgur and pomf, an update check against this fork's GitHub Releases, and the rename.
+Still to come (see [docs/modernization-plan.md](docs/modernization-plan.md)): Qt 6 with C++17, a CMake build, a user-configurable uploader in place of Imgur and pomf, an update check against this fork's GitHub Releases, and the rename.
 
 ### Building
 
