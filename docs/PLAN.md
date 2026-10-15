@@ -16,14 +16,15 @@ Fork and modernize an unmaintained (~5 years) FOSS project: fix the known bugs, 
 | `CLAUDE.md` | Standing rules: conventions, constraints, "read `docs/` first, update on exit" | Stage 1, kept current |
 | `docs/PLAN.md` | This document | Now |
 | `docs/goals.md` | What "resilient" means here, compatibility commitments, out-of-scope items | Before stage 3 (by you) |
-| `docs/known-bugs.md` | Technical description of each known bug | Before stage 5 (by you) |
+| `docs/known-bugs.md` | Technical description of each known bug (one file per bug in `docs/known-bugs/`) | Before stage 5 (by you) |
 | `docs/build.md` | How to build and test; environment notes | Stage 1 |
 | `docs/inventory.md` | Survey of the codebase as it stands | Stage 2 |
 | `docs/modernization-plan.md` | Steps the size of one PR each | Stage 3 |
-| `docs/decisions.md` | Decisions, reasons, rejected alternatives | Stage 3 onward |
-| `docs/status.md` | What's done, what changed from the plan, open items | Stage 4 onward |
+| `docs/decisions.md` | Decisions, reasons, rejected alternatives (one file per decision in `docs/decisions/`) | Stage 3 onward |
+| `docs/windows-qa.md` | Manual Windows checks, run in one pass per stage (one file per check in `docs/windows-qa/`) | Stage 5 onward |
+| `docs/status.md` | What's done, what changed from the plan, open items (one file per entry in `docs/status/`) | Stage 4 onward |
 
-Suggested `CLAUDE.md` lines:
+Suggested `CLAUDE.md` lines (the current wording in `CLAUDE.md` adds the one-file-per-entry rule):
 
 ```
 Before starting: read docs/PLAN.md, docs/decisions.md and docs/status.md.

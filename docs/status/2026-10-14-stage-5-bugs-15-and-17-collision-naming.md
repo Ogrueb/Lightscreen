@@ -1,0 +1,4 @@
+# 2026-10-14: Stage 5, bugs 15 and 17 (collision naming)
+
+- `Screenshot::uniqueName` now counts only files named exactly `<name> (<n>)<extension>` (name and extension matched literally) and takes one more than the largest `n`, as before; it then keeps counting up while the candidate exists, so `save()` with `replace` off can no longer overwrite a file. Bug 15 (data loss with digits in the name) and bug 17 (prefix and nested-suffix matching) are fixed; `docs/known-bugs.md` updated.
+- `tst_screenshot`: `uniqueName_prefixMatch`, `uniqueName_nestedSuffix` and `uniqueName_returnsExistingName` flipped to the correct results; new `uniqueName_skipsExistingCandidate` (the existence loop) and `uniqueName_specialCharacters` (regex characters in the name). Everything else in the suite is unchanged. Linux: all suites pass.

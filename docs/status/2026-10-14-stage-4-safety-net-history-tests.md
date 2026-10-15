@@ -1,0 +1,7 @@
+# 2026-10-14: Stage 4 safety net, history tests
+
+- `tests/tst_history/` (19 test functions) covers `tools/screenshotmanager`'s history as plan section 6 item 3 describes: `initHistory` (directory, file, the four columns), `saveHistory` with history on (the default) and off, `updateHistory` for an existing file, a new file, an empty URL and history off, `Uploader::done` reaching `updateHistory`, `removeHistory`, `clearHistory`, the seam's history path, and portable mode. Tests only; no production code changed.
+- **Bug 13 confirmed.** `updateHistory` on a file that already has a row inserts a second row and leaves the first without its URL. Cause as described in `docs/known-bugs.md`: SQLite rejects the lookup with `no such column: EMPTY`, so the function always falls through to `saveHistory`. Three assertions are marked `expected to change (bug 13)` for the Stage 5 fix to flip.
+- Also recorded: the delete hash is stored as `https://imgur.com/delete/<hash>` (M12 changes this); saving the same file twice gives two rows; with history off `saveHistory` does not even create the database; `removeHistory` and `clearHistory` ignore the history setting.
+- Portable mode is tested through the default constructor: the test writes a `config.ini` next to its own executable, checks portable mode, settings file and history location, and removes both files. Both tests skip if such files already exist there.
+- Verified in the cloud container (Ubuntu 24.04, Qt 5.15.13) under `xvfb-run -a make check` and with `QT_QPA_PLATFORM=offscreen`.

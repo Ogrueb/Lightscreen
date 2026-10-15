@@ -14,6 +14,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  docs:
+    name: Docs layout
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check one-file-per-entry layout
+        run: .github/scripts/check-docs.sh
+
   linux:
     name: Linux (Qt 5, apt)
     runs-on: ubuntu-latest
