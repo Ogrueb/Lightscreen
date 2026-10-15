@@ -107,15 +107,6 @@ void ImgurUploader::upload(const QString &fileName)
     this->setProperty("fileName", fileName);
     multiPart->setParent(reply);
 
-#ifdef Q_OS_WIN
-    connect(reply, &QNetworkReply::sslErrors, [reply](const QList<QSslError> &errors) {
-        Q_UNUSED(errors);
-        if (QSysInfo::WindowsVersion <= QSysInfo::WV_2003) {
-            reply->ignoreSslErrors();
-        }
-    });
-#endif
-
     connect(reply, &QNetworkReply::uploadProgress, this, &ImgurUploader::uploadProgress);
     connect(this , &ImgurUploader::cancelRequest, reply, &QNetworkReply::abort);
     connect(this , &ImgurUploader::cancelRequest, reply, &QNetworkReply::deleteLater);
@@ -188,15 +179,6 @@ void ImgurUploader::uploadProgress(qint64 bytesReceived, qint64 bytesTotal)
 
 void ImgurUploader::authorizationReply(QNetworkReply *reply, AuthorizationCallback callback)
 {
-#ifdef Q_OS_WIN
-    connect(reply, &QNetworkReply::sslErrors, [reply](const QList<QSslError> &errors) {
-        Q_UNUSED(errors);
-        if (QSysInfo::WindowsVersion <= QSysInfo::WV_2003) {
-            reply->ignoreSslErrors();
-        }
-    });
-#endif
-
     connect(reply, &QNetworkReply::finished, [reply, callback] {
         reply->deleteLater();
 

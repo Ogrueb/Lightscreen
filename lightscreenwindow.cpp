@@ -79,19 +79,13 @@ LightscreenWindow::LightscreenWindow(QWidget *parent) :
     createUploadMenu();
 
 #ifdef Q_OS_WIN
-    if (QSysInfo::WindowsVersion >= QSysInfo::WV_WINDOWS7) {
-        mTaskbarButton = new QWinTaskbarButton(this);
-        mHasTaskbarButton = true;
+    mTaskbarButton = new QWinTaskbarButton(this);
+    mHasTaskbarButton = true;
 
-        if (QtWin::isCompositionEnabled()) {
-            setAttribute(Qt::WA_NoSystemBackground);
-            QtWin::enableBlurBehindWindow(this);
-            QtWin::extendFrameIntoClientArea(this, QMargins(-1, -1, -1, -1));
-        }
-    }
-
-    if (QSysInfo::WindowsVersion < QSysInfo::WV_WINDOWS7) {
-        ui.centralWidget->setStyleSheet("QPushButton { padding: 2px; border: 1px solid #acacac; background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 #eaeaea, stop:1 #e5e5e5);} QPushButton:hover { border: 1px solid #7eb4ea;	background-color: #e4f0fc; }");
+    if (QtWin::isCompositionEnabled()) {
+        setAttribute(Qt::WA_NoSystemBackground);
+        QtWin::enableBlurBehindWindow(this);
+        QtWin::extendFrameIntoClientArea(this, QMargins(-1, -1, -1, -1));
     }
 #endif
 
@@ -1003,8 +997,7 @@ bool LightscreenWindow::event(QEvent *event)
         }
     } else if (event->type() == QEvent::KeyPress) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
-#ifdef Q_WS_MAC
-        if (keyEvent->modifiers() == Qt::ControlModifier && e->key() == Qt::Key_Period) {
+        if (!keyEvent->modifiers() && keyEvent->key() == Qt::Key_Escape) {
             keyEvent->ignore();
 
             if (isVisible()) {
@@ -1012,17 +1005,7 @@ bool LightscreenWindow::event(QEvent *event)
             }
 
             return false;
-        } else
-#endif
-            if (!keyEvent->modifiers() && keyEvent->key() == Qt::Key_Escape) {
-                keyEvent->ignore();
-
-                if (isVisible()) {
-                    toggleVisibility();
-                }
-
-                return false;
-            }
+        }
     } else if (event->type() == QEvent::LanguageChange) {
         ui.retranslateUi(this);
         resize(minimumSizeHint());

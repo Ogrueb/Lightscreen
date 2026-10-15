@@ -78,8 +78,7 @@ To run the smoke locally after a Linux build, copy the script from the "Smoke te
 
 Nothing needed fixing to build. Things noticed along the way, left unchanged on purpose:
 
-- **Windows XP targeting flags are obsolete.** The MSVC branch of `lightscreen.pro` sets `_ATL_XP_TARGETING`, `/D _USING_V110_SDK71` and `/SUBSYSTEM:WINDOWS,5.01`. With VS 2022 the linker ignores the 5.01 version (`LNK4010: invalid subsystem version number 5.01; default subsystem version assumed`) and the other two are no-ops. Harmless for now; remove them when the minimum Windows version is decided in `docs/goals.md`.
-- **The MinGW branch of `lightscreen.pro` looks unmaintained** (library names like `libgdi32`, and it overwrites `QMAKE_CXXFLAGS` instead of appending). Not tried.
+- **Windows XP targeting flags and the MinGW branch** (`_ATL_XP_TARGETING`, `/D _USING_V110_SDK71`, `/SUBSYSTEM:...,5.01`, which caused the linker warning `LNK4010`, and an unmaintained MinGW branch) were removed in M03, when the minimum became Windows 10. Only MSVC is supported on Windows.
 - **README badges** pointed at the original author's AppVeyor and Coverity projects. Replaced by the fork's CI badge in M01.
 - **Compiler warnings worth a look** (14 in total, the rest are `size_t` to `int` narrowing in UGlobalHotkey and `lightscreenwindow.cpp:113`):
   - `tools/windowpicker.cpp:168` (C4312): `GetClassLong(..., GCL_HICON)` returns a 32-bit value, which truncates the icon handle on 64-bit builds. `GetClassLongPtr` / `GCLP_HICON` is the 64-bit-safe call. Likely a real bug in the window picker's icon on x64.

@@ -63,19 +63,8 @@ include($$PWD/tools/UGlobalHotkey/uglobalhotkey.pri)
 windows {
     QT += winextras
 
-    # MinGW
-    contains(QMAKE_CC, gcc){
-        LIBS += libgdi32 libgcc libuser32 libole32 libshell32 libshlwapi libcomctl32 libdwmapi
-        QMAKE_CXXFLAGS = -Wextra -Wall -Wpointer-arith
-    }
-
-    # MSVC
-    contains(QMAKE_CC, cl){
-        LIBS += gdi32.lib user32.lib ole32.lib shell32.lib shlwapi.lib comctl32.lib dwmapi.lib
-        DEFINES        += _ATL_XP_TARGETING
-        QMAKE_CFLAGS   += /D _USING_V110_SDK71
-        QMAKE_CXXFLAGS += /D _USING_V110_SDK71
-    }
+    # MSVC only; MinGW is not supported
+    LIBS += gdi32.lib user32.lib ole32.lib shell32.lib shlwapi.lib comctl32.lib dwmapi.lib
 
     #QMAKE_CXXFLAGS_DEBUG += /analyze /W3 /wd6326
 }
