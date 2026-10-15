@@ -368,9 +368,9 @@ void tst_Settings::dialogRoundTrip()
     COMPARE_LINES(dump(), expected);
 }
 
-// Indexes the dialog's combo boxes cannot show (known-bugs.md, bug 19). The format combo box has PNG, JPG and BMP
-// only, so a WEBP setting (3, which Screenshot::Format and the window accept) does not survive opening and saving
-// the options.
+// Indexes the dialog's combo boxes cannot show (known-bugs.md, bug 19). The format combo box lists WEBP (3), so a
+// WEBP setting is shown and saved as is; a naming or preview position index the boxes do not list is kept instead of
+// being saved as -1. "upload/service" still saves -1: M12 owns the uploader settings.
 void tst_Settings::dialogOutOfRangeIndexes()
 {
     mSettings->setValue("file/format", 3);
@@ -381,12 +381,13 @@ void tst_Settings::dialogOutOfRangeIndexes()
     {
         OptionsDialog dialog;
         QTRY_VERIFY(dialog.isEnabled());
+        QCOMPARE(dialog.findChild<QComboBox *>("formatComboBox")->currentText(), QStringLiteral("WEBP"));
         dialog.saveSettings();
     }
 
-    QCOMPARE(mSettings->value("file/format").toString(), QStringLiteral("-1"));
-    QCOMPARE(mSettings->value("file/naming").toString(), QStringLiteral("-1"));
-    QCOMPARE(mSettings->value("options/previewPosition").toString(), QStringLiteral("-1"));
+    QCOMPARE(mSettings->value("file/format").toString(), QStringLiteral("3"));
+    QCOMPARE(mSettings->value("file/naming").toString(), QStringLiteral("9"));
+    QCOMPARE(mSettings->value("options/previewPosition").toString(), QStringLiteral("9"));
     QCOMPARE(mSettings->value("upload/service").toString(), QStringLiteral("-1"));
 }
 
