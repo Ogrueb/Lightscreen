@@ -153,15 +153,15 @@ void os::effect(QObject *target, const char *slot, int frames, int duration, con
 QString os::getDocumentsPath()
 {
 #ifdef Q_OS_WIN
-    TCHAR szPath[MAX_PATH];
+    PWSTR path = nullptr;
 
-    if (SUCCEEDED(SHGetFolderPath(NULL,
-                                  CSIDL_PERSONAL | CSIDL_FLAG_CREATE,
-                                  NULL,
-                                  0,
-                                  szPath))) {
-        return QString::fromWCharArray(szPath);
+    if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_CREATE, NULL, &path))) {
+        const QString documents = QString::fromWCharArray(path);
+        CoTaskMemFree(path);
+        return documents;
     }
+
+    CoTaskMemFree(path);
 
     return QDir::homePath() + QDir::separator() + "My Documents";
 #else

@@ -35,11 +35,7 @@ Updater::Updater(QObject *parent) :
 
 void Updater::check()
 {
-#ifdef Q_OS_WIN
-    QString platform = QString("Windows_%1").arg(QSysInfo::WindowsVersion);
-#else
-    QString platform = QSysInfo::productType();
-#endif
+    QString platform = QSysInfo::productType() + "_" + QSysInfo::productVersion();
 
     QNetworkRequest request(QUrl::fromUserInput("https://lightscreen.com.ar/version?from=" + qApp->applicationVersion() + "&platform=" + platform));
     mNetwork.get(request);

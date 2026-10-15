@@ -198,7 +198,7 @@ void OptionsDialog::loadSettings()
     ui.magnifyCheckBox->setChecked(settings()->value("magnify", false).toBool());
 
 #ifdef Q_OS_WIN
-    ui.cursorCheckBox->setChecked(settings()->value("cursor", QSysInfo::WindowsVersion > QSysInfo::WV_XP).toBool());
+    ui.cursorCheckBox->setChecked(settings()->value("cursor", true).toBool());
 #else
     ui.cursorCheckBox->setChecked(settings()->value("cursor", true).toBool());
 #endif
