@@ -287,15 +287,39 @@ void os::setStartup(bool startup, bool hide)
 #endif
 
 #if defined(Q_OS_LINUX)
-    QFile desktopFile(QDir::homePath() + "/.config/autostart/lightscreen.desktop");
+    const QString autostartPath = QDir::homePath() + "/.config/autostart";
+    QFile desktopFile(autostartPath + "/lightscreen.desktop");
 
     desktopFile.remove();
 
     if (startup) {
-        desktopFile.open(QIODevice::WriteOnly);
-        desktopFile.write(QString("[Desktop Entry]\nExec=%1\nType=Application").arg(lightscreen).toLatin1());
+        const QString entry = "[Desktop Entry]\nType=Application\nName=Lightscreen\nExec="
+                              + desktopExec(qApp->applicationFilePath(), hide) + "\n";
+
+        if (!QDir().mkpath(autostartPath) || !desktopFile.open(QIODevice::WriteOnly)
+            || desktopFile.write(entry.toUtf8()) < 0) {
+            qWarning("Could not write %s", qPrintable(desktopFile.fileName()));
+        }
     }
 #endif
+}
+
+QString os::desktopExec(const QString &program, bool hide)
+{
+    // Inside double quotes, ", `, $ and \ take a backslash; the string-value escape then doubles every backslash.
+    QString quoted = program;
+    quoted.replace('\\', "\\\\");
+    quoted.replace('"', "\\\"").replace('`', "\\`").replace('$', "\\$");
+    quoted.replace('\\', "\\\\");
+    quoted.replace('%', "%%");
+
+    QString exec = '"' + quoted + '"';
+
+    if (hide) {
+        exec.append(" -h");
+    }
+
+    return exec;
 }
 
 QGraphicsEffect *os::shadow(const QColor &color, int blurRadius, int offset)
