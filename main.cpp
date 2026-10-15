@@ -47,15 +47,10 @@ int main(int argc, char *argv[])
     LightscreenWindow lightscreen;
 
 #ifdef Q_OS_WIN
-    if (QSysInfo::WindowsVersion >= QSysInfo::WV_WINDOWS7) {
+    {
         auto jumplist = new QWinJumpList(&lightscreen);
 
-        QColor backgroundColor = qApp->palette("QToolTip").color(QPalette::Background);
-
-        if (QSysInfo::WindowsVersion == QSysInfo::WV_WINDOWS10) {
-            // contrast r hard
-            backgroundColor = Qt::black;
-        }
+        const QColor backgroundColor = Qt::black;
 
         auto screenshotCategory = new QWinJumpListCategory(QObject::tr("Screenshot"));
         screenshotCategory->setVisible(true);

@@ -1,0 +1,7 @@
+# 2026-10-15: Stage 6, M03 done (Windows 10 minimum)
+
+- Build files: the XP targeting flags (`_ATL_XP_TARGETING`, `/D _USING_V110_SDK71`, both `/SUBSYSTEM:...,5.01`) are gone, so the Windows link no longer warns `LNK4010`; `/MANIFESTUAC` stays. The MinGW branch is gone too. Since M02 those lines lived in `src.pri`, not `lightscreen.pro`, so that is where they were removed; the Windows `LIBS` line is now unconditional (MSVC only).
+- Every `QSysInfo::WindowsVersion` check now takes the Windows 10 branch: the jump list is always created with `Qt::black` icons (`main.cpp`; the jump list itself goes in M07, as planned), the taskbar button always exists and the pre-Windows 7 stylesheet is deleted (`lightscreenwindow.cpp`), the cursor option defaults to `true` (`optionsdialog.cpp`), and the updater sends `productType()_productVersion()` on every platform (`updater.cpp`; replaced wholesale in M13).
+- The six "Windows 2003 or older" `sslErrors` handlers are deleted; `PomfUploader::verify` keeps one that only calls `callback(false)` (bug 7). The dead `Q_WS_MAC` block in `LightscreenWindow::event` (bug 8) and the `Q_OS_MACOS` block in `NamingDialog` are deleted.
+- `os::getDocumentsPath` uses `SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_CREATE)` and frees the result with `CoTaskMemFree`. `tst_Os::documentsPathNotEmpty` covers it on Windows CI.
+- No behaviour change on Windows 10/11 or Linux (apart from the updater's platform string, which only reached the dead `lightscreen.com.ar`), so no Windows QA file. All test suites pass under Xvfb on Linux.
