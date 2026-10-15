@@ -101,7 +101,7 @@ PreviewDialog::PreviewDialog(QWidget *parent) :
 
     contextMenu->setTitle(tr("Global Preview Actions"));
     contextMenu->addAction(os::icon("yes")  , tr("&Save All")  , this, &PreviewDialog::acceptAll);
-    contextMenu->addAction(os::icon("imgur"), tr("&Upload All"), this, &PreviewDialog::uploadAll);
+    contextMenu->addAction(os::icon("upload"), tr("&Upload All"), this, &PreviewDialog::uploadAll);
     contextMenu->addSeparator();
     contextMenu->addAction(os::icon("no")   , tr("&Cancel All"), this, &PreviewDialog::rejectAll);
     contextMenu->addSeparator();
@@ -173,7 +173,7 @@ void PreviewDialog::add(Screenshot *screenshot)
             QMenu *confirmMenu = new QMenu(confirmPushButton);
             confirmMenu->setObjectName("confirmMenu");
 
-            QAction *uploadAction = new QAction(os::icon("imgur"), tr("Upload"), confirmPushButton);
+            QAction *uploadAction = new QAction(os::icon("upload"), tr("Upload"), confirmPushButton);
             connect(uploadAction, &QAction::triggered, screenshot, &Screenshot::markUpload);
             connect(uploadAction, &QAction::triggered, screenshot, [screenshot] { screenshot->confirm(true); });
             connect(uploadAction, &QAction::triggered, this,       &PreviewDialog::closePreview);
@@ -189,7 +189,7 @@ void PreviewDialog::add(Screenshot *screenshot)
         connect(confirmPushButton, &QPushButton::clicked, this, &PreviewDialog::closePreview);
     } else {
         // Reversed button, upload & confirm.
-        confirmPushButton->setIcon(os::icon("imgur"));
+        confirmPushButton->setIcon(os::icon("upload"));
 
         QMenu *confirmMenu = new QMenu(confirmPushButton);
         confirmMenu->setObjectName("confirmMenu");

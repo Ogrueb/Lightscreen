@@ -17,7 +17,6 @@
  *
  */
 #include <tools/uploader/imageuploader.h>
-#include <tools/uploader/imguruploader.h>
 #include <tools/uploader/pomfuploader.h>
 #include <tools/os.h>
 
@@ -26,13 +25,9 @@
 
 ImageUploader *ImageUploader::factory(const QString &name)
 {
-    if (name == "imgur") {
-        return new ImgurUploader;
-    } else if (name == "pomf") {
-        return new PomfUploader;
-    }
-
-    return nullptr;
+    // pomf is the only service until S03; unknown names fall back to it instead of returning nullptr.
+    Q_UNUSED(name);
+    return new PomfUploader;
 }
 
 QVariantHash ImageUploader::loadSettings(const QString &uploaderType)

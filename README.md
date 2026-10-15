@@ -12,8 +12,9 @@ This is a fork of [Lightscreen](https://github.com/ckaiser/Lightscreen) by Chris
 - Many known bugs fixed: see [docs/known-bugs.md](docs/known-bugs.md) and the files under `docs/known-bugs/`.
 - The SingleApplication and UGlobalHotkey submodules are vendored under `tools/`, so a plain clone builds.
 - Windows 10 is the minimum; code for older Windows versions and the XP build flags are gone.
+- The Imgur uploader is removed; uploads go to a pomf-compatible host until the user-configurable uploader arrives.
 
-Still to come (see [docs/modernization-plan.md](docs/modernization-plan.md)): Qt 6 with C++17, a CMake build, a user-configurable uploader in place of Imgur and pomf, an update check against this fork's GitHub Releases, and the rename.
+Still to come (see [docs/modernization-plan.md](docs/modernization-plan.md)): Qt 6 with C++17, a CMake build, a user-configurable uploader in place of pomf, an update check against this fork's GitHub Releases, and the rename.
 
 ### Building
 

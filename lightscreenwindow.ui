@@ -168,7 +168,7 @@
      </widget>
     </item>
     <item row="1" column="2">
-     <widget class="QPushButton" name="imgurPushButton">
+     <widget class="QPushButton" name="uploadPushButton">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -176,7 +176,7 @@
        </size>
       </property>
       <property name="toolTip">
-       <string>Imgur upload controls</string>
+       <string>Upload controls</string>
       </property>
       <property name="text">
        <string>&amp;Upload</string>

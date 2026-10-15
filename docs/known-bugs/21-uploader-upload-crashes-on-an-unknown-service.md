@@ -6,3 +6,4 @@
 - **Fix:** return early with `error` and `done(file, "", "")` when `factory` returns `nullptr`.
 - **Platform:** any. **Test:** headless, `upload(file, "unknown")`; not in `tests/tst_uploader` today because it would crash the test. Confirmed from the code.
 - **Triage:** deferred to M12 (factory falls back instead of returning `nullptr`); S03 keeps it. Both done-checks carry the test.
+- **Status:** fixed in M12 (Stage 6, PR #35). `ImageUploader::factory` falls back to pomf for any name; `tst_uploader::uploadUnknownService` covers it.

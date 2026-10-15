@@ -4,8 +4,6 @@
 # Print the actual list with LIGHTSCREEN_PRINT_GOLDEN=1 ./tst_settings dialogDefaults.
 #
 # Quirks recorded here:
-# - upload/imgur/access_token, refresh_token, account_username and expires_in are written by loadSettings
-#   (ImgurOptionsWidget::setUser("") clears them), not by saveSettings.
 # - options/cursor is forced off on Linux; on Windows it defaults on (any version above XP).
 # - options/flip, options/naming/* and options/animations are not written: flip and naming come from the naming
 #   dialog, animations has no widget.
@@ -56,11 +54,5 @@ options/startupHide=true
 options/tray=true
 options/uploadAuto=false
 options/urlClipboard=false
-upload/imgur/access_token=
-upload/imgur/account_username=
-upload/imgur/album=
-upload/imgur/anonymous=true
-upload/imgur/expires_in=0
-upload/imgur/refresh_token=
 upload/pomf/pomf_url=
 upload/service=0

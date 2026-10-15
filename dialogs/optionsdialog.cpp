@@ -288,11 +288,8 @@ void OptionsDialog::loadSettings()
     settings()->endGroup();
 
     settings()->beginGroup("upload");
-    ui.uploadServiceComboBox->setCurrentIndex(settings()->value("service").toInt());
-
-    settings()->beginGroup("imgur");
-    ui.imgurOptions->setUser(settings()->value("account_username", "").toString());
-    settings()->endGroup();
+    const int service = settings()->value("service").toInt();
+    ui.uploadServiceComboBox->setCurrentIndex((service >= 0 && service < ui.uploadServiceComboBox->count()) ? service : 0);
 
     settings()->beginGroup("pomf");
 
@@ -415,11 +412,6 @@ void OptionsDialog::saveSettings()
 
     settings()->beginGroup("upload");
     settings()->setValue("service", ui.uploadServiceComboBox->currentIndex());
-
-    settings()->beginGroup("imgur");
-        settings()->setValue("anonymous", settings()->value("account_username").toString().isEmpty());
-        settings()->setValue("album"    , ui.imgurOptions->ui.albumComboBox->property("currentData").toString());
-    settings()->endGroup();
 
     settings()->beginGroup("pomf");
         settings()->setValue("pomf_url", ui.pomfOptions->ui.pomfUrlComboBox->currentText());
@@ -709,12 +701,6 @@ void OptionsDialog::init()
     connect(ui.licenseAboutLabel,    &QLabel::linkActivated, this, &OptionsDialog::openUrl);
     connect(ui.linksLabel,           &QLabel::linkActivated, this, &OptionsDialog::openUrl);
     connect(ui.uploadSslWarningLabel,&QLabel::linkActivated, this, &OptionsDialog::openUrl);
-
-    connect(ui.tabWidget, &QTabWidget::currentChanged, [&](int index) {
-        if (index == 2 && ui.uploadServiceStackWidget->currentIndex() == 0 && !ui.imgurOptions->mCurrentUser.isEmpty() && ui.imgurOptions->ui.albumComboBox->count() == 1) {
-            QTimer::singleShot(20, ui.imgurOptions, &ImgurOptionsWidget::requestAlbumList);
-        }
-    });
 }
 
 void OptionsDialog::namingOptions()

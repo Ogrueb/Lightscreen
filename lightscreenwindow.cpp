@@ -74,7 +74,7 @@ LightscreenWindow::LightscreenWindow(QWidget *parent) :
 
     ui.optionsPushButton->setIcon(os::icon("configure"));
     ui.folderPushButton->setIcon(os::icon("folder"));
-    ui.imgurPushButton->setIcon(os::icon("imgur"));
+    ui.uploadPushButton->setIcon(os::icon("upload"));
 
     createUploadMenu();
 
@@ -272,32 +272,32 @@ bool LightscreenWindow::closingWithoutTray()
 
 void LightscreenWindow::createUploadMenu()
 {
-    auto imgurMenu = new QMenu(tr("Upload"));
+    auto uploadMenu = new QMenu(tr("Upload"));
 
-    auto uploadAction = new QAction(os::icon("imgur"), tr("&Upload last"), imgurMenu);
-    uploadAction->setToolTip(tr("Upload the last screenshot you took to imgur.com"));
+    auto uploadAction = new QAction(os::icon("upload"), tr("&Upload last"), uploadMenu);
+    uploadAction->setToolTip(tr("Upload the last screenshot you took"));
     connect(uploadAction, &QAction::triggered, this, &LightscreenWindow::uploadLast);
 
-    auto cancelAction = new QAction(os::icon("no"), tr("&Cancel upload"), imgurMenu);
+    auto cancelAction = new QAction(os::icon("no"), tr("&Cancel upload"), uploadMenu);
     cancelAction->setToolTip(tr("Cancel the currently uploading screenshots"));
     cancelAction->setEnabled(false);
 
     connect(this, &LightscreenWindow::uploading, cancelAction, &QAction::setEnabled);
     connect(cancelAction, &QAction::triggered, this, &LightscreenWindow::uploadCancel);
 
-    auto historyAction = new QAction(os::icon("view-history"), tr("View &History"), imgurMenu);
+    auto historyAction = new QAction(os::icon("view-history"), tr("View &History"), uploadMenu);
     connect(historyAction, &QAction::triggered, this, &LightscreenWindow::showHistoryDialog);
 
-    imgurMenu->addAction(uploadAction);
-    imgurMenu->addAction(cancelAction);
-    imgurMenu->addAction(historyAction);
-    imgurMenu->addSeparator();
+    uploadMenu->addAction(uploadAction);
+    uploadMenu->addAction(cancelAction);
+    uploadMenu->addAction(historyAction);
+    uploadMenu->addSeparator();
 
-    connect(imgurMenu, &QMenu::aboutToShow, this, [&, imgurMenu] {
-        imgurMenu->actions().at(0)->setEnabled(!mLastScreenshot.isEmpty());
+    connect(uploadMenu, &QMenu::aboutToShow, this, [&, uploadMenu] {
+        uploadMenu->actions().at(0)->setEnabled(!mLastScreenshot.isEmpty());
     });
 
-    ui.imgurPushButton->setMenu(imgurMenu);
+    ui.uploadPushButton->setMenu(uploadMenu);
 }
 
 void LightscreenWindow::goToFolder()
@@ -908,8 +908,8 @@ void LightscreenWindow::createTrayIcon()
     connect(screenshotGroup, &QActionGroup::triggered, this, &LightscreenWindow::screenshotActionTriggered);
 
     // Duplicated for the screenshot button :(
-    auto uploadAction = new QAction(os::icon("imgur"), tr("&Upload last"), mTrayIcon);
-    uploadAction->setToolTip(tr("Upload the last screenshot you took to imgur.com"));
+    auto uploadAction = new QAction(os::icon("upload"), tr("&Upload last"), mTrayIcon);
+    uploadAction->setToolTip(tr("Upload the last screenshot you took"));
     connect(uploadAction, &QAction::triggered, this, &LightscreenWindow::uploadLast);
 
     auto cancelAction = new QAction(os::icon("no"), tr("&Cancel upload"), mTrayIcon);
@@ -938,16 +938,16 @@ void LightscreenWindow::createTrayIcon()
     screenshotMenu->addAction(windowPickerAction);
 
     // Duplicated for the screenshot button :(
-    auto imgurMenu = new QMenu(tr("Upload"));
-    imgurMenu->addAction(uploadAction);
-    imgurMenu->addAction(cancelAction);
-    imgurMenu->addAction(historyAction);
-    imgurMenu->addSeparator();
+    auto uploadMenu = new QMenu(tr("Upload"));
+    uploadMenu->addAction(uploadAction);
+    uploadMenu->addAction(cancelAction);
+    uploadMenu->addAction(historyAction);
+    uploadMenu->addSeparator();
 
     auto trayIconMenu = new QMenu;
     trayIconMenu->addAction(hideAction);
     trayIconMenu->addSeparator();
-    trayIconMenu->addMenu(imgurMenu);
+    trayIconMenu->addMenu(uploadMenu);
     trayIconMenu->addSeparator();
     trayIconMenu->addMenu(screenshotMenu);
     trayIconMenu->addAction(optionsAction);

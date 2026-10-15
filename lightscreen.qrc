@@ -19,7 +19,7 @@
         <file alias="area">images/area.png</file>
         <file alias="screen">images/screen.png</file>
         <file alias="window">images/window.png</file>
-        <file alias="imgur">images/imgur.png</file>
+        <file alias="upload">images/upload.png</file>
         <file alias="view-history">images/history.png</file>
         <file alias="area.big">images/area.big.png</file>
         <file alias="screen.big">images/screen.big.png</file>
@@ -42,7 +42,7 @@
         <file alias="area">images/inv/area.png</file>
         <file alias="screen">images/inv/screen.png</file>
         <file alias="window">images/inv/window.png</file>
-        <file alias="imgur">images/inv/imgur.png</file>
+        <file alias="upload">images/inv/upload.png</file>
         <file alias="view-history">images/inv/history.png</file>
         <file alias="area.big">images/inv/area.big.png</file>
         <file alias="screen.big">images/inv/screen.big.png</file>

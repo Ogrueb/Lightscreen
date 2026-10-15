@@ -18,7 +18,6 @@
  */
 #include <tools/uploader/uploader.h>
 #include <tools/screenshotmanager.h>
-#include <tools/uploader/imguruploader.h>
 
 #include <QtNetwork>
 #include <QSettings>
@@ -63,13 +62,8 @@ int Uploader::progress() const
 
 QString Uploader::serviceName(int index)
 { // TODO: Move somewhere else? Use indexes everywhere? an enum?
-    switch (index) {
-        case 1:
-            return "pomf";
-        case 0:
-        default:
-            return "imgur";
-    }
+    Q_UNUSED(index);
+    return "pomf";
 }
 
 QString Uploader::lastUrl() const

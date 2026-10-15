@@ -5,3 +5,4 @@
 - **What happens:** it reads `options/upload/service` (default `"imgur"`) and passes the raw value as the service name. Every other site reads `upload/service` as an index and maps it through `Uploader::serviceName`. So an upload started from the history dialog always goes to the default service, whatever the options say.
 - **Fix:** read `upload/service` and map it through `Uploader::serviceName`.
 - **Platform:** any. **Test:** headless with a stub network manager. Triage: fixed in plan step M12 (one line), not a Stage 5 session.
+- **Status:** fixed in M12 (Stage 6, PR #35). `HistoryDialog::upload` reads `upload/service` through `Uploader::serviceName`.

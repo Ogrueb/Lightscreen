@@ -34,6 +34,7 @@ private slots:
     void dialogDefaults();
     void dialogRoundTrip();
     void dialogOutOfRangeIndexes();
+    void dialogLegacyImgurSettings();
     void windowReadsEmptySettings();
     void windowReadsDialogDefaults();
     void windowCachesOptions();
@@ -332,7 +333,7 @@ void tst_Settings::dialogRoundTrip()
             dialog.findChild<HotkeyWidget *>(name + "HotkeyWidget")->setHotkey(action.second);
         }
 
-        dialog.findChild<QComboBox *>("uploadServiceComboBox")->setCurrentIndex(1);
+        dialog.findChild<QComboBox *>("uploadServiceComboBox")->setCurrentIndex(0); // pomf, the only entry since M12.
         dialog.findChild<QComboBox *>("pomfUrlComboBox")->setCurrentText("https://pomf.example.invalid/upload.php");
 
         dialog.saveSettings();
@@ -370,7 +371,7 @@ void tst_Settings::dialogRoundTrip()
 
 // Indexes the dialog's combo boxes cannot show (known-bugs.md, bug 19). The format combo box lists WEBP (3), so a
 // WEBP setting is shown and saved as is; a naming or preview position index the boxes do not list is kept instead of
-// being saved as -1. "upload/service" still saves -1: M12 owns the uploader settings.
+// being saved as -1. An "upload/service" the box does not list reads as 0 (M12).
 void tst_Settings::dialogOutOfRangeIndexes()
 {
     mSettings->setValue("file/format", 3);
@@ -388,7 +389,34 @@ void tst_Settings::dialogOutOfRangeIndexes()
     QCOMPARE(mSettings->value("file/format").toString(), QStringLiteral("3"));
     QCOMPARE(mSettings->value("file/naming").toString(), QStringLiteral("9"));
     QCOMPARE(mSettings->value("options/previewPosition").toString(), QStringLiteral("9"));
-    QCOMPARE(mSettings->value("upload/service").toString(), QStringLiteral("-1"));
+    QCOMPARE(mSettings->value("upload/service").toString(), QStringLiteral("0"));
+}
+
+// Settings written before M12 still load. "upload/service" 1 (pomf when Imgur was 0) is beyond the one-entry list and
+// reads as 0, which is pomf now; the old upload/imgur/* keys are left as they were.
+void tst_Settings::dialogLegacyImgurSettings()
+{
+    mSettings->setValue("upload/service", 1);
+    mSettings->setValue("upload/pomf/pomf_url", "https://pomf.example.invalid");
+    mSettings->setValue("upload/imgur/access_token", "token");
+    mSettings->setValue("upload/imgur/account_username", "someone");
+    mSettings->setValue("upload/imgur/album", "album");
+
+    {
+        OptionsDialog dialog;
+        QTRY_VERIFY(dialog.isEnabled());
+        QComboBox *service = dialog.findChild<QComboBox *>("uploadServiceComboBox");
+        QCOMPARE(service->count(), 1);
+        QCOMPARE(service->currentIndex(), 0);
+        dialog.saveSettings();
+    }
+
+    QCOMPARE(mSettings->value("upload/service").toString(), QStringLiteral("0"));
+    QCOMPARE(mSettings->value("upload/pomf/pomf_url").toString(), QStringLiteral("https://pomf.example.invalid"));
+    QCOMPARE(mSettings->value("upload/imgur/access_token").toString(), QStringLiteral("token"));
+    QCOMPARE(mSettings->value("upload/imgur/account_username").toString(), QStringLiteral("someone"));
+    QCOMPARE(mSettings->value("upload/imgur/album").toString(), QStringLiteral("album"));
+    QCOMPARE(Uploader::serviceName(mSettings->value("upload/service").toInt()), QStringLiteral("pomf"));
 }
 
 // A macro, not a function: QSKIP returns from the function it is used in.
@@ -439,7 +467,7 @@ void tst_Settings::windowReadsEmptySettings()
         "replace=false",
         "saveAs=false",
         "upload=false",
-        "uploadService=imgur",
+        "uploadService=pomf",
         "urlClipboard=false",
     };
 
@@ -484,7 +512,7 @@ void tst_Settings::windowReadsDialogDefaults()
         "replace=false",
         "saveAs=false",
         "upload=false",
-        "uploadService=imgur",
+        "uploadService=pomf",
         "urlClipboard=false",
     };
 

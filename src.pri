@@ -17,10 +17,8 @@ HEADERS += $$PWD/dialogs/areadialog.h \
     $$PWD/updater/updater.h \
     $$PWD/widgets/hotkeywidget.h \
     $$PWD/tools/uploader/imageuploader.h \
-    $$PWD/tools/uploader/imguruploader.h \
     $$PWD/tools/uploader/pomfuploader.h \
     $$PWD/tools/uploader/uploader.h \
-    $$PWD/widgets/imguroptionswidget.h \
     $$PWD/widgets/pomfoptionswidget.h
 
 SOURCES += $$PWD/dialogs/areadialog.cpp \
@@ -37,10 +35,8 @@ SOURCES += $$PWD/dialogs/areadialog.cpp \
     $$PWD/updater/updater.cpp \
     $$PWD/widgets/hotkeywidget.cpp \
     $$PWD/tools/uploader/imageuploader.cpp \
-    $$PWD/tools/uploader/imguruploader.cpp \
     $$PWD/tools/uploader/pomfuploader.cpp \
     $$PWD/tools/uploader/uploader.cpp \
-    $$PWD/widgets/imguroptionswidget.cpp \
     $$PWD/widgets/pomfoptionswidget.cpp
 
 FORMS += $$PWD/dialogs/historydialog.ui \
@@ -48,7 +44,6 @@ FORMS += $$PWD/dialogs/historydialog.ui \
     $$PWD/dialogs/optionsdialog.ui \
     $$PWD/lightscreenwindow.ui \
     $$PWD/widgets/pomfoptionswidget.ui \
-    $$PWD/widgets/imguroptionswidget.ui
 
 RESOURCES += $$PWD/lightscreen.qrc
 CODECFORSRC = UTF-8
