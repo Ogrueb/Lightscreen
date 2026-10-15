@@ -1,0 +1,6 @@
+# 2026-10-14 (Stage 4, main window): observing `LightscreenWindow` without seams
+
+- **Screenshot modes are read from `ScreenshotManager::windowCleanup`,** which carries the `Screenshot::Options` of every finished screenshot. The test lets the real capture run under Xvfb with file and clipboard off, and a 20 ms timer rejects the area selector and closes the window picker, so those end as cancelled screenshots. *Rejected:* a `ScreenshotManager` subclass (`take` is not virtual) or reading the private `mLastMode` (would need `#define private public`).
+- **Hotkey ids are read by feeding `UGlobalHotkeys::nativeEventFilter` a synthetic `xcb_key_press_event_t`** for the registered key, after detaching the window's handler from `activated`; a second test emits `activated(id)` into the window. *Rejected:* real key presses through XTest (an extra library, and the X server would deliver them to the grab asynchronously).
+- **`--folder` is observed with `QDesktopServices::setUrlHandler("file", ...)`,** so no file manager starts. **`--quit` runs inside `QApplication::exec()`** in the last test function, because `quit()` outside a running loop would leave Qt's quit flag set for every later dialog.
+- **The whole test skips on Windows,** for the same reason as the settings test's window tests.

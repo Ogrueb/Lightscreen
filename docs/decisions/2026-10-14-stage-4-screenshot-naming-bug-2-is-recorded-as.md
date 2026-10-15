@@ -1,0 +1,3 @@
+# 2026-10-14 (Stage 4, screenshot naming): bug 2 is recorded as a skipped assertion
+
+- **`extensionFor` with an out-of-range format is not called.** The plan asks to record its current behaviour, but today it falls off the end of a non-void function (undefined behaviour), so there is no behaviour to record and calling it could crash the test run. `tst_screenshot::extensionFor_outOfRange` holds the intended assertion (`.png`) behind a `QSKIP`; the Stage 5 fix deletes the `QSKIP` line. *Rejected:* calling it and asserting whatever GCC and MSVC happen to return (undefined, and could differ between runs or compilers).

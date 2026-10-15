@@ -1,0 +1,7 @@
+# 2026-10-15: Shared docs split into one file per entry
+
+- `docs/status.md`, `docs/decisions.md` and `docs/known-bugs.md` were split, unchanged in content, into `docs/status/`, `docs/decisions/` and `docs/known-bugs/`, one file per entry; the three `.md` files are now short indexes with the rules. Each bug file gained a `- **Found:**` line from its old group heading; the group notes moved into `docs/known-bugs.md`. Why: `docs/decisions/2026-10-15-shared-docs-one-file-per-entry.md`.
+- `CLAUDE.md` and the doc table in `docs/PLAN.md` describe the new layout. New CI job `Docs layout` runs `.github/scripts/check-docs.sh` (file names, duplicate bug numbers).
+- References elsewhere ("see `docs/status.md`", "known-bugs.md, bug 19") still resolve through the indexes and were left as they are.
+- Open: the project instructions in the claude.ai Project still say to append to the end of `docs/status.md` and `docs/known-bugs.md`; the owner should update that paragraph. A PR opened before this change that edits the old files conflicts once: move its entry into a new file in the folder.
+- Windows QA is now one pass per stage: `docs/windows-qa.md` explains it and `docs/windows-qa/` holds one file per check. Seeded with the checks threads had already asked for: bug 1 (PR #17), bug 5 (PR #18), bug 26 (PR #31), and the optional WEBP check for bug 19 (PR #29). `CLAUDE.md` tells threads to add a file there instead of asking for a per-PR check.
