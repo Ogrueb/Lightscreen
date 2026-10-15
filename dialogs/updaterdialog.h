@@ -29,7 +29,8 @@ public:
     UpdaterDialog(QWidget *parent = 0);
 
 public slots:
-    void updateDone(bool result);
+    void updateDone(bool newer, const QString &htmlUrl);
+    void updateFailed(const QString &message);
 
 private slots:
     void link(QString url);

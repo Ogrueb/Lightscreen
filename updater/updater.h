@@ -20,26 +20,36 @@
 #define UPDATER_H_
 
 #include <QObject>
-#include <QNetworkAccessManager>
+#include <QPointer>
+#include <QUrl>
 
+class QNetworkReply;
+
+// Asks GitHub for the latest release of UPDATE_REPO (version.pri) and compares its tag with the running version.
 class Updater : public QObject
 {
     Q_OBJECT
 public:
     Updater(QObject *parent = 0);
+    ~Updater();
+
+    static QString repository();
+    static QUrl latestReleaseApiUrl();
+    static QUrl releasesPageUrl();
 
 signals:
-    void done(bool result);
+    void done(bool newer, const QString &htmlUrl);
+    void failed(const QString &message);
 
 public slots:
     void check();
     void checkWithFeedback();
 
 private slots:
-    void finished(QNetworkReply *reply);
+    void finished();
 
 private:
-    QNetworkAccessManager mNetwork;
+    QPointer<QNetworkReply> mReply;
 
 };
 

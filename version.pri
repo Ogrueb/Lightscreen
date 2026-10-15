@@ -5,3 +5,6 @@ QMAKE_TARGET_DESCRIPTION = Lightscreen Screenshot Tool
 QMAKE_TARGET_COPYRIGHT = Copyright (C) 2008-2021 Christian Kaiser
 
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
+
+# GitHub repository ("owner/name") whose releases the update check reads. M16 changes it with the rename.
+DEFINES += UPDATE_REPO=\\\"Ogrueb/Lightscreen\\\"
