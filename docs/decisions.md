@@ -2,6 +2,11 @@
 
 Decisions, their reasons and the alternatives rejected. Newest first.
 
+## 2026-10-14 (Stage 5, bug 26): keyboard entry in the hotkey widget
+
+- **Space and Enter start hotkey entry directly; `clicked` is not emitted.** Nothing connects to it, and passing the key to `QPushButton` would emit `clicked` on the key release, after entry had started. *Rejected:* letting the keys through to `QPushButton` and starting entry from `clicked` (a mouse click would then start entry twice, once from `FocusIn` and once from `clicked`).
+- **Shift+Tab focus counts as Tab focus, and focus out no longer calls `parentWidget()->setFocus()`.** Both are keyboard traps that would leave the bug half fixed: Shift+Tab onto the button grabbed the keyboard, and Tab off it bounced focus to the parent. Finishing an entry (a key recorded, or Escape) still hands focus to the parent, as before.
+
 ## 2026-10-14 (Stage 5, bug 1): `WM_GETICON` is sent with a timeout
 
 - **The window picker's last icon fallback uses `SendMessageTimeout(..., SMTO_ABORTIFHUNG, 100 ms)`,** not the plain `SendMessage` the triage table names. The picker asks on every mouse move, and a plain `SendMessage` to a hung window would freeze the picker until that window answers. A window that times out simply shows no icon. *Rejected:* plain `SendMessage` (can block indefinitely).

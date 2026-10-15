@@ -33,6 +33,9 @@ private slots:
     void escapeWhileFocused();
     void clickFocusPromptsForHotkey();
     void tabFocusIgnoresKeys();
+    void tabFocusThenKeyStartsEntry_data();
+    void tabFocusThenKeyStartsEntry();
+    void tabFocusMovesOnWithTab();
     void languageChangeResetsText();
 
 private:
@@ -265,25 +268,69 @@ void tst_HotkeyWidget::tabFocusIgnoresKeys()
     focusAndWait(Qt::TabFocusReason);
     QCOMPARE(mWidget->text(), QKeySequence(QStringLiteral("Ctrl+Print")).toString(QKeySequence::NativeText));
 
-    // Focus reached with Tab only highlights the button: keys are ignored, Escape included. Space and Enter are
-    // swallowed too, so the button cannot be pressed from the keyboard and a hotkey cannot be set without the mouse
-    // (bug 26).
-    QSignalSpy clicked(mWidget, &QPushButton::clicked);
+    // Focus reached with Tab only highlights the button: other keys are ignored, Escape included, so tabbing
+    // through the dialog cannot change a hotkey by accident.
     QTest::keyClick(mWidget, Qt::Key_F5);
     QTest::keyClick(mWidget, Qt::Key_Escape);
-    QTest::keyClick(mWidget, Qt::Key_Space);
-    QTest::keyClick(mWidget, Qt::Key_Return);
-    QCOMPARE(clicked.count(), 0);
+    QTest::keyClick(mWidget, Qt::Key_A, Qt::ControlModifier);
     QCOMPARE(mWidget->hotkey(), QStringLiteral("Ctrl+Print"));
     QCOMPARE(mWidget->text(), QKeySequence(QStringLiteral("Ctrl+Print")).toString(QKeySequence::NativeText));
     QVERIFY(mWidget->hasFocus());
 
-    // The flag stays set after the widget loses focus: a later key press without focus is ignored too, until the
-    // next non-Tab FocusIn clears it.
+    // Leaving clears the Tab-focus state: a later key press without focus is recorded, as for a widget that was
+    // never focused (bug 26 left the flag set until the next non-Tab FocusIn).
     mOther->setFocus(Qt::TabFocusReason);
     QTRY_VERIFY(!mWidget->hasFocus());
     QTest::keyClick(mWidget, Qt::Key_F5);
+    QCOMPARE(mWidget->hotkey(), QStringLiteral("F5"));
+}
+
+void tst_HotkeyWidget::tabFocusThenKeyStartsEntry_data()
+{
+    QTest::addColumn<int>("key");
+
+    QTest::newRow("Space") << int(Qt::Key_Space);
+    QTest::newRow("Return") << int(Qt::Key_Return);
+    QTest::newRow("Enter") << int(Qt::Key_Enter);
+}
+
+void tst_HotkeyWidget::tabFocusThenKeyStartsEntry()
+{
+    QFETCH(int, key);
+
+    mWidget->setHotkey(QStringLiteral("Ctrl+Print"));
+    focusAndWait(Qt::TabFocusReason);
+
+    // Bug 26: Space or Enter on a button reached with Tab starts hotkey entry, as a click does.
+    QTest::keyClick(mWidget, Qt::Key(key));
+    QCOMPARE(mWidget->text(), QStringLiteral("Type your hotkey"));
     QCOMPARE(mWidget->hotkey(), QStringLiteral("Ctrl+Print"));
+    QVERIFY(mWidget->hasFocus());
+
+    // The next key is the hotkey; focus goes back to the parent, as after a click.
+    QTest::keyClick(mWidget, Qt::Key_F5, Qt::AltModifier);
+    QCOMPARE(mWidget->hotkey(), QStringLiteral("Alt+F5"));
+    QCOMPARE(mWidget->text(), QKeySequence(QStringLiteral("Alt+F5")).toString(QKeySequence::NativeText));
+    QVERIFY(!mWidget->hasFocus());
+}
+
+void tst_HotkeyWidget::tabFocusMovesOnWithTab()
+{
+    mWidget->setHotkey(QStringLiteral("Ctrl+Print"));
+    focusAndWait(Qt::TabFocusReason);
+
+    // Tab still moves on to the next widget, so a keyboard user is not trapped on the hotkey button. Focus must
+    // stay there: leaving used to hand it to the parent instead.
+    QTest::keyClick(mWidget, Qt::Key_Tab);
+    QTRY_VERIFY(mOther->hasFocus());
+    QTest::qWait(50);
+    QVERIFY(mOther->hasFocus());
+    QCOMPARE(mWidget->hotkey(), QStringLiteral("Ctrl+Print"));
+
+    // Backtab comes back, again only highlighting the button.
+    QTest::keyClick(mOther, Qt::Key_Backtab, Qt::ShiftModifier);
+    QTRY_VERIFY(mWidget->hasFocus());
+    QCOMPARE(mWidget->text(), QKeySequence(QStringLiteral("Ctrl+Print")).toString(QKeySequence::NativeText));
 }
 
 void tst_HotkeyWidget::languageChangeResetsText()

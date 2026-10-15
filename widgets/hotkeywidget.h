@@ -37,6 +37,7 @@ signals:
 private:
     void setHotkeyText();
     void showError();
+    void startHotkeyEntry();
 
 private slots:
     void hideError();
