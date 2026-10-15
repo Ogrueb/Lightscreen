@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 
         auto uploadCategory = new QWinJumpListCategory(QObject::tr("Upload"));
         uploadCategory->setVisible(true);
-        uploadCategory->addLink(os::icon("imgur", backgroundColor), QObject::tr("Upload Last")        , application.applicationFilePath(), QStringList("--uploadlast"));
+        uploadCategory->addLink(os::icon("upload", backgroundColor), QObject::tr("Upload Last")        , application.applicationFilePath(), QStringList("--uploadlast"));
         uploadCategory->addLink(os::icon("view-history", backgroundColor), QObject::tr("View History"), application.applicationFilePath(), QStringList("--viewhistory"));
 
         auto actionsCategory = new QWinJumpListCategory(QObject::tr("Actions"));

@@ -2,8 +2,6 @@
 # Same format as defaults.golden; <tmp> is the test's temporary directory.
 #
 # Quirks recorded here:
-# - upload/imgur/* keep their cleared values: the dialog has no widget whose value saveSettings persists for the
-#   Imgur account, and upload/imgur/album is the album combo box's current data (empty without an account).
 # - On Linux the test turns the cursor on; on Windows it turns it off (the opposite of each platform's default).
 
 actions/area/enabled=true
@@ -52,11 +50,5 @@ options/startupHide=false
 options/tray=false
 options/uploadAuto=true
 options/urlClipboard=true
-upload/imgur/access_token=
-upload/imgur/account_username=
-upload/imgur/album=
-upload/imgur/anonymous=true
-upload/imgur/expires_in=0
-upload/imgur/refresh_token=
 upload/pomf/pomf_url=https://pomf.example.invalid/upload.php
-upload/service=1
+upload/service=0

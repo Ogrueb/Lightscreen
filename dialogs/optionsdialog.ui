@@ -608,11 +608,6 @@ Warning: Cannot be used in tandem with the &quot;Copy screenshot to clipboard&qu
           <widget class="QComboBox" name="uploadServiceComboBox">
            <item>
             <property name="text">
-             <string>Imgur</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
              <string>Pomf-clone</string>
             </property>
            </item>
@@ -659,28 +654,6 @@ Warning: Cannot be used in tandem with the &quot;Copy screenshot to clipboard&qu
             <property name="currentIndex">
              <number>0</number>
             </property>
-            <widget class="QWidget" name="page">
-             <layout class="QVBoxLayout" name="verticalLayout_13">
-              <property name="spacing">
-               <number>0</number>
-              </property>
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
-               <number>0</number>
-              </property>
-              <item>
-               <widget class="ImgurOptionsWidget" name="imgurOptions" native="true"/>
-              </item>
-             </layout>
-            </widget>
             <widget class="QWidget" name="page_2">
              <layout class="QVBoxLayout" name="verticalLayout_14">
               <property name="spacing">
@@ -1291,7 +1264,7 @@ Warning: Cannot be used in tandem with the &quot;After uploading, copy the URL t
               <item>
                <widget class="QCheckBox" name="historyCheckBox">
                 <property name="whatsThis">
-                 <string>Lightscreen will save a list of all the screenshots you've taken and where you've uploaded them to (and a deletion link to delete this upload [imgur only]).</string>
+                 <string>Lightscreen will save a list of all the screenshots you've taken and where you've uploaded them to (and a deletion link to delete this upload, if the service gives one).</string>
                 </property>
                 <property name="text">
                  <string>Save my screenshot history.</string>
@@ -1443,12 +1416,6 @@ Created by &lt;a href=&quot;https://ckaiser.com.ar&quot;&gt;Christian Kaiser&lt;
    <class>HotkeyWidget</class>
    <extends>QPushButton</extends>
    <header location="global">widgets/hotkeywidget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>ImgurOptionsWidget</class>
-   <extends>QWidget</extends>
-   <header location="global">widgets/imguroptionswidget.h</header>
-   <container>1</container>
   </customwidget>
   <customwidget>
    <class>PomfOptionsWidget</class>

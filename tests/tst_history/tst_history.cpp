@@ -90,15 +90,15 @@ private slots:
         QVERIFY(all[0].time >= before && all[0].time <= after);
     }
 
-    // The third argument is a delete hash, stored with the Imgur delete URL prefix (M12 changes this).
-    void saveHistoryWithUrlAndDeleteHash()
+    // The third argument is the delete URL, stored as given (before M12 it was a hash behind a fixed host prefix).
+    void saveHistoryWithUrlAndDeleteUrl()
     {
-        mManager->saveHistory("/shots/a.png", "https://example.com/a.png", "hash123");
+        mManager->saveHistory("/shots/a.png", "https://example.com/a.png", "https://example.com/delete/123");
 
         const QList<HistoryRow> all = rows();
         QCOMPARE(all.count(), 1);
         QCOMPARE(all[0].url, QStringLiteral("https://example.com/a.png"));
-        QCOMPARE(all[0].deleteUrl, QStringLiteral("https://imgur.com/delete/hash123"));
+        QCOMPARE(all[0].deleteUrl, QStringLiteral("https://example.com/delete/123"));
     }
 
     // Saving the same file twice gives two rows; nothing de-duplicates.
@@ -115,7 +115,7 @@ private slots:
     {
         mSettings->setValue("options/history", false);
 
-        mManager->saveHistory("/shots/a.png", "https://example.com/a.png", "hash123");
+        mManager->saveHistory("/shots/a.png", "https://example.com/a.png", "https://example.com/delete/123");
 
         QVERIFY(!QFile::exists(mHistoryPath + "history.sqlite"));
         mManager->initHistory();
@@ -126,20 +126,20 @@ private slots:
     void updateHistoryExistingFile()
     {
         mManager->saveHistory("/shots/a.png");
-        mManager->updateHistory("/shots/a.png", "https://example.com/a.png", "hash123");
+        mManager->updateHistory("/shots/a.png", "https://example.com/a.png", "https://example.com/delete/123");
 
         const QList<HistoryRow> all = rows();
         QCOMPARE(all.count(), 1);
         QCOMPARE(all[0].fileName, QStringLiteral("/shots/a.png"));
         QCOMPARE(all[0].url, QStringLiteral("https://example.com/a.png"));
-        QCOMPARE(all[0].deleteUrl, QStringLiteral("https://imgur.com/delete/hash123"));
+        QCOMPARE(all[0].deleteUrl, QStringLiteral("https://example.com/delete/123"));
     }
 
-    // A second update for the same file overwrites the first URL. With no delete hash the delete URL stays empty,
+    // A second update for the same file overwrites the first URL. With no delete URL it stays empty,
     // as saveHistory writes it.
     void updateHistoryTwice()
     {
-        mManager->updateHistory("/shots/a.png", "https://example.com/1.png", "hash1");
+        mManager->updateHistory("/shots/a.png", "https://example.com/1.png", "https://example.com/delete/1");
         mManager->updateHistory("/shots/a.png", "https://example.com/2.png", "");
 
         const QList<HistoryRow> all = rows();
@@ -152,21 +152,21 @@ private slots:
     void updateHistoryNewFile()
     {
         mManager->saveHistory("/shots/other.png");
-        mManager->updateHistory("/shots/a.png", "https://example.com/a.png", "hash123");
+        mManager->updateHistory("/shots/a.png", "https://example.com/a.png", "https://example.com/delete/123");
 
         const QList<HistoryRow> all = rows();
         QCOMPARE(all.count(), 2);
         QCOMPARE(all[1].fileName, QStringLiteral("/shots/a.png"));
         QCOMPARE(all[1].url, QStringLiteral("https://example.com/a.png"));
-        QCOMPARE(all[1].deleteUrl, QStringLiteral("https://imgur.com/delete/hash123"));
+        QCOMPARE(all[1].deleteUrl, QStringLiteral("https://example.com/delete/123"));
     }
 
     // An empty URL is ignored.
     void updateHistoryEmptyUrl()
     {
         mManager->saveHistory("/shots/a.png");
-        mManager->updateHistory("/shots/a.png", "", "hash123");
-        mManager->updateHistory("/shots/b.png", "", "hash123");
+        mManager->updateHistory("/shots/a.png", "", "https://example.com/delete/123");
+        mManager->updateHistory("/shots/b.png", "", "https://example.com/delete/123");
 
         const QList<HistoryRow> all = rows();
         QCOMPARE(all.count(), 1);
@@ -178,7 +178,7 @@ private slots:
     {
         mSettings->setValue("options/history", false);
 
-        mManager->updateHistory("/shots/a.png", "https://example.com/a.png", "hash123");
+        mManager->updateHistory("/shots/a.png", "https://example.com/a.png", "https://example.com/delete/123");
 
         mManager->initHistory();
         QCOMPARE(rows().count(), 0);
@@ -188,7 +188,7 @@ private slots:
     void uploaderDoneUpdatesHistory()
     {
         mManager->saveHistory("/shots/a.png");
-        emit mUploader.done("/shots/a.png", "https://example.com/a.png", "hash123");
+        emit mUploader.done("/shots/a.png", "https://example.com/a.png", "https://example.com/delete/123");
 
         const QList<HistoryRow> all = rows();
         QCOMPARE(all.count(), 1);

@@ -96,13 +96,16 @@ void HistoryDialog::contextMenu(const QPoint &point)
     connect(&copyAction, &QAction::triggered, this, &HistoryDialog::copy);
     contextMenu.addAction(&copyAction);
 
-    QAction deleteAction(tr("Delete from imgur.com"), &contextMenu);
+    QAction deleteAction(tr("Open delete link"), &contextMenu);
     QAction locationAction(tr("Open Location"), &contextMenu);
 
     QAction removeAction(tr("Remove history entry"), &contextMenu);
 
     if (mContextIndex.data().toString().isEmpty()) {
         copyAction.setEnabled(false);
+    }
+
+    if (mContextIndex.sibling(mContextIndex.row(), 2).data().toString().isEmpty()) {
         deleteAction.setEnabled(false);
     }
 
@@ -186,7 +189,7 @@ void HistoryDialog::selectionChanged(const QItemSelection &selected, const QItem
 
 void HistoryDialog::upload()
 {
-    Uploader::instance()->upload(mSelectedScreenshot, ScreenshotManager::instance()->settings()->value("options/upload/service", "imgur").toString());
+    Uploader::instance()->upload(mSelectedScreenshot, Uploader::serviceName(ScreenshotManager::instance()->settings()->value("upload/service", 0).toInt()));
     ui->uploadProgressWidget->setVisible(true);
 }
 

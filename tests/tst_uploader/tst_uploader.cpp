@@ -1,6 +1,6 @@
 // Stage 4 safety net: the uploader core (tools/uploader) and, lightly, the pomf uploader.
 // Records current behaviour, not intended behaviour: assertions marked "Current behaviour" document quirks
-// a later step may change on purpose. The pomf assertions are S03's baseline. Imgur is not tested (M12 deletes it).
+// a later step may change on purpose. The pomf assertions are S03's baseline. Since M12 pomf is the only service.
 #include <QtTest>
 #include <cstring>
 #include <QNetworkAccessManager>
@@ -206,10 +206,11 @@ private slots:
         QTest::addColumn<int>("index");
         QTest::addColumn<QString>("name");
 
-        QTest::newRow("0") << 0 << "imgur";
-        QTest::newRow("1") << 1 << "pomf";
-        QTest::newRow("2 falls back to imgur") << 2 << "imgur";
-        QTest::newRow("-1 falls back to imgur") << -1 << "imgur";
+        // M12: index 0 was Imgur and 1 was pomf; every index now maps to pomf, so an old Imgur or pomf setting both work.
+        QTest::newRow("0") << 0 << "pomf";
+        QTest::newRow("1 (pomf before M12)") << 1 << "pomf";
+        QTest::newRow("2") << 2 << "pomf";
+        QTest::newRow("-1") << -1 << "pomf";
     }
 
     void serviceName()
@@ -224,11 +225,12 @@ private slots:
         QTest::addColumn<QString>("name");
         QTest::addColumn<QString>("className");
 
+        // M12: names the factory does not know fall back to pomf instead of returning nullptr (bug 21).
         QTest::newRow("pomf") << "pomf" << "PomfUploader";
-        QTest::newRow("imgur") << "imgur" << "ImgurUploader"; // M12 removes this mapping.
-        QTest::newRow("case-sensitive") << "Pomf" << QString();
-        QTest::newRow("empty") << "" << QString();
-        QTest::newRow("unknown") << "custom" << QString();
+        QTest::newRow("removed service") << "imgur" << "PomfUploader";
+        QTest::newRow("case") << "Pomf" << "PomfUploader";
+        QTest::newRow("empty") << "" << "PomfUploader";
+        QTest::newRow("unknown") << "custom" << "PomfUploader";
     }
 
     void factory()
@@ -410,6 +412,20 @@ private slots:
 
         QVERIFY(mNetwork->replies.isEmpty());
         QCOMPARE(mEvents, QStringList() << "error:" + errorString << doneEvent(file));
+        QCOMPARE(mUploader->uploading(), 0);
+    }
+
+    // Bug 21 (fixed in M12): an unknown service name used to reach a null uploader and crash. It now goes to pomf,
+    // which with no pomf URL set reports an error and finishes the upload.
+    void uploadUnknownService()
+    {
+        mSettings->setValue("upload/pomf/pomf_url", QString());
+        const QString file = writeFile("shot.png");
+
+        mUploader->upload(file, "unknown");
+
+        QVERIFY(mNetwork->replies.isEmpty());
+        QCOMPARE(mEvents, QStringList() << "error:Invalid pomf uploader URL!" << doneEvent(file));
         QCOMPARE(mUploader->uploading(), 0);
     }
 

@@ -90,7 +90,7 @@ bool ScreenshotManager::portableMode()
     return mPortableMode;
 }
 
-void ScreenshotManager::saveHistory(const QString &fileName, const QString &url, const QString &deleteHash)
+void ScreenshotManager::saveHistory(const QString &fileName, const QString &url, const QString &deleteUrl)
 {
     if (!mSettings->value("/options/history", true).toBool()) {
         return;
@@ -98,12 +98,6 @@ void ScreenshotManager::saveHistory(const QString &fileName, const QString &url,
 
     if (!mHistoryInitialized) {
         initHistory();
-    }
-
-    QString deleteUrl;
-
-    if (!deleteHash.isEmpty()) {
-        deleteUrl = "https://imgur.com/delete/" + deleteHash;
     }
 
     QSqlQuery saveHistoryQuery;
@@ -115,7 +109,7 @@ void ScreenshotManager::saveHistory(const QString &fileName, const QString &url,
     saveHistoryQuery.exec();
 }
 
-void ScreenshotManager::updateHistory(const QString &fileName, const QString &url, const QString &deleteHash)
+void ScreenshotManager::updateHistory(const QString &fileName, const QString &url, const QString &deleteUrl)
 {
     if (!mSettings->value("/options/history", true).toBool() || url.isEmpty()) {
         return;
@@ -130,12 +124,6 @@ void ScreenshotManager::updateHistory(const QString &fileName, const QString &ur
     query.addBindValue(fileName);
 
     if (query.exec() && query.next()) {
-        QString deleteUrl;
-
-        if (!deleteHash.isEmpty()) {
-            deleteUrl = "https://imgur.com/delete/" + deleteHash;
-        }
-
         QSqlQuery updateQuery;
         updateQuery.prepare("UPDATE history SET URL = ?, deleteURL = ?, time = ? WHERE fileName = ?");
         updateQuery.addBindValue(url);
@@ -145,7 +133,7 @@ void ScreenshotManager::updateHistory(const QString &fileName, const QString &ur
 
         updateQuery.exec();
     } else {
-        saveHistory(fileName, url, deleteHash);
+        saveHistory(fileName, url, deleteUrl);
     }
 }
 

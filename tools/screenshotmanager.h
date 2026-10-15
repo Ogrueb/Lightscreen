@@ -45,8 +45,8 @@ public:
     void initHistory();
     int activeCount() const;
     bool portableMode();
-    void saveHistory(const QString &fileName, const QString &url = "", const QString &deleteHash = "");
-    void updateHistory(const QString &fileName, const QString &url, const QString &deleteHash);
+    void saveHistory(const QString &fileName, const QString &url = "", const QString &deleteUrl = "");
+    void updateHistory(const QString &fileName, const QString &url, const QString &deleteUrl);
     void removeHistory(const QString &fileName, qint64 time);
     void clearHistory();
     QSettings *settings() const { return mSettings; }
