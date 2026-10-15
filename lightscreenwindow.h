@@ -77,7 +77,8 @@ public slots:
     void showUploaderMessage(const QString &fileName, const QString &url);
     void toggleVisibility();
     void updateStatus();
-    void updaterDone(bool result);
+    void updaterDone(bool newer, const QString &htmlUrl);
+    void updaterFailed();
     void upload(const QString &fileName);
     void uploadCancel();
     void uploadLast();

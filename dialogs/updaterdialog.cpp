@@ -44,13 +44,22 @@ UpdaterDialog::UpdaterDialog(QWidget *parent) :
     setBar(bar);
 }
 
-void UpdaterDialog::updateDone(bool result)
+void UpdaterDialog::updateDone(bool newer, const QString &htmlUrl)
 {
-    if (result) {
-        setLabelText(tr("There's a new version available,<br> please see <a href=\"https://lightscreen.com.ar/whatsnew/%1\">the Lighscreen website</a>.").arg(qApp->applicationVersion()));
+    if (newer) {
+        setLabelText(tr("There's a new version available,<br> please see <a href=\"%1\">the release page</a>.").arg(htmlUrl.toHtmlEscaped()));
     } else {
         setLabelText(tr("No new versions available."));
     }
+
+    setMaximum(1);
+
+    setCancelButtonText(tr("Close"));
+}
+
+void UpdaterDialog::updateFailed(const QString &message)
+{
+    setLabelText(tr("Could not check for updates:<br>%1").arg(message.toHtmlEscaped()));
 
     setMaximum(1);
 
