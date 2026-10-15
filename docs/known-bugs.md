@@ -43,6 +43,7 @@ Draft status: second draft, 2026-10-14. Bugs 1-3 are confirmed from the code; 4-
 - **Where:** `tools/os.cpp:171-200`, `os::grabWindow`.
 - **What happens:** the window rectangle from `GetWindowRect` is trimmed by `SM_CXSIZEFRAME` and `SM_CXPADDEDBORDER`. Since Windows 10 the visible frame is inside the DWM extended frame, so this heuristic can leave a one-pixel strip of the neighbouring window or cut the window's own edge; `DwmGetWindowAttribute(DWMWA_EXTENDED_FRAME_BOUNDS)` is the documented way to get the visible bounds. Also `GetWindowRect` is in physical pixels while the rest of the code is in Qt logical pixels, which combines with bug 4 on high-DPI screens.
 - **Platform:** Windows only.
+- **Status:** bounds fixed in Stage 5 (`os::grabWindow` asks DWM for `DWMWA_EXTENDED_FRAME_BOUNDS` and keeps the old trimming only as the fallback); awaiting Windows QA. The physical-vs-logical pixel part stays with S04.
 
 ### 6. Update check and pomf list point at a dead host (and fail silently)
 

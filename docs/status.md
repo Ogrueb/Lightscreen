@@ -2,6 +2,13 @@
 
 What is done, what changed from the plan, and what is open. Newest first.
 
+## 2026-10-14: Stage 5, bug 5 window capture bounds
+
+- `os::grabWindow` (Windows only) now takes the window's visible bounds from `DwmGetWindowAttribute(DWMWA_EXTENDED_FRAME_BOUNDS)`. If that call fails, it falls back to `GetWindowRect` with the old `SM_CXSIZEFRAME`/`SM_CXPADDEDBORDER` trimming, unchanged. `dwmapi` is linked for MSVC and MinGW in `src.pri`.
+- The window-DC path (a window partly off screen) now copies from the visible frame's offset inside the window DC instead of from `0,0`. Before, it took the invisible left/top border and cut the same amount off the right and bottom.
+- DPI is untouched (S04). Both rectangles are physical pixels in a per-monitor-aware process, so they agree with each other.
+- Not verified here: cloud threads build Linux only, and this code is `#ifdef Q_OS_WIN`. Windows CI builds it. Windows QA by the owner is still open: capture a non-maximized window next to another (no stripe of the neighbour, no cut edge), a maximized one, and one partly off screen.
+
 ## 2026-10-14: Stage 5, bug 1 (window picker icon on 64-bit Windows)
 
 - `tools/windowpicker.cpp`: the icon is now read with `GetClassLongPtr(GCLP_HICON)`, falling back to `GCLP_HICONSM`, then to `WM_GETICON` with `ICON_BIG` (sent with `SendMessageTimeout`, 100 ms, abort if hung; why: `docs/decisions.md`). Windows-only code; Linux unchanged.
