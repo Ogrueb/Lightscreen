@@ -328,10 +328,18 @@ void OptionsDialog::openUrl(QString url)
 
 void OptionsDialog::saveSettings()
 {
+    // A stored index the combo box does not list leaves it with no current item (-1); keep the stored value then
+    // instead of overwriting it with -1 (known-bugs.md, bug 19).
+    const auto setIndexUnlessUnknown = [this](const QString &key, const QComboBox *comboBox) {
+        if (comboBox->currentIndex() >= 0) {
+            settings()->setValue(key, comboBox->currentIndex());
+        }
+    };
+
     settings()->beginGroup("file");
-    settings()->setValue("format", ui.formatComboBox->currentIndex());
+    setIndexUnlessUnknown("format", ui.formatComboBox);
     settings()->setValue("prefix", ui.prefixLineEdit->text());
-    settings()->setValue("naming", ui.namingComboBox->currentIndex());
+    setIndexUnlessUnknown("naming", ui.namingComboBox);
     settings()->setValue("target", ui.targetLineEdit->text());
     settings()->setValue("enabled", ui.fileGroupBox->isChecked());
     settings()->endGroup();
@@ -352,7 +360,7 @@ void OptionsDialog::saveSettings()
     settings()->setValue("saveAs", ui.saveAsCheckBox->isChecked());
     settings()->setValue("preview", ui.previewGroupBox->isChecked());
     settings()->setValue("previewSize", ui.previewSizeSpinBox->value());
-    settings()->setValue("previewPosition", ui.previewPositionComboBox->currentIndex());
+    setIndexUnlessUnknown("previewPosition", ui.previewPositionComboBox);
     settings()->setValue("previewAutoclose", ui.previewAutocloseCheckBox->isChecked());
     settings()->setValue("previewAutocloseTime", ui.previewAutocloseTimeSpinBox->value());
     settings()->setValue("previewAutocloseAction", ui.previewAutocloseActionComboBox->currentIndex());
