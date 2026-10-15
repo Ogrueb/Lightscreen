@@ -21,12 +21,14 @@
 #include <QDate>
 #include <QDesktopServices>
 #include <QDesktopWidget>
-#include <QDirModel>
 #include <QFileDialog>
+#include <QFileSystemModel>
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <QProcess>
+#include <QRegularExpression>
 #include <QSettings>
+#include <QStandardPaths>
 #include <QTimer>
 #include <QUrl>
 #include <QInputDialog>
@@ -75,7 +77,7 @@ OptionsDialog::OptionsDialog(QWidget *parent) :
         ui.clipboardGroupBox->setFlat(false);
 
         ui.optionsTab->layout()->setContentsMargins(0, 0, 6, 0);
-        ui.aboutTab->layout()->setMargin(8);
+        ui.aboutTab->layout()->setContentsMargins(8, 8, 8, 8);
     }
 #endif
 
@@ -91,7 +93,7 @@ void OptionsDialog::accepted()
         return;
     }
 
-    if (ui.prefixLineEdit->text().contains(QRegExp("[?:\\\\/*\"<>|]"))) {
+    if (ui.prefixLineEdit->text().contains(QRegularExpression("[?:\\\\/*\"<>|]"))) {
         QMessageBox::critical(this, tr("Filename character error"), tr("The filename can't contain any of the following characters: ? : \\ / * \" < > |"));
         return;
     }
@@ -231,7 +233,7 @@ void OptionsDialog::loadSettings()
         ui.optiPngLabel->setText("optipng.exe not found");
     }
 #elif defined(Q_OS_LINUX)
-    if (!QProcess::startDetached("optipng")) {
+    if (QStandardPaths::findExecutable("optipng").isEmpty()) {
         ui.optiPngCheckBox->setChecked(false);
         ui.optiPngCheckBox->setEnabled(false);
         ui.optiPngLabel->setText(tr("Install 'OptiPNG'"));
@@ -599,7 +601,10 @@ void OptionsDialog::init()
 
     // Set up the autocomplete for the directory.
     QCompleter *completer = new QCompleter(this);
-    completer->setModel(new QDirModel(QStringList(), QDir::Dirs, QDir::Name, completer));
+    QFileSystemModel *directoryModel = new QFileSystemModel(completer);
+    directoryModel->setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
+    directoryModel->setRootPath(QString());
+    completer->setModel(directoryModel);
     ui.targetLineEdit->setCompleter(completer);
 
     // HotkeyWidget icons.

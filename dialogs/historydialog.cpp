@@ -40,8 +40,8 @@
 HistoryDialog::HistoryDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::HistoryDialog),
-    mModel(Q_NULLPTR),
-    mFilterModel(Q_NULLPTR)
+    mModel(nullptr),
+    mFilterModel(nullptr)
 {
     ui->setupUi(this);
 

@@ -304,7 +304,7 @@ void LightscreenWindow::goToFolder()
 {
 #ifdef Q_OS_WIN
     if (!mLastScreenshot.isEmpty() && QFile::exists(mLastScreenshot)) {
-        QProcess::startDetached("explorer /select, \"" + mLastScreenshot + "\"");
+        QProcess::startDetached("explorer", {"/select,", QDir::toNativeSeparators(mLastScreenshot)});
     } else {
 #endif
         QDir path(settings()->value("file/target").toString());

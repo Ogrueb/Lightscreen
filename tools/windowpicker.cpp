@@ -23,6 +23,7 @@
 #include <QPushButton>
 #include <QRubberBand>
 #include <QRubberBand>
+#include <QScreen>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -46,7 +47,7 @@
     #include <X11/Xatom.h>
 #endif
 
-WindowPicker::WindowPicker() : QWidget(0), mCrosshair(":/icons/picker"), mWindowLabel(Q_NULLPTR), mTaken(false), mCurrentWindow(0)
+WindowPicker::WindowPicker() : QWidget(0), mCrosshair(":/icons/picker"), mWindowLabel(nullptr), mTaken(false), mCurrentWindow(0)
 {
 #if defined(Q_OS_WIN)
     setWindowFlags(Qt::SplashScreen | Qt::WindowStaysOnTopHint);
@@ -80,32 +81,32 @@ WindowPicker::WindowPicker() : QWidget(0), mCrosshair(":/icons/picker"), mWindow
     QHBoxLayout *windowLayout = new QHBoxLayout;
     windowLayout->addWidget(mWindowIcon);
     windowLayout->addWidget(mWindowLabel);
-    windowLayout->setMargin(0);
+    windowLayout->setContentsMargins(0, 0, 0, 0);
 
     QHBoxLayout *buttonLayout = new QHBoxLayout;
     buttonLayout->addStretch(0);
     buttonLayout->addWidget(closeButton);
-    buttonLayout->setMargin(0);
+    buttonLayout->setContentsMargins(0, 0, 0, 0);
 
     QHBoxLayout *crosshairLayout = new QHBoxLayout;
     crosshairLayout->addStretch(0);
     crosshairLayout->addWidget(mCrosshairLabel);
     crosshairLayout->addStretch(0);
-    crosshairLayout->setMargin(0);
+    crosshairLayout->setContentsMargins(0, 0, 0, 0);
 
     QVBoxLayout *fl = new QVBoxLayout;
     fl->addWidget(helpLabel);
     fl->addLayout(windowLayout);
     fl->addLayout(crosshairLayout);
     fl->addLayout(buttonLayout);
-    fl->setMargin(0);
+    fl->setContentsMargins(0, 0, 0, 0);
 
     QFrame *frame = new QFrame(this);
     frame->setObjectName("frame");
     frame->setLayout(fl);
 
     QVBoxLayout *l = new QVBoxLayout;
-    l->setMargin(0);
+    l->setContentsMargins(0, 0, 0, 0);
     l->addWidget(frame);
 
     setLayout(l);
@@ -252,7 +253,7 @@ void WindowPicker::mouseMoveEvent(QMouseEvent *event)
 
     QString windowText;
 
-    if (!mWindowIcon->pixmap()) {
+    if (mWindowIcon->pixmap(Qt::ReturnByValue).isNull()) {
         windowText = QString(" - %1").arg(windowName);
     } else {
         windowText = windowName;
@@ -303,7 +304,7 @@ void WindowPicker::mouseReleaseEvent(QMouseEvent *event)
         close();
 
 #ifdef Q_OS_LINUX
-        emit pixmap(QPixmap::grabWindow(mCurrentWindow));
+        emit pixmap(QGuiApplication::primaryScreen()->grabWindow(mCurrentWindow));
 #else
         emit pixmap(os::grabWindow((WId)nativeWindow));
 #endif
