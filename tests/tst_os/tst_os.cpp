@@ -46,6 +46,24 @@ private slots:
     }
 #endif
 
+    // The success sound ships in the resources (M06), so it plays whatever the working directory is.
+    void screenshotSoundResource()
+    {
+        QFile wave(":/sounds/ls.screenshot.wav");
+        QVERIFY(wave.open(QIODevice::ReadOnly));
+        const QByteArray bytes = wave.readAll();
+        QVERIFY(bytes.size() > 44); // more than a bare WAV header
+        QVERIFY(bytes.startsWith("RIFF"));
+        QCOMPARE(bytes.mid(8, 4), QByteArray("WAVE"));
+    }
+
+    // playSound returns at once (asynchronous on Windows, a no-op elsewhere).
+    void playSoundReturns()
+    {
+        os::playSound(os::Sound::Screenshot);
+        os::playSound(os::Sound::Error);
+    }
+
     // icon() picks the normal set when the background's HSV value is above 125, the inverted set otherwise.
     void iconByBackground_data()
     {

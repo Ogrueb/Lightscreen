@@ -21,6 +21,7 @@
 #include <QDesktopServices>
 #include <QDesktopWidget>
 #include <QDialog>
+#include <QFile>
 #include <QDir>
 #include <QGraphicsDropShadowEffect>
 #include <QIcon>
@@ -47,6 +48,7 @@
     #include <qt_windows.h>
     #include <ShlObj.h>
     #include <dwmapi.h>
+    #include <mmsystem.h>
 
     // Define for MinGW
     #ifndef SM_CXPADDEDBORDER
@@ -250,6 +252,28 @@ QPixmap os::grabWindow(WId winId)
     return pixmap;
 #else
     return QGuiApplication::primaryScreen()->grabWindow(winId);
+#endif
+}
+
+void os::playSound(os::Sound sound)
+{
+#ifdef Q_OS_WIN
+    if (sound == os::Sound::Screenshot) {
+        // SND_MEMORY with SND_ASYNC reads the bytes while the sound plays, so they must outlive the call.
+        static const QByteArray wave = [] {
+            QFile file(":/sounds/ls.screenshot.wav");
+            return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray();
+        }();
+
+        if (!wave.isEmpty()) {
+            PlaySoundW(reinterpret_cast<LPCWSTR>(wave.constData()), nullptr, SND_MEMORY | SND_ASYNC | SND_NODEFAULT);
+        }
+    } else {
+        // The system default sound, which is what the old QSound::play of a missing file fell back to.
+        PlaySoundW(reinterpret_cast<LPCWSTR>(SND_ALIAS_SYSTEMDEFAULT), nullptr, SND_ALIAS_ID | SND_ASYNC);
+    }
+#else
+    Q_UNUSED(sound)
 #endif
 }
 

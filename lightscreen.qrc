@@ -49,4 +49,7 @@
         <file alias="pickWindow.big">images/inv/pickWindow.big.png</file>
         <file alias="preview">images/inv/preview.png</file>
     </qresource>
+    <qresource prefix="/sounds">
+        <file alias="ls.screenshot.wav">sounds/ls.screenshot.wav</file>
+    </qresource>
 </RCC>

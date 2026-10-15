@@ -50,7 +50,7 @@ CODECFORSRC = UTF-8
 INCLUDEPATH += $$PWD
 CONFIG += c++14
 
-QT += core gui widgets network sql multimedia concurrent
+QT += core gui widgets network sql concurrent
 
 include($$PWD/tools/SingleApplication/singleapplication.pri)
 include($$PWD/tools/UGlobalHotkey/uglobalhotkey.pri)
@@ -59,7 +59,7 @@ windows {
     QT += winextras
 
     # MSVC only; MinGW is not supported
-    LIBS += gdi32.lib user32.lib ole32.lib shell32.lib shlwapi.lib comctl32.lib dwmapi.lib
+    LIBS += gdi32.lib user32.lib ole32.lib shell32.lib shlwapi.lib comctl32.lib dwmapi.lib winmm.lib
 
     #QMAKE_CXXFLAGS_DEBUG += /analyze /W3 /wd6326
 }

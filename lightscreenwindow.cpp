@@ -31,7 +31,6 @@
 #include <QTimer>
 #include <QToolTip>
 #include <QUrl>
-#include <QSound>
 #include <QKeyEvent>
 
 #ifdef Q_OS_WIN
@@ -201,16 +200,7 @@ void LightscreenWindow::cleanup(const Screenshot::Options &options)
     }
 
     if (settings()->value("options/playSound", false).toBool()) {
-        if (options.result == Screenshot::Success) {
-            QSound::play("sounds/ls.screenshot.wav");
-        } else {
-#ifdef Q_OS_WIN
-            QSound::play("afakepathtomakewindowsplaythedefaultsoundtheresprobablyabetterwaybuticantbebothered");
-#else
-            QSound::play("sound/ls.error.wav");
-#endif
-        }
-
+        os::playSound(options.result == Screenshot::Success ? os::Sound::Screenshot : os::Sound::Error);
     }
 
     updateStatus();
