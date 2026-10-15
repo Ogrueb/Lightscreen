@@ -233,8 +233,12 @@ void AreaDialog::keyPressEvent(QKeyEvent *e)
                 return;
             }
         } else {
-            if (mKeyboardSize.contains("x"))
-                return;
+            // Shift+X or Caps Lock gives "X": store it as the lower-case x keyboardResize splits on.
+            if (!mKeyboardSize.contains("x"))
+                mKeyboardSize += "x";
+
+            update();
+            return;
         }
 
         mKeyboardSize += e->text();

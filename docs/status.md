@@ -194,3 +194,8 @@ What is done, what changed from the plan, and what is open. Newest first.
 - `LightscreenWindow::screenshotAction` no longer parks the request in `mLastMode`: each request runs the pre-screenshot steps and starts its own delay timer, whose lambda captures the mode and calls the new private `takeScreenshot(mode)` (the old second half of `screenshotAction`, unchanged). `screenshotAction(None)` / `action(0)` do nothing. `mPendingScreenshots` counts requests still waiting; `cleanup` restores a window hidden by "hide while taking a screenshot" only when it is 0, so the second of two quick requests is also taken with the window hidden.
 - Tests flipped: `tst_mainwindow::twoScreenshotFlagsTakeOneScreenshot` became `twoScreenshotFlagsTakeTwoScreenshots` (`--screen --area` gives a whole-screen and an area screenshot, both with the window hidden, then the window comes back and stays visible); `actionOutOfRange` now shows the window with hide on and asserts `action(0)` leaves it visible. Both failed on master before the fix. Full suite green under Xvfb on Linux.
 - Left open (in the bug entry): a request arriving while an earlier request's area selector is open is taken inside the selector's event loop. S01/S02 own the capture flow.
+
+## 2026-10-15: Stage 5, bug 24 fixed (upper-case X in a typed area size)
+
+- `AreaDialog::keyPressEvent` appends a lower-case `x` for the X key (Shift+X, Caps Lock), so `800X600` + Enter resizes the selection, and a second x of either case is refused. `keyboardResize` is unchanged.
+- `tst_AreaDialog::typing_upperCaseX` flipped to the fixed behaviour (failed before the fix). All suites pass under Xvfb on Linux.

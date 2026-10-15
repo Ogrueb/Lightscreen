@@ -205,6 +205,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **Fix:** append a lower-case `x` for the X key (or split case-insensitively).
 - **Platform:** any. **Test:** `tst_AreaDialog::typing_upperCaseX` and the "upper case X" row of `keyboardResize` record it. Confirmed by the test.
 - **Triage:** fix now (session F).
+- **Status:** fixed in Stage 5. `keyPressEvent` stores the X key as a lower-case `x` whatever its text, and refuses a second one of either case. `tst_AreaDialog::typing_upperCaseX` now asserts `100X50` resizes to 100x50; the `keyboardResize` "upper case X" row is kept and is no longer reachable by typing.
 
 ## Found by the Stage 4 os helpers tests
 

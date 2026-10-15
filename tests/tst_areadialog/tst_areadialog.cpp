@@ -223,6 +223,7 @@ private slots:
         QTest::newRow("x100") << "x100" << unchanged;
         QTest::newRow("1x2x3") << "1x2x3" << unchanged;
         QTest::newRow("empty") << "" << unchanged;
+        // Not reachable by typing since bug 24 (keyPressEvent stores the X key as a lower-case x).
         QTest::newRow("upper case X") << "100X100" << unchanged;
         QTest::newRow("negative") << "-5x10" << unchanged;
         // Not reachable by typing (keyPressEvent only lets digits and x through), but QString::toInt accepts them.
@@ -314,20 +315,20 @@ private slots:
         QCOMPARE(d->mKeyboardSize, QString("1x23"));
     }
 
-    // Shift+X is let through as the X key but appends "X", which keyboardResize does not recognise, so Return then
-    // changes nothing. The second-x check is case-sensitive too, so a lower-case x can still follow an "X".
+    // Shift+X or Caps Lock types an upper-case X; it is stored as a lower-case x, so Return applies the size, and a
+    // second x of either case is refused (bug 24).
     void typing_upperCaseX()
     {
         QScopedPointer<TestAreaDialog> d(dialog());
-        type(d.data(), "1X2");
-        QCOMPARE(d->mKeyboardSize, QString("1X2"));
+        type(d.data(), "100X50");
+        QCOMPARE(d->mKeyboardSize, QString("100x50"));
 
         press(d.data(), Qt::Key_Return);
-        QCOMPARE(d->mSelection, QRect(10, 20, 30, 40));
+        QCOMPARE(d->mSelection, QRect(10, 20, 100, 50));
         QVERIFY(d->mKeyboardSize.isEmpty());
 
-        type(d.data(), "1X2x3");
-        QCOMPARE(d->mKeyboardSize, QString("1X2x3"));
+        type(d.data(), "1X2x3X4");
+        QCOMPARE(d->mKeyboardSize, QString("1x234"));
     }
 
     void typing_backspace()
