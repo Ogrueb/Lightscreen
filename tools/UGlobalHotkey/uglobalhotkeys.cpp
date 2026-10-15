@@ -129,11 +129,13 @@ void UGlobalHotkeys::unregisterHotkey(size_t id)
 void UGlobalHotkeys::unregisterAllHotkeys()
 {
 #ifdef Q_OS_WIN
-    foreach (const size_t id, Registered) {
+    const QSet<size_t> ids = Registered; // unregisterHotkey() removes from Registered
+    for (const size_t id : ids) {
         this->unregisterHotkey(id);
     }
 #elif defined(Q_OS_LINUX)
-    foreach (const size_t id, Registered.keys()) {
+    const QList<size_t> ids = Registered.keys(); // unregisterHotkey() removes from Registered
+    for (const size_t id : ids) {
         this->unregisterHotkey(id);
     }
 #endif

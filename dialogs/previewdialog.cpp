@@ -85,10 +85,10 @@ PreviewDialog::PreviewDialog(QWidget *parent) :
     layout->addLayout(mStack);
     layout->addWidget(mNextButton);
 
-    layout->setMargin(0);
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->setContentsMargins(6, 6, 6, 6);
 
-    mStack->setMargin(0);
+    mStack->setContentsMargins(0, 0, 0, 0);
 
     setMaximumHeight(mSize);
     setLayout(layout);
@@ -239,12 +239,12 @@ void PreviewDialog::add(Screenshot *screenshot)
     wlayout->addWidget(enlargePushButton);
     wlayout->addStretch();
     wlayout->addWidget(discardPushButton);
-    wlayout->setMargin(0);
+    wlayout->setContentsMargins(0, 0, 0, 0);
 
     QVBoxLayout *wl = new QVBoxLayout;
     wl->addStretch();
     wl->addLayout(wlayout);
-    wl->setMargin(0);
+    wl->setContentsMargins(0, 0, 0, 0);
 
     label->setLayout(wl);
     label->setProperty("screenshotObject", QVariant::fromValue<Screenshot *>(screenshot));

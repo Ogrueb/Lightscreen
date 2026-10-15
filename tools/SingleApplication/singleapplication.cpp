@@ -1,4 +1,5 @@
 #include <QtCore/QDataStream>
+#include <QtCore/QRegularExpression>
 #include <QtCore/QSharedMemory>
 #include <QtNetwork/QLocalSocket>
 #include <QtNetwork/QLocalServer>
@@ -22,7 +23,7 @@ class SingleApplicationPrivate
     Q_DECLARE_PUBLIC(SingleApplication)
 
 public:
-    explicit SingleApplicationPrivate(SingleApplication *q_ptr) : q_ptr(q_ptr), memory(Q_NULLPTR), server(Q_NULLPTR), socket(Q_NULLPTR) {}
+    explicit SingleApplicationPrivate(SingleApplication *q_ptr) : q_ptr(q_ptr), memory(nullptr), server(nullptr), socket(nullptr) {}
 
     void startServer(QString &serverName)
     {
@@ -32,7 +33,7 @@ public:
         server = new QLocalServer();
         QLocalServer::removeServer(serverName);
         server->listen(serverName);
-        QObject::connect(server, SIGNAL(newConnection()), q, SLOT(slotConnectionEstablished()));
+        QObject::connect(server, &QLocalServer::newConnection, q, &SingleApplication::slotConnectionEstablished);
     }
 
     void crashHandler()
@@ -118,7 +119,7 @@ SingleApplication::SingleApplication(int &argc, char *argv[])
     Q_D(SingleApplication);
 
     QString serverName = app_t::organizationName() + app_t::applicationName();
-    serverName.replace(QRegExp("[^\\w\\-. ]"), "");
+    serverName.replace(QRegularExpression("[^\\w\\-. ]", QRegularExpression::UseUnicodePropertiesOption), "");
 
     // Guarantee thread safe behaviour with a shared memory block
     d->memory = new QSharedMemory(serverName);

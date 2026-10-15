@@ -39,7 +39,7 @@ ScreenshotManager::ScreenshotManager(QObject *parent) : ScreenshotManager(nullpt
     } else {
         mSettings     = new QSettings(this);
         mPortableMode = false;
-        mHistoryPath  = QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QDir::separator();
+        mHistoryPath  = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + QDir::separator();
     }
 }
 

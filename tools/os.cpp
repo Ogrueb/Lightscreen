@@ -30,6 +30,7 @@
 #include <QPixmap>
 #include <QPointer>
 #include <QProcess>
+#include <QScreen>
 #include <QSettings>
 #include <QTextEdit>
 #include <QTimeLine>
@@ -248,7 +249,7 @@ QPixmap os::grabWindow(WId winId)
 
     return pixmap;
 #else
-    return QPixmap::grabWindow(winId);
+    return QGuiApplication::primaryScreen()->grabWindow(winId);
 #endif
 }
 

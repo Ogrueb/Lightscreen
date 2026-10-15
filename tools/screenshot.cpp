@@ -24,6 +24,7 @@
 #include <QPainter>
 #include <QPixmap>
 #include <QProcess>
+#include <QRandomGenerator>
 #include <QRegularExpression>
 #include <QTextStream>
 #include <QScreen>
@@ -118,7 +119,7 @@ QString Screenshot::getName(const NamingOptions &options, const QString &prefix,
             QString format;
             QTextStream(&format) << "%0" << (options.leadingZeros + 1) << "d";
 
-            naming = naming.arg(QString().sprintf(format.toLatin1(), naming_largest + 1));
+            naming = naming.arg(QString::asprintf(format.toLatin1().constData(), naming_largest + 1));
         } else {
             naming = naming.arg(naming_largest + 1);
         }
@@ -127,7 +128,7 @@ QString Screenshot::getName(const NamingOptions &options, const QString &prefix,
         naming = naming.arg(QLocale().toString(QDateTime::currentDateTime(), options.dateFormat));
         break;
     case  Screenshot::Timestamp: // Timestamp
-        naming = naming.arg(QDateTime::currentDateTime().toTime_t());
+        naming = naming.arg(QDateTime::currentDateTime().toSecsSinceEpoch());
         break;
     case  Screenshot::Empty:
         naming = naming.arg("");
@@ -404,7 +405,7 @@ void Screenshot::activeWindow()
 
     XGetInputFocus(QX11Info::display(), &focus, &revert);
 
-    mPixmap = QPixmap::grabWindow(focus);
+    mPixmap = QGuiApplication::primaryScreen()->grabWindow(focus);
 #endif
 }
 
@@ -570,7 +571,7 @@ void Screenshot::selectedWindow()
     WindowPicker *windowPicker = new WindowPicker;
     mPixmapDelay = true;
 
-    connect(windowPicker, SIGNAL(pixmap(QPixmap)), this, SLOT(setPixmap(QPixmap)));
+    connect(windowPicker, &WindowPicker::pixmap, this, &Screenshot::setPixmap);
 }
 
 bool Screenshot::unloadPixmap()
@@ -580,7 +581,7 @@ bool Screenshot::unloadPixmap()
     }
 
     // Unloading the pixmap to reduce memory usage during previews
-    mUnloadFilename = QString("%1/.screenshot.%2%3").arg(mOptions.directory.path()).arg(qrand() * qrand() + QDateTime::currentDateTime().toTime_t()).arg(extension());
+    mUnloadFilename = QString("%1/.screenshot.%2%3").arg(mOptions.directory.path()).arg(QRandomGenerator::global()->generate() + QDateTime::currentDateTime().toSecsSinceEpoch()).arg(extension());
     mUnloaded       = mPixmap.save(mUnloadFilename, 0, mOptions.quality);
 
     if (mUnloaded) {

@@ -22,7 +22,6 @@
 #include <QDesktopServices>
 #include <QMessageBox>
 
-#include <QRegExpValidator>
 #include <widgets/pomfoptionswidget.h>
 #include <tools/uploader/uploader.h>
 #include <tools/uploader/pomfuploader.h>

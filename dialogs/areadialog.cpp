@@ -86,7 +86,7 @@ AreaDialog::AreaDialog(Screenshot *screenshot) :
     auto awLayout = new QHBoxLayout(this);
     awLayout->addWidget(awAcceptButton);
     awLayout->addWidget(awRejectButton);
-    awLayout->setMargin(0);
+    awLayout->setContentsMargins(0, 0, 0, 0);
     awLayout->setSpacing(0);
 
     mAcceptWidget->setLayout(awLayout);
@@ -388,7 +388,7 @@ void AreaDialog::mouseMoveEvent(QMouseEvent *e)
         }
 
         bool found = false;
-        foreach (QRect *r, mHandles) {
+        for (QRect *r : qAsConst(mHandles)) {
             if (r->contains(e->pos())) {
                 mMouseOverHandle = r;
                 found = true;
@@ -444,7 +444,7 @@ void AreaDialog::mousePressEvent(QMouseEvent *e)
             setCursor(Qt::ClosedHandCursor);
         }
     } else if (e->button() == Qt::RightButton
-               || e->button() == Qt::MidButton) {
+               || e->button() == Qt::MiddleButton) {
         cancel();
     }
 
@@ -600,7 +600,8 @@ void AreaDialog::paintEvent(QPaintEvent *e)
             painter.setPen(handleColor);
             handleColor.setAlpha(80);
             painter.setBrush(handleColor);
-            painter.drawRects(handleMask().rects());
+            const QRegion mask = handleMask();
+            painter.drawRects(QVector<QRect>(mask.begin(), mask.end()));
         }
     }
 
@@ -748,7 +749,9 @@ QRegion AreaDialog::handleMask() const
 {
     // note: not normalized QRects are bad here, since they will not be drawn
     QRegion mask;
-    foreach(QRect * rect, mHandles) mask += QRegion(*rect);
+    for (QRect *rect : mHandles) {
+        mask += QRegion(*rect);
+    }
     return mask;
 }
 
