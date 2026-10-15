@@ -225,6 +225,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **Fix:** let Space and Enter through when `mKeyboardFocus` is set, and have them start hotkey entry (the same as a click: "Type your hotkey" and `grabKeyboard`).
 - **Platform:** any. **Test:** `tst_HotkeyWidget::tabFocusIgnoresKeys` asserts that Space and Enter do nothing; the fix flips that assertion. Confirmed by the test; not tried in the running app.
 - **Triage:** fix now (session H).
+- **Status:** fixed in Stage 5 (2026-10-14). Space, Return and Enter on a button reached with Tab (or Shift+Tab) start hotkey entry as a click does; other keys are still ignored there. Two more keyboard traps found while testing were fixed with it: Tab never got past the button (leaving it handed focus to the parent widget), and Shift+Tab onto it started hotkey entry. The flag is cleared when focus leaves. Tests: `tabFocusIgnoresKeys`, `tabFocusThenKeyStartsEntry`, `tabFocusMovesOnWithTab`.
 
 ## Found by the Stage 4 main window tests
 
