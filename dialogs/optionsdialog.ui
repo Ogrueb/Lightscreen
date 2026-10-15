@@ -572,7 +572,7 @@ Quality is related to file size and of course to readability and overall quality
           <string notr="true">QLabel { padding: 4px; border: 1px solid red; background-color: rgba(248, 182, 182, 60); }</string>
          </property>
          <property name="text">
-          <string>WARNING: You have no SSL support, &lt;a href=&quot;http://lightscreen.com.ar/help#SSL&quot;&gt;click here&lt;/a&gt; to learn more.</string>
+          <string>WARNING: You have no SSL support, so uploading and the update check will not work.</string>
          </property>
         </widget>
        </item>
@@ -1388,7 +1388,7 @@ Created by &lt;a href=&quot;https://ckaiser.com.ar&quot;&gt;Christian Kaiser&lt;
        <item>
         <widget class="QLabel" name="linksLabel">
          <property name="text">
-          <string>&lt;a href=&quot;https://github.com/ckaiser/Lightscreen/&quot;&gt;GitHub page&lt;/a&gt;&lt;br&gt;&lt;br&gt;&lt;a href=&quot;https://lightscreen.com.ar/&quot;&gt;Lightscreen home page&lt;/a&gt;</string>
+          <string>&lt;a href=&quot;https://github.com/ckaiser/Lightscreen/&quot;&gt;Original Lightscreen on GitHub&lt;/a&gt;</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>

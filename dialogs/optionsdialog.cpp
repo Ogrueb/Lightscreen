@@ -612,6 +612,7 @@ void OptionsDialog::init()
 
     // Version
     ui.versionLabel->setText(tr("Version %1").arg(qApp->applicationVersion()));
+    ui.linksLabel->setText(tr("<a href=\"https://github.com/%1\">GitHub page</a><br><br>%2").arg(Updater::repository(), ui.linksLabel->text()));
 
     ui.uploadSslWarningLabel->setVisible(false);
 

@@ -164,6 +164,7 @@ void LightscreenWindow::checkForUpdates()
     mUpdater = new Updater(this);
 
     connect(mUpdater, &Updater::done, this, &LightscreenWindow::updaterDone);
+    connect(mUpdater, &Updater::failed, this, &LightscreenWindow::updaterFailed);
     mUpdater->check();
 }
 
@@ -738,13 +739,13 @@ void LightscreenWindow::updateStatus()
     }
 }
 
-void LightscreenWindow::updaterDone(bool result)
+void LightscreenWindow::updaterDone(bool newer, const QString &htmlUrl)
 {
     mUpdater->deleteLater();
 
     settings()->setValue("lastUpdateCheck", QDate::currentDate().dayOfYear());
 
-    if (!result) {
+    if (!newer) {
         return;
     }
 
@@ -762,10 +763,18 @@ void LightscreenWindow::updaterDone(bool result)
     msgBox.exec();
 
     if (msgBox.clickedButton() == yesButton) {
-        QDesktopServices::openUrl(QUrl("https://lightscreen.com.ar/whatsnew?from=" + qApp->applicationVersion()));
+        QDesktopServices::openUrl(QUrl(htmlUrl));
     } else if (msgBox.clickedButton() == turnOffButton) {
         settings()->setValue("options/disableUpdater", true);
     }
+}
+
+// The silent check says nothing on failure; it still counts as the week's check so a dead network does not retry on every start.
+void LightscreenWindow::updaterFailed()
+{
+    mUpdater->deleteLater();
+
+    settings()->setValue("lastUpdateCheck", QDate::currentDate().dayOfYear());
 }
 
 void LightscreenWindow::upload(const QString &fileName)

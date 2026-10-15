@@ -90,7 +90,7 @@ Nothing needed fixing to build. Things noticed along the way, left unchanged on 
 
 The tests live under `tests/`, one directory per test (`tests/tst_<name>/`), all listed in `tests/tests.pro` (`TEMPLATE = subdirs`). Each test's `.pro` includes `tests/common.pri`, which includes `src.pri`: the tests compile the application's own sources (everything but `main.cpp`) rather than linking a library. `lightscreen.pro` includes the same `src.pri`, so a file added to the app goes into `src.pri`, not `lightscreen.pro`.
 
-`tst_smoke` checks that the harness builds and that the seams below can be installed. The Stage 4 safety-net tests sit next to it, one directory per module: `tst_settings`, `tst_screenshot`, `tst_history`, `tst_uploader`, `tst_hotkeywidget`, `tst_areadialog`, `tst_mainwindow` and `tst_os` (what each records: `docs/status.md`). `tst_mainwindow` and the window tests in `tst_settings` skip on Windows and offscreen.
+`tst_smoke` checks that the harness builds and that the seams below can be installed. The Stage 4 safety-net tests sit next to it, one directory per module: `tst_settings`, `tst_screenshot`, `tst_history`, `tst_uploader`, `tst_hotkeywidget`, `tst_areadialog`, `tst_mainwindow` and `tst_os` (what each records: `docs/status.md`). Stage 6 adds `tst_updater` (M13: the GitHub Releases update check against a stub network). `tst_mainwindow` and the window tests in `tst_settings` skip on Windows and offscreen.
 
 ### Running the tests
 
@@ -134,3 +134,7 @@ None so far.
 ## Third-party libraries
 
 SingleApplication and UGlobalHotkey used to be git submodules pointing at the original author's repos. They are now vendored (copied unchanged) under `tools/SingleApplication` and `tools/UGlobalHotkey`, so a plain clone builds with no `git submodule` step. Each directory has a `VENDORED.md` with its origin and pinned commit. The reasoning is in `docs/decisions.md`.
+
+## Update check
+
+The update check (`updater/updater.cpp`) asks `https://api.github.com/repos/<UPDATE_REPO>/releases/latest` and compares the release's `tag_name` (a leading `v` is dropped) with `VERSION`. `UPDATE_REPO` (`owner/name`) is set once, in `version.pri`; the about tab's GitHub link and the "no release yet" message use it too, so the rename (M16) changes that one line. Drafts and pre-releases are not "latest" on GitHub, so they are never offered. Until the repository has a published release, "Check now" in the options shows "No release has been published yet".

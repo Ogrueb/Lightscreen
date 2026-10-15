@@ -1,0 +1,7 @@
+# 2026-10-15: Stage 6, M13 done (update check via GitHub Releases, PR #36)
+
+- `Updater::check()` asks `https://api.github.com/repos/$UPDATE_REPO/releases/latest` (headers `Accept: application/vnd.github+json`, `User-Agent: Lightscreen/<version>`, 30 s transfer timeout) through `Uploader::network()`, strips a leading `v`/`V` from `tag_name` and compares with `QVersionNumber` against the app version. Signals: `done(bool newer, QString htmlUrl)` and `failed(QString message)`. `UPDATE_REPO` is one define in `version.pri` (`Ogrueb/Lightscreen`); M16 changes that line.
+- "Check now" (`UpdaterDialog`) shows the error on `failed`; the weekly silent check (`LightscreenWindow::updaterFailed`) only records `lastUpdateCheck`, keeping the seven-day throttle. "See more" in the new-version box opens the release's `html_url` (the releases page if the answer has none).
+- `lightscreen.com.ar` is gone from everything outside `docs/`: the pomf "Download List" button and the `pomf.json` fetch, the pomf "View Help" link, the SSL warning's help link (now plain text), the about tab's home-page link (the tab now links the fork's GitHub page, built from `UPDATE_REPO`, and the original Lightscreen repository), and the naming dialog's date `[?]` (now Qt's `QDateTime::toString` docs). Closes bug 6.
+- New `tests/tst_updater` (28 cases, offscreen-safe, stub network). All 11 suites pass on Linux under Xvfb.
+- Windows QA: `docs/windows-qa/2026-10-15-update-check.md` (optional, short). Choices the plan left open: `docs/decisions/2026-10-15-m13-update-check-details.md`.

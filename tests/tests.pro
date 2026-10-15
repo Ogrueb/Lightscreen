@@ -9,6 +9,7 @@ SUBDIRS += tst_areadialog
 SUBDIRS += tst_os
 SUBDIRS += tst_hotkeywidget
 SUBDIRS += tst_mainwindow
+SUBDIRS += tst_updater
 SUBDIRS += optipng_stub
 SUBDIRS += tst_optimize
 
