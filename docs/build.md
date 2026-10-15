@@ -79,7 +79,8 @@ To run the smoke locally after a Linux build, copy the script from the "Smoke te
 Nothing needed fixing to build. Things noticed along the way, left unchanged on purpose:
 
 - **Windows XP targeting flags and the MinGW branch** (`_ATL_XP_TARGETING`, `/D _USING_V110_SDK71`, `/SUBSYSTEM:...,5.01`, which caused the linker warning `LNK4010`, and an unmaintained MinGW branch) were removed in M03, when the minimum became Windows 10. Only MSVC is supported on Windows.
-- **README badges** pointed at the original author's AppVeyor and Coverity projects. Replaced by the fork's CI badge in M01.
+- **README badges** pointed at the original author's AppVeyor and Coverity projects. Replaced by the fork's CI badge in M01; M14 rewrote the README as a fork notice that points here for building.
+- **Dead files.** `dialogs/aboutdialog.ui` (not in `FORMS`, never used) and the `OTHER_FILES += TODO.txt` line in `lightscreen.pro` (the file never existed) were removed in M14.
 - **Compiler warnings worth a look** (14 in total, the rest are `size_t` to `int` narrowing in UGlobalHotkey and `lightscreenwindow.cpp:113`):
   - `tools/windowpicker.cpp:168` (C4312): `GetClassLong(..., GCL_HICON)` returns a 32-bit value, which truncates the icon handle on 64-bit builds. `GetClassLongPtr` / `GCLP_HICON` is the 64-bit-safe call. Likely a real bug in the window picker's icon on x64.
   - `tools/screenshot.cpp:404` (C4715): `Screenshot::extension()` has no return for formats outside its `switch` (WEBP was removed from the UI but is still in the enum). Undefined behavior if it is ever hit.

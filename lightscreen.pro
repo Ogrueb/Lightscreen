@@ -15,5 +15,3 @@ windows {
 
     CONFIG += embed_manifest_exe
 }
-
-OTHER_FILES += TODO.txt

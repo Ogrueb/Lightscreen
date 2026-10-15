@@ -1,0 +1,6 @@
+# 2026-10-15: M14 housekeeping
+
+- The 12 first-party files with no license header got the same GPL v2 header as the rest of the app: `dialogs/historydialog.{h,cpp}`, `tools/uploader/{imageuploader,imguruploader,pomfuploader}.{h,cpp}`, `widgets/imguroptionswidget.{h,cpp}` (still present; M12 has not run) and `widgets/pomfoptionswidget.{h,cpp}`. Each file keeps its own line endings. `dialogs/areadialog.*` keeps its LGPL notice. Every `.cpp`/`.h` of the app outside the vendored `tools/SingleApplication` and `tools/UGlobalHotkey` now starts with a license header; the tests under `tests/` are left without one (`docs/decisions/2026-10-15-m14-no-license-header-on-tests.md`).
+- Deleted `dialogs/aboutdialog.ui` (not in `FORMS`, referenced nowhere) and the `OTHER_FILES += TODO.txt` line from `lightscreen.pro` (the file never existed). No code or behaviour change.
+- `README.md` rewritten: fork notice with credit and link to the original project, what changed from upstream 2.5, what is still to come, build pointer to `docs/build.md`, the fork's CI badge only, license note. `docs/build.md` notes the removed files.
+- Left for later: the README's "still to come" list and the name in its title change with M12, M11 and M16.
