@@ -17,7 +17,6 @@
  *
  */
 #include <QApplication>
-#include <QDesktopWidget>
 #include <QLocale>
 
 #ifdef Q_OS_WIN

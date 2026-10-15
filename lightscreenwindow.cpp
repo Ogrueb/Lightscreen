@@ -18,7 +18,7 @@
  */
 #include <QDate>
 #include <QDesktopServices>
-#include <QDesktopWidget>
+#include <QScreen>
 #include <QFileInfo>
 #include <QKeyEvent>
 #include <QMainWindow>
@@ -984,7 +984,7 @@ bool LightscreenWindow::event(QEvent *event)
     if (event->type() == QEvent::Show) {
         QPoint savedPosition = settings()->value("position").toPoint();
 
-        if (!savedPosition.isNull() && qApp->desktop()->availableGeometry().contains(QRect(savedPosition, size()))) {
+        if (!savedPosition.isNull() && QGuiApplication::primaryScreen()->availableGeometry().contains(QRect(savedPosition, size()))) {
             move(savedPosition);
         }
 

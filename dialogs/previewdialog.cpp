@@ -23,7 +23,7 @@
 
 #include <QApplication>
 #include <QDesktopServices>
-#include <QDesktopWidget>
+#include <QScreen>
 #include <QDrag>
 #include <QGraphicsDropShadowEffect>
 #include <QHBoxLayout>
@@ -347,19 +347,19 @@ void PreviewDialog::relocate()
     QPoint where;
     switch (mPosition) {
         case 0:
-            where = QApplication::desktop()->availableGeometry(this).topLeft();
+            where = screen()->availableGeometry().topLeft();
             break;
         case 1:
-            where = QApplication::desktop()->availableGeometry(this).topRight();
+            where = screen()->availableGeometry().topRight();
             where.setX(where.x() - frameGeometry().width());
             break;
         case 2:
-            where = QApplication::desktop()->availableGeometry(this).bottomLeft();
+            where = screen()->availableGeometry().bottomLeft();
             where.setY(where.y() - frameGeometry().height());
             break;
         case 3:
         default:
-            where = QApplication::desktop()->availableGeometry(this).bottomRight();
+            where = screen()->availableGeometry().bottomRight();
             where.setX(where.x() - frameGeometry().width());
             where.setY(where.y() - frameGeometry().height());
             break;

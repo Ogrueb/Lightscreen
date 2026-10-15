@@ -17,7 +17,6 @@
  *
  */
 #include <QApplication>
-#include <QDesktopWidget>
 #include <QLabel>
 #include <QMouseEvent>
 #include <QPushButton>
@@ -112,7 +111,13 @@ WindowPicker::WindowPicker() : QWidget(0), mCrosshair(":/icons/picker"), mWindow
     setLayout(l);
 
     resize(sizeHint());
-    move(QApplication::desktop()->screenGeometry(QApplication::desktop()->screenNumber(QCursor::pos())).center() - QPoint(width() / 2, height() / 2));
+    QScreen *cursorScreen = QGuiApplication::screenAt(QCursor::pos());
+
+    if (!cursorScreen) {
+        cursorScreen = QGuiApplication::primaryScreen();
+    }
+
+    move(cursorScreen->geometry().center() - QPoint(width() / 2, height() / 2));
     show();
 }
 
