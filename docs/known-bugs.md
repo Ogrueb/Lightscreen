@@ -161,6 +161,7 @@ Recorded as current behaviour in `tests/tst_screenshot`; the test names below ar
 - **Platform:** any. **Test:** `tst_settings::dialogOutOfRangeIndexes` asserts the current `-1`; it flips when this is fixed. Confirmed by the test.
 - **Triage:** fix now (session E), unless the bug 2 PR already covers it.
 - **Since the bug 2 fix:** the saved `-1` is read back as PNG, so there is no undefined behaviour any more, but a WEBP choice still silently becomes PNG. The dialog part stays open.
+- **Status:** fixed in Stage 5 (2026-10-15). The format combo box lists WEBP, and `saveSettings` keeps the stored `file/format`, `file/naming` and `options/previewPosition` when the box has no current item instead of writing `-1`. `upload/service` still saves `-1`, left to M12. `tst_settings::dialogOutOfRangeIndexes` flipped.
 
 ### 20. PNG screenshots ignore the quality setting
 
