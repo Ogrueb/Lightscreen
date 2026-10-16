@@ -6,4 +6,4 @@
 - Tests: `tst_os` gains `taskbarWithoutWindow` (both platforms) and, on Windows, `pixmapFromHBITMAP` (size, pixels, alpha) and `pixmapFromHICON`. Linux: app builds, all 11 test suites pass.
 - `tools/taskbar.{h,cpp}` carry the same GPL header as the rest of the app (as M13's rewritten updater does); the copyright line for the fork's own code is still M16's call.
 - Windows QA: `docs/windows-qa/2026-10-16-taskbar-without-winextras.md`. The plan says "Merges: owner", so the PR is left for the owner.
-- Parallelism: M08 (X11 without QtX11Extras) does not depend on M07 and can start now; both touch `tools/os.{h,cpp}` and `tools/windowpicker.cpp`, so whichever merges second rebases. M09 needs both.
+- Parallelism: M08 (PR #41) merged first; this branch has master merged in. With both in, M09 (the Qt 6 flip) can start once this PR is merged.
