@@ -31,6 +31,7 @@ class QIcon;
 #if defined(Q_OS_LINUX)
     typedef unsigned long XID;
     typedef XID Window;
+    typedef struct _XDisplay Display;
 #endif
 
 namespace os {
@@ -68,6 +69,10 @@ QIcon icon(const QString &name, QColor backgroundColor = QColor());
 
 // X11-specific functions for the Window Picker
 #if defined(Q_OS_LINUX)
+    // The application's X display connection (QX11Info on Qt 5, QNativeInterface::QX11Application on Qt 6).
+    Display *x11Display();
+    // The root window of the default screen of x11Display().
+    Window x11RootWindow();
     Window findRealWindow(Window w, int depth = 0);
     Window windowUnderCursor(bool includeDecorations = true);
 #endif

@@ -1,7 +1,5 @@
 QT = core gui
-unix {
-    QT += gui-private
-}
+linux:lessThan(QT_MAJOR_VERSION, 6): QT += x11extras
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = UGlobalHotkey

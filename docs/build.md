@@ -55,24 +55,24 @@ Smoke test done in Stage 1: the deployed exe starts and keeps running (it sits i
 Ubuntu 24.04 with Qt 5.15.13 from apt. This is what the CI `linux` job runs:
 
 ```sh
-sudo apt-get install qtbase5-dev qtbase5-private-dev libqt5x11extras5-dev \
+sudo apt-get install qtbase5-dev libqt5x11extras5-dev \
   libqt5sql5-sqlite libx11-dev libxcb-keysyms1-dev xvfb
 mkdir build && cd build
 qmake ../lightscreen.pro
 make -j"$(nproc)"
 ```
 
-`qtbase5-private-dev` is needed because UGlobalHotkey includes `qpa/qplatformnativeinterface.h`. The app needs an X display (real or `xvfb-run`); with `QT_QPA_PLATFORM=offscreen` it segfaults at startup.
+`libqt5x11extras5-dev` (`QX11Info`) is needed on Qt 5 only: on Qt 6 the X display and xcb connection come from `QNativeInterface::QX11Application` in QtGui (M08). No private Qt headers are needed any more (until M08, UGlobalHotkey included `qpa/qplatformnativeinterface.h`). `xdotool` is only for the hotkey smoke in CI. The app needs an X display (real or `xvfb-run`); with `QT_QPA_PLATFORM=offscreen` it segfaults at startup.
 
 ## Continuous integration
 
 `.github/workflows/ci.yml` runs on every pull request and every push to `master`, with two jobs:
 
-- **linux** (`ubuntu-latest`): installs the packages above, builds, then runs the *Linux smoke*. It writes a `config.ini` next to the binary (portable mode, so no user settings are touched) with `file/format`, `file/enabled` and `file/target` set so the first-run options dialog is skipped, `options/tray=false` so no system tray is needed, and `options/disableUpdater=true` so the run makes no network calls. Under `xvfb-run -a` it starts `./lightscreen`, waits two seconds, runs `./lightscreen --quit` (SingleApplication forwards it to the running instance), and fails unless the first process exits with status 0 within ten seconds. It then runs `./lightscreen --quit` again with no instance running, which must exit with status 0 within ten seconds (bug 29).
+- **linux** (`ubuntu-latest`): installs the packages above, builds, then runs the *Linux smoke*. It writes a `config.ini` next to the binary (portable mode, so no user settings are touched) with `file/format`, `file/enabled` and `file/target` set so the first-run options dialog is skipped, `options/tray=false` so no system tray is needed, and `options/disableUpdater=true` so the run makes no network calls. Under `xvfb-run -a` it starts `./lightscreen`, waits two seconds, runs `./lightscreen --quit` (SingleApplication forwards it to the running instance), and fails unless the first process exits with status 0 within ten seconds. It then runs `./lightscreen --quit` again with no instance running, which must exit with status 0 within ten seconds (bug 29). A second step, the *hotkey smoke*, starts the app with the whole-screen action on Print Screen (`actions/screen/enabled=true`, `actions/screen/hotkey=Print`), sends the key with `xdotool key Print`, and fails unless a PNG appears in the target folder within ten seconds; this covers the UGlobalHotkeys X key grab end to end.
 - **windows** (`windows-latest`): Qt 5.15.2 `win64_msvc2019_64` from `jurplel/install-qt-action` (cached), MSVC x64 from `ilammy/msvc-dev-cmd`, `qmake CONFIG+=release` and `nmake`, then `windeployqt --release --no-translations`. The deploy folder is uploaded as the `lightscreen-win64` artifact on the run's page; unzip it and run `lightscreen.exe`.
 - Both jobs also build `tests/tests.pro` and run `make check` / `nmake check` (see [Tests](#tests)): Linux under `xvfb-run -a`, Windows with `QT_QPA_PLATFORM=offscreen`. A failing test fails the job.
 
-To run the smoke locally after a Linux build, copy the script from the "Smoke test" step of the workflow into `build/smoke.sh` and run `xvfb-run -a bash smoke.sh` from `build/`. If a previous run was killed, a stray `lightscreen` process will make the next run forward its arguments and exit; kill it first.
+To run the smoke locally after a Linux build, copy the script from the "Smoke test" step of the workflow into `build/smoke.sh` and run `xvfb-run -a bash smoke.sh` from `build/` (the same for the "Hotkey smoke" step, which needs `xdotool`). If a previous run was killed, a stray `lightscreen` process will make the next run forward its arguments and exit; kill it first.
 
 ## What broke and how it was fixed
 
