@@ -1,0 +1,6 @@
+# 2026-10-16: M08, where the X11 handles come from, and the hotkey smoke in CI
+
+- **Decision:** the app's X11 code gets its `Display *` and root window from two new helpers, `os::x11Display()` and `os::x11RootWindow()`, as the plan says. The vendored UGlobalHotkeys does **not** use them: it keeps its own two-branch `QT_VERSION` check for the xcb connection, so the vendored files still build on their own (`uglobalhotkey.pro`) without the app's `tools/os.h`. `tst_mainwindow` does the same for its keycode lookup.
+- **Why:** the plan says UGlobalHotkeys gets its connection "the same way", which reads as the same API, not the same helper; a dependency from vendored code on app code would make M10's purge and any future re-vendoring harder.
+- **Also:** the plan's optional done-check is now a CI step, *Hotkey smoke*: under Xvfb, with the whole-screen action on Print Screen in `config.ini`, `xdotool key Print` must produce a PNG within ten seconds. It covers the real X key grab, which `tst_mainwindow` (which calls the event filter directly) does not, and it will catch a regression in M09's Qt 6 flip. `xdotool` is added to the Linux job's apt list.
+- **Rejected:** keeping `QPlatformNativeInterface` on Qt 5. It needs the private `gui-private` module and its headers, which is what M08 removes; `QX11Info` is public and already a dependency until M10.

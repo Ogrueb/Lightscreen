@@ -69,6 +69,6 @@ windows {
 }
 
 unix:LIBS += -lX11
-unix:QT += x11extras
+unix:lessThan(QT_MAJOR_VERSION, 6): QT += x11extras
 
 include($$PWD/version.pri)
