@@ -43,7 +43,9 @@
 #include <QPair>
 
 #ifdef Q_OS_WIN
-    #include <QtWin>
+    #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+        #include <QtWin>
+    #endif
     #include <qt_windows.h>
     #include <ShlObj.h>
     #include <dwmapi.h>
@@ -62,6 +64,33 @@
 #endif
 
 #include <tools/os.h>
+
+#ifdef Q_OS_WIN
+QPixmap os::pixmapFromHBITMAP(HBITMAP bitmap, bool alpha)
+{
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    return QtWin::fromHBITMAP(bitmap, alpha ? QtWin::HBitmapAlpha : QtWin::HBitmapNoAlpha);
+#else
+    QImage image = QImage::fromHBITMAP(bitmap);
+
+    if (alpha) {
+        // QtWin::HBitmapAlpha read the bitmap as premultiplied ARGB.
+        image.reinterpretAsFormat(QImage::Format_ARGB32_Premultiplied);
+    }
+
+    return QPixmap::fromImage(image);
+#endif
+}
+
+QPixmap os::pixmapFromHICON(HICON icon)
+{
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    return QtWin::fromHICON(icon);
+#else
+    return QPixmap::fromImage(QImage::fromHICON(icon));
+#endif
+}
+#endif
 
 QPair<QPixmap, QPoint> os::cursor()
 {
@@ -88,9 +117,9 @@ QPair<QPixmap, QPoint> os::cursor()
 
     if (::GetIconInfo(cursor, &info)) {
         if (info.hbmColor) {
-            pixmap = QtWin::fromHBITMAP(info.hbmColor, QtWin::HBitmapAlpha);
+            pixmap = os::pixmapFromHBITMAP(info.hbmColor, true);
         } else {
-            QBitmap orig(QtWin::fromHBITMAP(info.hbmMask));
+            QBitmap orig(os::pixmapFromHBITMAP(info.hbmMask));
             QImage img = orig.toImage();
 
             int h = img.height() / 2;
@@ -244,7 +273,7 @@ QPixmap os::grabWindow(WId winId)
     ReleaseDC(hwndId, hdcMem);
     DeleteDC(hdcMem);
 
-    pixmap = QtWin::fromHBITMAP(hbmCapture);
+    pixmap = os::pixmapFromHBITMAP(hbmCapture);
 
     DeleteObject(hbmCapture);
 
