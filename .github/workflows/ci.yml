@@ -32,8 +32,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            qtbase5-dev qtbase5-private-dev libqt5x11extras5-dev \
-            libqt5sql5-sqlite libx11-dev libxcb-keysyms1-dev xvfb
+            qtbase5-dev libqt5x11extras5-dev \
+            libqt5sql5-sqlite libx11-dev libxcb-keysyms1-dev xvfb xdotool
 
       - name: Build
         run: |
@@ -86,6 +86,39 @@ jobs:
           fi
           SMOKE
           xvfb-run -a bash smoke.sh
+
+      - name: Hotkey smoke (Print Screen under Xvfb saves a screenshot)
+        working-directory: build
+        shell: bash
+        run: |
+          cat > hotkey-smoke.sh <<'SMOKE'
+          set -euo pipefail
+          # Same portable config as the smoke test, plus the whole-screen action on
+          # Print. xdotool sends the key through the X server, so this exercises the
+          # UGlobalHotkeys key grab and its native event filter end to end.
+          shots="$(mktemp -d)"
+          printf '[file]\nformat=0\nenabled=true\ntarget=%s\n\n[options]\ntray=false\ndisableUpdater=true\n\n[actions]\nscreen\\enabled=true\nscreen\\hotkey=Print\n' "$shots" > config.ini
+          ./lightscreen &
+          pid=$!
+          sleep 2
+          xdotool key Print
+          found=""
+          for _ in $(seq 1 100); do
+            found="$(find "$shots" -name '*.png' -print -quit)"
+            [ -n "$found" ] && break
+            sleep 0.1
+          done
+          ./lightscreen --quit
+          status=0
+          wait "$pid" || status=$?
+          if [ -z "$found" ]; then
+            echo "Print Screen did not save a screenshot within 10 seconds"
+            exit 1
+          fi
+          echo "saved $found"
+          [ "$status" -eq 0 ] || exit "$status"
+          SMOKE
+          xvfb-run -a bash hotkey-smoke.sh
 
       - name: Build tests
         run: |

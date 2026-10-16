@@ -28,7 +28,9 @@
 #include <tools/UGlobalHotkey/uglobalhotkeys.h>
 
 #ifdef Q_OS_LINUX
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QX11Info>
+#endif
 #include <xcb/xcb.h>
 #include <xcb/xcb_keysyms.h>
 #include <X11/keysym.h>
@@ -475,7 +477,12 @@ void tst_MainWindow::twoScreenshotFlagsTakeTwoScreenshots()
 // Returns whether UGlobalHotkeys took it as one of its hotkeys.
 static bool pressHotkey(UGlobalHotkeys *hotkeys, xcb_keysym_t keysym)
 {
-    xcb_key_symbols_t *symbols = xcb_key_symbols_alloc(QX11Info::connection());
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    xcb_connection_t *connection = qGuiApp->nativeInterface<QNativeInterface::QX11Application>()->connection();
+#else
+    xcb_connection_t *connection = QX11Info::connection();
+#endif
+    xcb_key_symbols_t *symbols = xcb_key_symbols_alloc(connection);
     xcb_keycode_t *codes = xcb_key_symbols_get_keycode(symbols, keysym);
     xcb_keycode_t code = codes ? codes[0] : 0;
     free(codes);
@@ -492,7 +499,7 @@ static bool pressHotkey(UGlobalHotkeys *hotkeys, xcb_keysym_t keysym)
     event.detail = code;
     event.state = 0;
 
-    long result = 0;
+    UNativeEventResult result = 0;
     return static_cast<QAbstractNativeEventFilter *>(hotkeys)->nativeEventFilter("xcb_generic_event_t", &event, &result);
 }
 #endif

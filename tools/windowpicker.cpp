@@ -39,7 +39,6 @@
     #endif
 
 #elif defined(Q_OS_LINUX)
-    #include <QX11Info>
     #include <X11/X.h>
     #include <X11/Xlib.h>
     #include <X11/Xutil.h>
@@ -210,10 +209,10 @@ void WindowPicker::mouseMoveEvent(QMouseEvent *event)
     char **text;
     int count;
 
-    if (XGetTextProperty(QX11Info::display(), cWindow, &tp, XA_WM_NAME) != 0 && tp.value != NULL) {
+    if (XGetTextProperty(os::x11Display(), cWindow, &tp, XA_WM_NAME) != 0 && tp.value != NULL) {
         if (tp.encoding == XA_STRING) {
             windowName = QString::fromLocal8Bit((const char *) tp.value);
-        } else if (XmbTextPropertyToTextList(QX11Info::display(), &tp, &text, &count) == Success &&
+        } else if (XmbTextPropertyToTextList(os::x11Display(), &tp, &text, &count) == Success &&
                    text != NULL && count > 0) {
             windowName = QString::fromLocal8Bit(text[0]);
             XFreeStringList(text);
@@ -231,21 +230,21 @@ void WindowPicker::mouseMoveEvent(QMouseEvent *event)
     int width = 0;
     int height = 0;
 
-    Atom _net_wm_icon = XInternAtom(QX11Info::display(), "_NET_WM_ICON", False);
+    Atom _net_wm_icon = XInternAtom(os::x11Display(), "_NET_WM_ICON", False);
 
-    if (XGetWindowProperty(QX11Info::display(), cWindow, _net_wm_icon, 0, 1, False,
+    if (XGetWindowProperty(os::x11Display(), cWindow, _net_wm_icon, 0, 1, False,
                            XA_CARDINAL, &type_ret, &format, &n, &extra, (unsigned char **)&data) == Success && data) {
         width = data[0];
         XFree(data);
     }
 
-    if (XGetWindowProperty(QX11Info::display(), cWindow, _net_wm_icon, 1, 1, False,
+    if (XGetWindowProperty(os::x11Display(), cWindow, _net_wm_icon, 1, 1, False,
                            XA_CARDINAL, &type_ret, &format, &n, &extra, (unsigned char **)&data) == Success && data) {
         height = data[0];
         XFree(data);
     }
 
-    if (XGetWindowProperty(QX11Info::display(), cWindow, _net_wm_icon, 2, width * height, False,
+    if (XGetWindowProperty(os::x11Display(), cWindow, _net_wm_icon, 2, width * height, False,
                            XA_CARDINAL, &type_ret, &format, &n, &extra, (unsigned char **)&data) == Success && data) {
         QImage img(data, width, height, QImage::Format_ARGB32);
         mWindowIcon->setPixmap(QPixmap::fromImage(img));

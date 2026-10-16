@@ -43,7 +43,6 @@
 #endif
 
 #ifdef Q_OS_LINUX
-    #include <QX11Info>
     #include <X11/X.h>
     #include <X11/Xlib.h>
     #undef Success
@@ -402,7 +401,7 @@ void Screenshot::activeWindow()
     Window focus;
     int revert;
 
-    XGetInputFocus(QX11Info::display(), &focus, &revert);
+    XGetInputFocus(os::x11Display(), &focus, &revert);
 
     mPixmap = QGuiApplication::primaryScreen()->grabWindow(focus);
 #endif

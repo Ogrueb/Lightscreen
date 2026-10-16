@@ -54,7 +54,9 @@
         #define SM_CXPADDEDBORDER 92
     #endif
 #elif defined(Q_OS_LINUX)
-    #include <QX11Info>
+    #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+        #include <QX11Info>
+    #endif
     #include <X11/X.h>
     #include <X11/Xlib.h>
     #include <X11/Xutil.h>
@@ -370,6 +372,21 @@ QIcon os::icon(const QString &name, QColor backgroundColor)
 }
 
 #ifdef Q_OS_LINUX
+Display *os::x11Display()
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    auto *x11 = qGuiApp->nativeInterface<QNativeInterface::QX11Application>();
+    return x11 ? x11->display() : nullptr;
+#else
+    return QX11Info::display();
+#endif
+}
+
+Window os::x11RootWindow()
+{
+    return DefaultRootWindow(os::x11Display());
+}
+
 // Taken from KSnapshot. Oh KDE, what would I do without you :D
 Window os::findRealWindow(Window w, int depth)
 {
@@ -377,13 +394,13 @@ Window os::findRealWindow(Window w, int depth)
         return None;
     }
 
-    static Atom wm_state = XInternAtom(QX11Info::display(), "WM_STATE", False);
+    static Atom wm_state = XInternAtom(os::x11Display(), "WM_STATE", False);
     Atom type;
     int format;
     unsigned long nitems, after;
     unsigned char *prop;
 
-    if (XGetWindowProperty(QX11Info::display(), w, wm_state, 0, 0, False, AnyPropertyType,
+    if (XGetWindowProperty(os::x11Display(), w, wm_state, 0, 0, False, AnyPropertyType,
                            &type, &format, &nitems, &after, &prop) == Success) {
         if (prop != NULL) {
             XFree(prop);
@@ -399,7 +416,7 @@ Window os::findRealWindow(Window w, int depth)
     unsigned int nchildren;
     Window ret = None;
 
-    if (XQueryTree(QX11Info::display(), w, &root, &parent, &children, &nchildren) != 0) {
+    if (XQueryTree(os::x11Display(), w, &root, &parent, &children, &nchildren) != 0) {
         for (unsigned int i = 0;
                 i < nchildren && ret == None;
                 ++i) {
@@ -421,11 +438,11 @@ Window os::windowUnderCursor(bool includeDecorations)
     uint mask;
     int rootX, rootY, winX, winY;
 
-    XQueryPointer(QX11Info::display(), QX11Info::appRootWindow(), &root, &child,
+    XQueryPointer(os::x11Display(), os::x11RootWindow(), &root, &child,
                   &rootX, &rootY, &winX, &winY, &mask);
 
     if (child == None) {
-        child = QX11Info::appRootWindow();
+        child = os::x11RootWindow();
     }
 
     if (!includeDecorations) {
