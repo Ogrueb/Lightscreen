@@ -1,0 +1,9 @@
+# 2026-10-16: Stage 6, M07 done (Windows integration without QtWinExtras)
+
+- New `Taskbar` class (`tools/taskbar.{h,cpp}`) over `ITaskbarList3` replaces `QWinTaskbarButton` and the `QWinTaskbar*Dummy` classes. Windows-only implementation, inline no-ops elsewhere; COM object created on first use once `setWindow` has a window. The six call sites in `lightscreenwindow.cpp` map one to one (`setPaused(true)+setVisible(true)` = `Paused`, `resume()` = `Normal`, `setVisible(false)`/`stop()`/`reset()` = `None`, `setValue` = `setProgressValue`); the `mHasTaskbarButton` checks are gone. `uuid.lib` added to `LIBS`.
+- Dropped as planned: the DWM blur and frame extension in the main window constructor, and the jump list in `main.cpp`.
+- `QtWin::fromHBITMAP`/`fromHICON` (cursor, window capture, window picker) now go through `os::pixmapFromHBITMAP(HBITMAP, bool alpha)` and `os::pixmapFromHICON(HICON)`: QtWin on Qt 5, `QImage::fromHBITMAP`/`fromHICON` on Qt 6 (the alpha case reinterprets as premultiplied ARGB, which is what `QtWin::HBitmapAlpha` did). The Qt 6 branches compile only from M09 on. `src.pri`: `lessThan(QT_MAJOR_VERSION, 6): QT += winextras`; `os.h` declares `HBITMAP`/`HICON` itself instead of including `<windows.h>`.
+- Tests: `tst_os` gains `taskbarWithoutWindow` (both platforms) and, on Windows, `pixmapFromHBITMAP` (size, pixels, alpha) and `pixmapFromHICON`. Linux: app builds, all 11 test suites pass.
+- `tools/taskbar.{h,cpp}` carry the same GPL header as the rest of the app (as M13's rewritten updater does); the copyright line for the fork's own code is still M16's call.
+- Windows QA: `docs/windows-qa/2026-10-16-taskbar-without-winextras.md`. The plan says "Merges: owner", so the PR is left for the owner.
+- Parallelism: M08 (X11 without QtX11Extras) does not depend on M07 and can start now; both touch `tools/os.{h,cpp}` and `tools/windowpicker.cpp`, so whichever merges second rebases. M09 needs both.
