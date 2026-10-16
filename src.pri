@@ -13,6 +13,7 @@ HEADERS += $$PWD/dialogs/areadialog.h \
     $$PWD/tools/os.h \
     $$PWD/tools/screenshot.h \
     $$PWD/tools/screenshotmanager.h \
+    $$PWD/tools/taskbar.h \
     $$PWD/tools/windowpicker.h \
     $$PWD/updater/updater.h \
     $$PWD/widgets/hotkeywidget.h \
@@ -56,10 +57,13 @@ include($$PWD/tools/SingleApplication/singleapplication.pri)
 include($$PWD/tools/UGlobalHotkey/uglobalhotkey.pri)
 
 windows {
-    QT += winextras
+    # Qt 5 only: the HBITMAP/HICON conversions in tools/os.cpp and tools/taskbar.cpp (Qt 6 has them in QImage).
+    lessThan(QT_MAJOR_VERSION, 6): QT += winextras
+
+    SOURCES += $$PWD/tools/taskbar.cpp
 
     # MSVC only; MinGW is not supported
-    LIBS += gdi32.lib user32.lib ole32.lib shell32.lib shlwapi.lib comctl32.lib dwmapi.lib winmm.lib
+    LIBS += gdi32.lib user32.lib ole32.lib shell32.lib shlwapi.lib comctl32.lib dwmapi.lib winmm.lib uuid.lib
 
     #QMAKE_CXXFLAGS_DEBUG += /analyze /W3 /wd6326
 }

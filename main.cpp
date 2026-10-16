@@ -19,10 +19,6 @@
 #include <QApplication>
 #include <QLocale>
 
-#ifdef Q_OS_WIN
-    #include <QtWinExtras>
-#endif
-
 #include <tools/os.h>
 #include "tools/SingleApplication/singleapplication.h"
 
@@ -44,35 +40,6 @@ int main(int argc, char *argv[])
     application.setQuitOnLastWindowClosed(false);
 
     LightscreenWindow lightscreen;
-
-#ifdef Q_OS_WIN
-    {
-        auto jumplist = new QWinJumpList(&lightscreen);
-
-        const QColor backgroundColor = Qt::black;
-
-        auto screenshotCategory = new QWinJumpListCategory(QObject::tr("Screenshot"));
-        screenshotCategory->setVisible(true);
-        screenshotCategory->addLink(os::icon("screen", backgroundColor), QObject::tr("Screen")         , application.applicationFilePath(), QStringList("--screen"));
-        screenshotCategory->addLink(os::icon("area", backgroundColor), QObject::tr("Area")             , application.applicationFilePath(), QStringList("--area"));
-        screenshotCategory->addLink(os::icon("pickWindow", backgroundColor), QObject::tr("Pick Window"), application.applicationFilePath(), QStringList("--pickwindow"));
-
-        auto uploadCategory = new QWinJumpListCategory(QObject::tr("Upload"));
-        uploadCategory->setVisible(true);
-        uploadCategory->addLink(os::icon("upload", backgroundColor), QObject::tr("Upload Last")        , application.applicationFilePath(), QStringList("--uploadlast"));
-        uploadCategory->addLink(os::icon("view-history", backgroundColor), QObject::tr("View History"), application.applicationFilePath(), QStringList("--viewhistory"));
-
-        auto actionsCategory = new QWinJumpListCategory(QObject::tr("Actions"));
-        actionsCategory->setVisible(true);
-        actionsCategory->addLink(os::icon("configure", backgroundColor), QObject::tr("Options")       , application.applicationFilePath(), QStringList("--options"));
-        actionsCategory->addLink(os::icon("folder", backgroundColor), QObject::tr("Go to Folder")     , application.applicationFilePath(), QStringList("--folder"));
-        actionsCategory->addLink(os::icon("no.big", backgroundColor), QObject::tr("Quit Lightscreen") , application.applicationFilePath(), QStringList("--quit"));
-
-        jumplist->addCategory(screenshotCategory);
-        jumplist->addCategory(uploadCategory);
-        jumplist->addCategory(actionsCategory);
-    }
-#endif
 
     if (application.arguments().size() > 1) {
         lightscreen.executeArguments(application.arguments());

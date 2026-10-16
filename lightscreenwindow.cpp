@@ -35,7 +35,6 @@
 
 #ifdef Q_OS_WIN
     #include <windows.h>
-    #include <QtWinExtras>
 #endif
 
 //
@@ -62,8 +61,7 @@ LightscreenWindow::LightscreenWindow(QWidget *parent) :
     mWasVisible(true),
     mLastMessage(0),
     mPendingScreenshots(0),
-    mLastScreenshot(),
-    mHasTaskbarButton(false)
+    mLastScreenshot()
 {
     ui.setupUi(this);
 
@@ -76,17 +74,6 @@ LightscreenWindow::LightscreenWindow(QWidget *parent) :
     ui.uploadPushButton->setIcon(os::icon("upload"));
 
     createUploadMenu();
-
-#ifdef Q_OS_WIN
-    mTaskbarButton = new QWinTaskbarButton(this);
-    mHasTaskbarButton = true;
-
-    if (QtWin::isCompositionEnabled()) {
-        setAttribute(Qt::WA_NoSystemBackground);
-        QtWin::enableBlurBehindWindow(this);
-        QtWin::extendFrameIntoClientArea(this, QMargins(-1, -1, -1, -1));
-    }
-#endif
 
     setMinimumSize(size());
     setWindowFlags(windowFlags() ^ Qt::WindowMaximizeButtonHint);
@@ -371,9 +358,7 @@ void LightscreenWindow::notify(const Screenshot::Result &result)
             mTrayIcon->setIcon(QIcon(":/icons/lightscreen.yes"));
         }
 
-        if (mHasTaskbarButton) {
-            mTaskbarButton->setOverlayIcon(os::icon("yes"));
-        }
+        mTaskbar.setOverlayIcon(os::icon("yes"));
 
         setWindowTitle(tr("Success!"));
         break;
@@ -384,9 +369,7 @@ void LightscreenWindow::notify(const Screenshot::Result &result)
 
         setWindowTitle(tr("Failed!"));
 
-        if (mHasTaskbarButton) {
-            mTaskbarButton->setOverlayIcon(os::icon("no"));
-        }
+        mTaskbar.setOverlayIcon(os::icon("no"));
 
         break;
     case Screenshot::Cancel:
@@ -448,12 +431,8 @@ void LightscreenWindow::restoreNotification()
         mTrayIcon->setIcon(QIcon(":/icons/lightscreen.small"));
     }
 
-    if (mHasTaskbarButton) {
-        mTaskbarButton->clearOverlayIcon();
-        mTaskbarButton->progress()->setVisible(false);
-        mTaskbarButton->progress()->stop();
-        mTaskbarButton->progress()->reset();
-    }
+    mTaskbar.clearOverlayIcon();
+    mTaskbar.setProgressState(Taskbar::Progress::None);
 
     updateStatus();
 }
@@ -698,18 +677,12 @@ void LightscreenWindow::updateStatus()
     int uploadCount = Uploader::instance()->uploading();
     int activeCount = ScreenshotManager::instance()->activeCount();
 
-    if (mHasTaskbarButton) {
-        mTaskbarButton->progress()->setPaused(true);
-        mTaskbarButton->progress()->setVisible(true);
-    }
+    mTaskbar.setProgressState(Taskbar::Progress::Paused);
 
     if (uploadCount > 0) {
         setStatus(tr("%1 uploading").arg(uploadCount));
 
-        if (mHasTaskbarButton) {
-            mTaskbarButton->progress()->setRange(0, 100);
-            mTaskbarButton->progress()->resume();
-        }
+        mTaskbar.setProgressState(Taskbar::Progress::Normal);
 
         emit uploading(true);
     } else {
@@ -720,9 +693,7 @@ void LightscreenWindow::updateStatus()
         } else {
             setStatus();
 
-            if (mHasTaskbarButton) {
-                mTaskbarButton->progress()->setVisible(false);
-            }
+            mTaskbar.setProgressState(Taskbar::Progress::None);
         }
 
         emit uploading(false);
@@ -794,10 +765,7 @@ void LightscreenWindow::uploadLast()
 
 void LightscreenWindow::uploadProgress(int progress)
 {
-    if (mHasTaskbarButton) {
-        mTaskbarButton->progress()->setVisible(true);
-        mTaskbarButton->progress()->setValue(progress);
-    }
+    mTaskbar.setProgressValue(progress);
 
     if (isVisible() && progress > 0) {
         int uploadCount = Uploader::instance()->uploading();
@@ -978,9 +946,7 @@ bool LightscreenWindow::event(QEvent *event)
             move(savedPosition);
         }
 
-        if (mHasTaskbarButton) {
-            mTaskbarButton->setWindow(windowHandle());
-        }
+        mTaskbar.setWindow(windowHandle());
     } else if (event->type() == QEvent::Hide) {
         settings()->setValue("position", pos());
     } else if (event->type() == QEvent::Close) {
