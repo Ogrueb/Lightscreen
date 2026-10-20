@@ -1,7 +1,10 @@
 # The application's sources and build settings, shared by lightscreen.pro and the tests (tests/common.pri).
 # main.cpp and the executable-only settings (target, icon, manifest, linker subsystem) stay in lightscreen.pro.
 
-DEFINES += QT_DEPRECATED_WARNINGS
+lessThan(QT_MAJOR_VERSION, 6)|equals(QT_MAJOR_VERSION, 6):lessThan(QT_MINOR_VERSION, 2): error("Lightscreen needs Qt 6.2 or newer (see docs/build.md).")
+
+# Anything Qt deprecated before 6.0 is a compile error, so later deprecations cannot pile up.
+DEFINES += QT_DEPRECATED_WARNINGS QT_DISABLE_DEPRECATED_BEFORE=0x060000
 
 HEADERS += $$PWD/dialogs/areadialog.h \
     $$PWD/dialogs/historydialog.h \
@@ -49,7 +52,7 @@ FORMS += $$PWD/dialogs/historydialog.ui \
 RESOURCES += $$PWD/lightscreen.qrc
 CODECFORSRC = UTF-8
 INCLUDEPATH += $$PWD
-CONFIG += c++14
+CONFIG += c++17
 
 QT += core gui widgets network sql concurrent
 

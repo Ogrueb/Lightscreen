@@ -106,7 +106,7 @@ void UKeySequence::addKey(const QString &key)
         qWarning() << "Wrong key";
         return;
     }
-    addKey((Qt::Key) seq[0]);
+    addKey(seq[0].key());
 }
 
 void UKeySequence::addKey(Qt::Key key)

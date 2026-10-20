@@ -138,7 +138,7 @@ void HotkeyWidget::keyPressEvent(QKeyEvent *event)
         return;
     }
 
-    mHotkey = QKeySequence(event->key() + (event->modifiers() & ~Qt::KeypadModifier));
+    mHotkey = QKeySequence(QKeyCombination(event->modifiers() & ~Qt::KeypadModifier, Qt::Key(event->key())));
 
     setHotkeyText();
 }

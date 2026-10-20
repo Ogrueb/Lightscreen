@@ -14,13 +14,14 @@
 #include "ukeysequence.h"
 #include "uglobal.h"
 
-#if defined(Q_OS_LINUX)
-// The type of QAbstractNativeEventFilter::nativeEventFilter's result parameter.
+// The type of the result parameter of QWidget::nativeEvent and QAbstractNativeEventFilter::nativeEventFilter.
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 typedef qintptr UNativeEventResult;
 #else
 typedef long UNativeEventResult;
 #endif
+
+#if defined(Q_OS_LINUX)
 
 struct UHotkeyData {
     xcb_keycode_t keyCode;
@@ -49,8 +50,8 @@ public:
 
 protected:
 #if defined(Q_OS_WIN)
-    bool winEvent(MSG *message, long *result);
-    bool nativeEvent(const QByteArray &eventType, void *message, long *result);
+    bool winEvent(MSG *message, UNativeEventResult *result);
+    bool nativeEvent(const QByteArray &eventType, void *message, UNativeEventResult *result) override;
 #elif defined(Q_OS_LINUX)
     bool nativeEventFilter(const QByteArray &eventType, void *message, UNativeEventResult *result);
     bool linuxEvent(xcb_generic_event_t *message);

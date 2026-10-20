@@ -409,7 +409,7 @@ void PreviewDialog::mousePressEvent(QMouseEvent *event)
     if (!(event->buttons() & Qt::LeftButton))
         return;
 
-    if ((event->pos() - mDragStartPosition).manhattanLength()
+    if ((event->position().toPoint() - mDragStartPosition).manhattanLength()
             < QApplication::startDragDistance())
         return;
 
@@ -431,7 +431,7 @@ void PreviewDialog::mousePressEvent(QMouseEvent *event)
 void PreviewDialog::mouseMoveEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton) {
-        mDragStartPosition = event->pos();
+        mDragStartPosition = event->position().toPoint();
     }
 }
 
