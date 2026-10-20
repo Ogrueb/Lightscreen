@@ -191,6 +191,23 @@ jobs:
           QT_QPA_PLATFORM: offscreen
         run: nmake check
 
+      - name: Show test output (on failure)
+        if: failure()
+        shell: cmd
+        working-directory: build-tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          rem nmake check shows no test output on Windows; run each test again with its output in a file.
+          for /d %%t in (tst_*) do (
+            if exist %%t\release\%%t.exe (
+              echo ===== %%t
+              %%t\release\%%t.exe -o %%t.txt,txt
+              type %%t.txt
+            )
+          )
+          exit /b 0
+
       - name: Deploy
         shell: cmd
         run: |
