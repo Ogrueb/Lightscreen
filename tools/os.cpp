@@ -121,7 +121,7 @@ QPair<QPixmap, QPoint> os::cursor()
         if (info.hbmColor) {
             pixmap = os::pixmapFromHBITMAP(info.hbmColor, true);
         } else {
-            QBitmap orig(os::pixmapFromHBITMAP(info.hbmMask));
+            QBitmap orig = QBitmap::fromPixmap(os::pixmapFromHBITMAP(info.hbmMask));
             QImage img = orig.toImage();
 
             int h = img.height() / 2;

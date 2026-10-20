@@ -271,7 +271,7 @@ private slots:
         QVERIFY(manager.settings()->fileName() != configPath);
 
         manager.initHistory();
-        const QString expected = QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QDir::separator()
+        const QString expected = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + QDir::separator()
                 + "history.sqlite";
         QCOMPARE(QSqlDatabase::database().databaseName(), expected);
 
