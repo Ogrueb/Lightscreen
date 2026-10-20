@@ -315,8 +315,10 @@ private slots:
         QCOMPARE(reply->operation(), QNetworkAccessManager::PostOperation);
         QCOMPARE(reply->url(), QUrl("https://pomf.example/upload.php"));
         QVERIFY(reply->request().header(QNetworkRequest::ContentTypeHeader).toString().startsWith("multipart/form-data; boundary="));
-        QVERIFY(reply->sentBody.contains("Content-Disposition: form-data; name=\"files[]\"; filename=\"shot.png\""));
-        QVERIFY(reply->sentBody.contains("Content-Type: image/png"));
+        // Header names are compared case-insensitively: Qt 6.7 and later send them in lower case.
+        const QByteArray body = reply->sentBody.toLower();
+        QVERIFY2(body.contains("content-disposition: form-data; name=\"files[]\"; filename=\"shot.png\""), reply->sentBody.constData());
+        QVERIFY2(body.contains("content-type: image/png"), reply->sentBody.constData());
         QVERIFY(reply->sentBody.contains("not really an image"));
 
         reply->finish("{\"success\": true, \"files\": [{\"url\": \"https://pomf.example/abc.png\"}]}");
