@@ -30,7 +30,6 @@
 #include <tools/os.h>
 
 #if defined(Q_OS_WIN)
-    #include <QtWin>
     #include <windows.h>
 
     #ifdef _WIN64
@@ -185,7 +184,7 @@ void WindowPicker::mouseMoveEvent(QMouseEvent *event)
     }
 
     if (icon != NULL) {
-        mWindowIcon->setPixmap(QtWin::fromHICON(icon));
+        mWindowIcon->setPixmap(os::pixmapFromHICON(icon));
     } else {
         mWindowIcon->setPixmap(QPixmap());
     }

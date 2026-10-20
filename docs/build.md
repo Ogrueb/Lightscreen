@@ -12,7 +12,7 @@ Status as of Stage 1 (2026-10-14): the Windows x64 release build compiles, links
 | Qt | 5.15.2, `msvc2019_64` kit (binary-compatible with MSVC 2022) | `aqtinstall` 3.3.0 |
 | Python (only to run aqtinstall) | 3.12 | already present |
 
-Qt 5.15.2 is the last Qt 5 release with official open-source Windows binaries, and the code targets Qt 5 (it uses `winextras`, removed in Qt 6), so it is the version that needs the fewest changes. All required Qt modules (core, gui, widgets, network, sql, concurrent, winextras; `multimedia` until M06) are in the base `msvc2019_64` package; no extra `-m` modules are needed.
+Qt 5.15.2 is the last Qt 5 release with official open-source Windows binaries, and the code targets Qt 5, so it is the version that needs the fewest changes. All required Qt modules (core, gui, widgets, network, sql, concurrent, winextras; `winextras` is linked on Qt 5 only, for the bitmap and icon conversions, since M07) are in the base `msvc2019_64` package; no extra `-m` modules are needed.
 
 ### One-time setup
 

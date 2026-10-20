@@ -8,6 +8,11 @@
 #include <QTemporaryDir>
 
 #include <tools/os.h>
+#include <tools/taskbar.h>
+
+#ifdef Q_OS_WIN
+    #include <qt_windows.h>
+#endif
 
 class tst_Os : public QObject
 {
@@ -63,6 +68,52 @@ private slots:
         os::playSound(os::Sound::Screenshot);
         os::playSound(os::Sound::Error);
     }
+
+    // Without a window the taskbar does nothing (and on Linux it is always a no-op).
+    void taskbarWithoutWindow()
+    {
+        Taskbar taskbar;
+        taskbar.setOverlayIcon(os::icon("yes"));
+        taskbar.setProgressState(Taskbar::Progress::Paused);
+        taskbar.setProgressValue(50);
+        taskbar.setProgressState(Taskbar::Progress::Normal);
+        taskbar.clearOverlayIcon();
+        taskbar.setProgressState(Taskbar::Progress::None);
+    }
+
+#ifdef Q_OS_WIN
+    // M07: the HBITMAP/HICON conversions that replaced QtWin keep size and pixels.
+    void pixmapFromHBITMAP()
+    {
+        const quint32 pixels[4] = { 0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0x80404040 }; // premultiplied ARGB
+        HBITMAP bitmap = ::CreateBitmap(2, 2, 1, 32, pixels);
+        QVERIFY(bitmap);
+
+        const QImage opaque = os::pixmapFromHBITMAP(bitmap).toImage();
+        const QImage alpha = os::pixmapFromHBITMAP(bitmap, true).toImage();
+        ::DeleteObject(bitmap);
+
+        QCOMPARE(opaque.size(), QSize(2, 2));
+        QVERIFY(!opaque.hasAlphaChannel());
+        QCOMPARE(opaque.pixel(0, 0), qRgb(255, 0, 0));
+        QCOMPARE(opaque.pixel(1, 1) & 0xFFFFFF, 0x404040u);
+
+        QCOMPARE(alpha.size(), QSize(2, 2));
+        QVERIFY(alpha.hasAlphaChannel());
+        QCOMPARE(qAlpha(alpha.pixel(0, 1)), 255);
+        QCOMPARE(qAlpha(alpha.pixel(1, 1)), 0x80);
+    }
+
+    void pixmapFromHICON()
+    {
+        HICON icon = ::LoadIcon(nullptr, IDI_APPLICATION);
+        QVERIFY(icon);
+
+        const QPixmap pixmap = os::pixmapFromHICON(icon);
+        QVERIFY(!pixmap.isNull());
+        QCOMPARE(pixmap.width(), ::GetSystemMetrics(SM_CXICON));
+    }
+#endif
 
     // icon() picks the normal set when the background's HSV value is above 125, the inverted set otherwise.
     void iconByBackground_data()

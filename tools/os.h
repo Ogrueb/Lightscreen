@@ -28,7 +28,13 @@ class QUrl;
 class QGraphicsEffect;
 class QIcon;
 
-#if defined(Q_OS_LINUX)
+#if defined(Q_OS_WIN)
+    // As <windows.h> declares them (STRICT), without pulling it into every includer.
+    struct HBITMAP__;
+    typedef struct HBITMAP__ *HBITMAP;
+    struct HICON__;
+    typedef struct HICON__ *HICON;
+#elif defined(Q_OS_LINUX)
     typedef unsigned long XID;
     typedef XID Window;
     typedef struct _XDisplay Display;
@@ -39,6 +45,12 @@ enum class Sound { Screenshot, Error };
 
 // Plays a sound cue without waiting for it to finish (Windows only; does nothing elsewhere).
 void playSound(Sound sound);
+
+#if defined(Q_OS_WIN)
+// QtWinExtras' conversions on Qt 5, QImage's on Qt 6. alpha reads the bitmap as premultiplied ARGB.
+QPixmap pixmapFromHBITMAP(HBITMAP bitmap, bool alpha = false);
+QPixmap pixmapFromHICON(HICON icon);
+#endif
 
 // Returns the cursor pixmap in Windows
 QPair<QPixmap, QPoint> cursor();
