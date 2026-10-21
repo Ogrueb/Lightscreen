@@ -372,15 +372,17 @@ private slots:
         QCOMPARE(request.rawHeader("X-Colon"), QByteArray("a: b"));
         QVERIFY(!request.hasRawHeader("not a header"));
 
-        // The headers set by the form plus Content-Type, Content-Length or MIME-Version that Qt adds itself.
+        // Only the three valid lines became headers (besides the ones Qt adds itself). Names are compared in lower
+        // case: Qt 6.7 and later store them that way.
         QStringList custom;
         for (const QByteArray &name : request.rawHeaderList()) {
-            if (name.startsWith("X-") || name == "Authorization") {
-                custom << QString::fromLatin1(name);
+            const QByteArray lower = name.toLower();
+            if (lower.startsWith("x-") || lower == "authorization") {
+                custom << QString::fromLatin1(lower);
             }
         }
         custom.sort();
-        QCOMPARE(custom.join(','), QStringLiteral("Authorization,X-Colon,X-Spaced"));
+        QCOMPARE(custom.join(','), QStringLiteral("authorization,x-colon,x-spaced"));
 
         const QByteArray body = mNetwork->replies.first()->sentBody.toLower();
         QVERIFY2(body.contains("content-disposition: form-data; name=\"image\"; filename=\"shot.jpg\""), body.constData());
