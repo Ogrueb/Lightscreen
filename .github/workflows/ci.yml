@@ -21,6 +21,8 @@ jobs:
       - uses: actions/checkout@v5
       - name: Check one-file-per-entry layout
         run: .github/scripts/check-docs.sh
+      - name: Include-graph check (tools/ includes no dialogs/ or widgets/)
+        run: tests/check-includes.sh
 
   linux:
     name: Linux (Qt 6.8, GCC)

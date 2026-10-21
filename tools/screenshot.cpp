@@ -34,7 +34,6 @@
 #include <tools/screenshotmanager.h>
 #include <tools/windowpicker.h>
 #include <tools/uploader/uploader.h>
-#include <dialogs/areadialog.h>
 
 #include <tools/os.h>
 
@@ -311,6 +310,12 @@ void Screenshot::save()
     }
 }
 
+// The area chosen on the desktop grabbed by selectedArea(), in device pixels.
+void Screenshot::setArea(const QRect &area)
+{
+    setPixmap(mPixmap.copy(area));
+}
+
 void Screenshot::setPixmap(const QPixmap &pixmap)
 {
     mPixmap = pixmap;
@@ -558,14 +563,9 @@ void Screenshot::selectedArea()
         return;
     }
 
-    AreaDialog selector(this);
-    int result = selector.exec();
-
-    if (result == QDialog::Accepted) {
-        mPixmap = mPixmap.copy(selector.resultRect());
-    } else {
-        mPixmap = QPixmap();
-    }
+    // Whoever shows the area selection answers with setArea() or discard().
+    mPixmapDelay = true;
+    emit areaSelectionNeeded();
 }
 
 void Screenshot::selectedWindow()

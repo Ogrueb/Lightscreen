@@ -52,6 +52,7 @@ public:
     QSettings *settings() const { return mSettings; }
 
 public slots:
+    void areaSelectionNeeded();
     void askConfirmation();
     void cleanup();
     void finished();
@@ -59,6 +60,7 @@ public slots:
     void uploadDone(const QString &fileName, const QString &url, const QString &deleteHash);
 
 signals:
+    void areaSelection(Screenshot *screenshot);
     void confirm(Screenshot *screenshot);
     void windowCleanup(const Screenshot::Options &options);
     void activeCountChange();
