@@ -75,6 +75,16 @@ The X display and xcb connection come from `QNativeInterface::QX11Application` i
 
 To run the smoke locally after a Linux build, copy the script from the "Smoke test" step of the workflow into `build/linux-release/smoke.sh` and run `xvfb-run -a bash smoke.sh` from `build/linux-release/` (the same for the "Hotkey smoke" step, which needs `xdotool`). If a previous run was killed, a stray `lightscreen` process will make the next run forward its arguments and exit; kill it first.
 
+## Releases
+
+`.github/workflows/release.yml` (M15) builds the Windows package the same way as CI (Qt 6.8.3, MSVC, the `windows-msvc-release` preset, the tests, `windeployqt --release --no-translations`) and zips it as `lightscreen-<version>-win64.zip`, with one top-level folder of the same name inside. The version is the one in `project(... VERSION ...)` in the root `CMakeLists.txt`. The workflow runs in three ways:
+
+- **A `v*` tag** (for example `v3.0.0`): the run fails unless the tag names the version in `CMakeLists.txt` (`v2.5` and `v2.5.0` both match `2.5`; the update check compares the two), then creates a *draft* GitHub Release for that tag with the zip attached. Write the release notes on the draft and publish it by hand; only a published release is seen by the update check. Releases are unsigned. **No real tag before the rename (M16).**
+- **"Run workflow"** on the Actions tab (`workflow_dispatch`): a dry run. Same build, then a draft *pre-release* named "Dry run N" under the tag `dry-run-N`, attached to the commit that was built. A draft does not create its tag, and a pre-release is never "latest", but delete the draft after looking at it rather than publishing it.
+- **A pull request that changes `release.yml`**: build and zip only (the zip is on the run's page as an artifact), no release.
+
+There is no Linux package: Linux users build from source.
+
 ## What broke and how it was fixed
 
 Nothing needed fixing to build. Things noticed along the way, left unchanged on purpose:
