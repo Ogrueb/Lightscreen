@@ -6,3 +6,4 @@
 - **Fix:** in the pomf (or S03 custom) uploader, map `OperationCanceledError` to `CancelError`.
 - **Platform:** any. **Test:** recorded by `tst_Uploader::cancel` (with a stub reply whose `abort()` behaves like Qt's HTTP reply); the fix flips that assertion. Not reproduced in the running app.
 - **Triage:** deferred to S03 (the uploader rewrite); its done-check flips `tst_Uploader::cancel`.
+- **Status:** fixed in S03 (Stage 6). `CustomUploader` reports an aborted reply as `CancelError`; `tst_Uploader::cancel` now expects `done` with no `error`, and the options dialog's "Test upload" shows "Cancelled".

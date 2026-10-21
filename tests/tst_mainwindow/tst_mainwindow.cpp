@@ -291,7 +291,7 @@ void tst_MainWindow::folderFlag()
 }
 
 // --uploadlast uploads the "lastScreenshot" setting (read by applySettings) with the configured service. With the
-// pomf service and no pomf URL the uploader fails before any network request, which shows the call was made.
+// no upload URL set the uploader fails before any network request, which shows the call was made.
 void tst_MainWindow::uploadLastFlag()
 {
     const QString last = mDir->filePath("last.jpg");
@@ -306,7 +306,7 @@ void tst_MainWindow::uploadLastFlag()
     mWindow->executeArgument("--uploadlast");
 
     QCOMPARE(error.count(), 1);
-    QCOMPARE(error.at(0).at(0).toString(), QStringLiteral("Invalid pomf uploader URL!"));
+    QCOMPARE(error.at(0).at(0).toString(), QStringLiteral("No upload URL set"));
     QCOMPARE(done.count(), 1);
     QCOMPARE(done.at(0).at(0).toString(), last);
 }

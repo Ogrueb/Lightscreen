@@ -608,7 +608,7 @@ Warning: Cannot be used in tandem with the &quot;Copy screenshot to clipboard&qu
           <widget class="QComboBox" name="uploadServiceComboBox">
            <item>
             <property name="text">
-             <string>Pomf-clone</string>
+             <string>Custom</string>
             </property>
            </item>
           </widget>
@@ -672,7 +672,7 @@ Warning: Cannot be used in tandem with the &quot;Copy screenshot to clipboard&qu
                <number>0</number>
               </property>
               <item>
-               <widget class="PomfOptionsWidget" name="pomfOptions" native="true"/>
+               <widget class="UploaderOptionsWidget" name="uploaderOptions" native="true"/>
               </item>
              </layout>
             </widget>
@@ -1418,9 +1418,9 @@ Created by &lt;a href=&quot;https://ckaiser.com.ar&quot;&gt;Christian Kaiser&lt;
    <header location="global">widgets/hotkeywidget.h</header>
   </customwidget>
   <customwidget>
-   <class>PomfOptionsWidget</class>
+   <class>UploaderOptionsWidget</class>
    <extends>QWidget</extends>
-   <header location="global">widgets/pomfoptionswidget.h</header>
+   <header location="global">widgets/uploaderoptionswidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
