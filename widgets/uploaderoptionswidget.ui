@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>UploaderOptions</class>
+ <widget class="QWidget" name="UploaderOptions">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>360</width>
+    <height>220</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="urlLabel">
+       <property name="text">
+        <string>Upload URL:</string>
+       </property>
+       <property name="buddy">
+        <cstring>urlEdit</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="urlEdit">
+       <property name="toolTip">
+        <string>The full address the screenshot is posted to.</string>
+       </property>
+       <property name="placeholderText">
+        <string>https://example.com/upload.php</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="fieldLabel">
+       <property name="text">
+        <string>Form field:</string>
+       </property>
+       <property name="buddy">
+        <cstring>fieldEdit</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="fieldEdit">
+       <property name="toolTip">
+        <string>Name of the multipart form field that carries the file.</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="headersLabel">
+       <property name="text">
+        <string>Headers:</string>
+       </property>
+       <property name="buddy">
+        <cstring>headersEdit</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QPlainTextEdit" name="headersEdit">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>56</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Extra request headers, one &quot;Name: value&quot; per line. Optional.</string>
+       </property>
+       <property name="tabChangesFocus">
+        <bool>true</bool>
+       </property>
+       <property name="placeholderText">
+        <string>Optional, one &quot;Name: value&quot; per line</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="linkPathLabel">
+       <property name="text">
+        <string>Link path:</string>
+       </property>
+       <property name="buddy">
+        <cstring>linkPathEdit</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="linkPathEdit">
+       <property name="toolTip">
+        <string>Where the link is in the JSON response: names and array indexes separated by dots.</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="deletePathLabel">
+       <property name="text">
+        <string>Delete link path:</string>
+       </property>
+       <property name="buddy">
+        <cstring>deletePathEdit</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QLineEdit" name="deletePathEdit">
+       <property name="toolTip">
+        <string>Where the delete link is in the JSON response, if the host returns one. Optional.</string>
+       </property>
+       <property name="placeholderText">
+        <string>Optional</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="testLayout">
+     <item>
+      <widget class="QPushButton" name="testButton">
+       <property name="toolTip">
+        <string>Uploads a 1x1 pixel PNG with these settings and shows the link or the error.</string>
+       </property>
+       <property name="text">
+        <string>Test upload</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cancelButton">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../lightscreen.qrc">
+         <normaloff>:/icons/no</normaloff>:/icons/no</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="resultLabel">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+       <property name="openExternalLinks">
+        <bool>true</bool>
+       </property>
+       <property name="textInteractionFlags">
+        <set>Qt::TextBrowserInteraction</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QProgressBar" name="progressIndicatorBar">
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>2</height>
+      </size>
+     </property>
+     <property name="maximum">
+      <number>0</number>
+     </property>
+     <property name="value">
+      <number>0</number>
+     </property>
+     <property name="textVisible">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../lightscreen.qrc"/>
+ </resources>
+ <connections/>
+</ui>

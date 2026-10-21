@@ -49,6 +49,7 @@
 #include <tools/os.h>
 #include <tools/screenshot.h>
 #include <tools/screenshotmanager.h>
+#include <tools/uploader/customuploader.h>
 #include <tools/uploader/uploader.h>
 
 #include <updater/updater.h>
@@ -293,22 +294,10 @@ void OptionsDialog::loadSettings()
     const int service = settings()->value("service").toInt();
     ui.uploadServiceComboBox->setCurrentIndex((service >= 0 && service < ui.uploadServiceComboBox->count()) ? service : 0);
 
-    settings()->beginGroup("pomf");
-
-    // TODO: Move to pomfuploader in a more generic way.
-    QString pomf_url = settings()->value("pomf_url", "").toString();
-
-    if (!pomf_url.isEmpty()) {
-        if (ui.pomfOptions->ui.pomfUrlComboBox->findText(pomf_url, Qt::MatchFixedString) == -1) {
-            ui.pomfOptions->ui.pomfUrlComboBox->addItem(pomf_url);
-        }
-
-        ui.pomfOptions->ui.pomfUrlComboBox->setCurrentText(settings()->value("pomf_url", "").toString());
-        ui.pomfOptions->ui.verifyButton->setEnabled(!settings()->value("pomf_url", "").toString().isEmpty());
-    }
-
     settings()->endGroup();
-    settings()->endGroup();
+
+    CustomUploader::migrateSettings(settings());
+    ui.uploaderOptions->setUploaderSettings(ImageUploader::loadSettings(settings(), "custom"));
 
     QTimer::singleShot(0, this, &OptionsDialog::updatePreview);
 
@@ -415,11 +404,9 @@ void OptionsDialog::saveSettings()
     settings()->beginGroup("upload");
     settings()->setValue("service", ui.uploadServiceComboBox->currentIndex());
 
-    settings()->beginGroup("pomf");
-        settings()->setValue("pomf_url", ui.pomfOptions->ui.pomfUrlComboBox->currentText());
     settings()->endGroup();
 
-    settings()->endGroup();
+    ImageUploader::saveSettings(settings(), "custom", ui.uploaderOptions->uploaderSettings());
 }
 
 void OptionsDialog::updatePreview()

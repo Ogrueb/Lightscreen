@@ -44,11 +44,11 @@ add_library(lightscreen_core OBJECT
     tools/taskbar.h
     tools/windowpicker.cpp tools/windowpicker.h
     tools/uploader/imageuploader.cpp tools/uploader/imageuploader.h
-    tools/uploader/pomfuploader.cpp tools/uploader/pomfuploader.h
+    tools/uploader/customuploader.cpp tools/uploader/customuploader.h
     tools/uploader/uploader.cpp tools/uploader/uploader.h
     updater/updater.cpp updater/updater.h
     widgets/hotkeywidget.cpp widgets/hotkeywidget.h
-    widgets/pomfoptionswidget.cpp widgets/pomfoptionswidget.h widgets/pomfoptionswidget.ui
+    widgets/uploaderoptionswidget.cpp widgets/uploaderoptionswidget.h widgets/uploaderoptionswidget.ui
     lightscreen.qrc
 )
 

@@ -9,6 +9,7 @@
 #include <QComboBox>
 #include <QGroupBox>
 #include <QLineEdit>
+#include <QPlainTextEdit>
 #include <QSettings>
 #include <QSlider>
 #include <QSpinBox>
@@ -35,6 +36,7 @@ private slots:
     void dialogRoundTrip();
     void dialogOutOfRangeIndexes();
     void dialogLegacyImgurSettings();
+    void dialogUploaderHeaders();
     void windowReadsEmptySettings();
     void windowReadsDialogDefaults();
     void windowCachesOptions();
@@ -330,8 +332,12 @@ void tst_Settings::dialogRoundTrip()
             dialog.findChild<HotkeyWidget *>(name + "HotkeyWidget")->setHotkey(action.second);
         }
 
-        dialog.findChild<QComboBox *>("uploadServiceComboBox")->setCurrentIndex(0); // pomf, the only entry since M12.
-        dialog.findChild<QComboBox *>("pomfUrlComboBox")->setCurrentText("https://pomf.example.invalid/upload.php");
+        dialog.findChild<QComboBox *>("uploadServiceComboBox")->setCurrentIndex(0); // The custom uploader, the only entry.
+        dialog.findChild<QLineEdit *>("urlEdit")->setText("https://up.example.invalid/upload.php");
+        dialog.findChild<QLineEdit *>("fieldEdit")->setText("image");
+        dialog.findChild<QPlainTextEdit *>("headersEdit")->setPlainText("Authorization: Bearer token"); // One line: the golden file has one line per key.
+        dialog.findChild<QLineEdit *>("linkPathEdit")->setText("data.link");
+        dialog.findChild<QLineEdit *>("deletePathEdit")->setText("data.delete");
 
         dialog.saveSettings();
     }
@@ -390,7 +396,8 @@ void tst_Settings::dialogOutOfRangeIndexes()
 }
 
 // Settings written before M12 still load. "upload/service" 1 (pomf when Imgur was 0) is beyond the one-entry list and
-// reads as 0, which is pomf now; the old upload/imgur/* keys are left as they were.
+// reads as 0, which is the custom uploader now; the old upload/imgur/* keys are left as they were. The pomf URL is
+// migrated to the custom uploader's settings (S03) and also left as it was.
 void tst_Settings::dialogLegacyImgurSettings()
 {
     mSettings->setValue("upload/service", 1);
@@ -405,15 +412,44 @@ void tst_Settings::dialogLegacyImgurSettings()
         QComboBox *service = dialog.findChild<QComboBox *>("uploadServiceComboBox");
         QCOMPARE(service->count(), 1);
         QCOMPARE(service->currentIndex(), 0);
+        QCOMPARE(dialog.findChild<QLineEdit *>("urlEdit")->text(), QStringLiteral("https://pomf.example.invalid/upload.php"));
+        QCOMPARE(dialog.findChild<QLineEdit *>("fieldEdit")->text(), QStringLiteral("files[]"));
+        QCOMPARE(dialog.findChild<QLineEdit *>("linkPathEdit")->text(), QStringLiteral("files.0.url"));
         dialog.saveSettings();
     }
 
     QCOMPARE(mSettings->value("upload/service").toString(), QStringLiteral("0"));
     QCOMPARE(mSettings->value("upload/pomf/pomf_url").toString(), QStringLiteral("https://pomf.example.invalid"));
+    QCOMPARE(mSettings->value("upload/custom/url").toString(), QStringLiteral("https://pomf.example.invalid/upload.php"));
+    QCOMPARE(mSettings->value("upload/custom/field").toString(), QStringLiteral("files[]"));
+    QCOMPARE(mSettings->value("upload/custom/linkPath").toString(), QStringLiteral("files.0.url"));
     QCOMPARE(mSettings->value("upload/imgur/access_token").toString(), QStringLiteral("token"));
     QCOMPARE(mSettings->value("upload/imgur/account_username").toString(), QStringLiteral("someone"));
     QCOMPARE(mSettings->value("upload/imgur/album").toString(), QStringLiteral("album"));
-    QCOMPARE(Uploader::serviceName(mSettings->value("upload/service").toInt()), QStringLiteral("pomf"));
+    QCOMPARE(Uploader::serviceName(mSettings->value("upload/service").toInt()), QStringLiteral("custom"));
+}
+
+// The custom uploader's headers are several lines in one key; they survive a save, the INI file and a reload.
+void tst_Settings::dialogUploaderHeaders()
+{
+    const QString headers = QStringLiteral("Authorization: Bearer token\nX-Other: 1");
+
+    {
+        OptionsDialog dialog;
+        QTRY_VERIFY(dialog.isEnabled());
+        dialog.findChild<QPlainTextEdit *>("headersEdit")->setPlainText(headers);
+        dialog.saveSettings();
+    }
+
+    mSettings->sync();
+    QSettings reopened(mSettings->fileName(), QSettings::IniFormat);
+    QCOMPARE(reopened.value("upload/custom/headers").toString(), headers);
+
+    {
+        OptionsDialog dialog;
+        QTRY_VERIFY(dialog.isEnabled());
+        QCOMPARE(dialog.findChild<QPlainTextEdit *>("headersEdit")->toPlainText(), headers);
+    }
 }
 
 // A macro, not a function: QSKIP returns from the function it is used in.
@@ -464,7 +500,7 @@ void tst_Settings::windowReadsEmptySettings()
         "replace=false",
         "saveAs=false",
         "upload=false",
-        "uploadService=pomf",
+        "uploadService=custom",
         "urlClipboard=false",
     };
 
@@ -509,7 +545,7 @@ void tst_Settings::windowReadsDialogDefaults()
         "replace=false",
         "saveAs=false",
         "upload=false",
-        "uploadService=pomf",
+        "uploadService=custom",
         "urlClipboard=false",
     };
 

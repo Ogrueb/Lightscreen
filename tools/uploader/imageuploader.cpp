@@ -17,7 +17,7 @@
  *
  */
 #include <tools/uploader/imageuploader.h>
-#include <tools/uploader/pomfuploader.h>
+#include <tools/uploader/customuploader.h>
 
 #include <utility>
 
@@ -25,9 +25,10 @@
 
 ImageUploader *ImageUploader::factory(const QString &name, QSettings *settings, QNetworkAccessManager *network)
 {
-    // pomf is the only service until S03; unknown names fall back to it instead of returning nullptr.
+    // The custom uploader is the only service since S03. Every name reaches it, including "pomf" and "imgur" from
+    // older settings, so an unknown name never gives a null uploader (bug 21).
     Q_UNUSED(name);
-    return new PomfUploader(settings, network);
+    return new CustomUploader(settings, network);
 }
 
 QVariantHash ImageUploader::loadSettings(QSettings *globalSettings, const QString &uploaderType)

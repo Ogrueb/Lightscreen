@@ -43,9 +43,11 @@ int Uploader::progress() const
 }
 
 QString Uploader::serviceName(int index)
-{ // TODO: Move somewhere else? Use indexes everywhere? an enum?
+{
+    // One service since S03: every index, including Imgur (0) and pomf (1) from settings written before M12, is the
+    // custom uploader.
     Q_UNUSED(index);
-    return "pomf";
+    return "custom";
 }
 
 QString Uploader::lastUrl() const
