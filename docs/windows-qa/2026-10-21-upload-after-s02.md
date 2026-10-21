@@ -1,4 +1,4 @@
-# Upload after S02 (uploader owned by the screenshot manager)
+# Upload after S02, uploader owned by the screenshot manager (PR #49)
 
 The screenshot no longer calls the uploader or the history itself; the manager does it on the screenshot's signals. Use the `lightscreen-win64` artifact of the S02 PR's CI run, with a pomf host that works set in Options > Upload (or skip steps 1 and 2 if none is at hand; step 3 still applies).
 
