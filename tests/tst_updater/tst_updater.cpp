@@ -6,7 +6,6 @@
 #include <QNetworkReply>
 #include <QPointer>
 
-#include <tools/uploader/uploader.h>
 #include <updater/updater.h>
 
 // A reply whose body, HTTP status and error the test controls.
@@ -101,7 +100,6 @@ class tst_Updater : public QObject
     Q_OBJECT
 
 private:
-    Uploader *mUploader = nullptr;
     CannedNetwork *mNetwork = nullptr;
     Updater *mUpdater = nullptr;
     QStringList mEvents; // "done:<newer>|<htmlUrl>" and "failed:<message>", in emission order
@@ -132,12 +130,8 @@ private slots:
 
     void init()
     {
-        mUploader = new Uploader;
         mNetwork = new CannedNetwork;
-        Uploader::setInstance(mUploader);
-        mUploader->setNetwork(mNetwork);
-
-        mUpdater = new Updater;
+        mUpdater = new Updater(mNetwork);
         mEvents.clear();
         connect(mUpdater, &Updater::done, this, [this](bool newer, const QString &htmlUrl) {
             mEvents << QStringLiteral("done:%1|%2").arg(newer ? "true" : "false", htmlUrl);
@@ -153,11 +147,8 @@ private slots:
         mUpdater = nullptr;
         QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
 
-        Uploader::setInstance(nullptr);
         delete mNetwork;
-        delete mUploader;
         mNetwork = nullptr;
-        mUploader = nullptr;
     }
 
     void urls()

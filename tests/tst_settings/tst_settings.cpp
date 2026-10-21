@@ -51,7 +51,7 @@ private:
     QTemporaryDir mHome;
     QScopedPointer<QTemporaryDir> mDir;
     QScopedPointer<QSettings> mSettings;
-    QScopedPointer<Uploader> mUploader;
+    Uploader *mUploader = nullptr; // owned by mManager
     QScopedPointer<QNetworkAccessManager> mNetwork;
     QScopedPointer<ScreenshotManager> mManager;
 };
@@ -88,25 +88,22 @@ void tst_Settings::init()
     mDir.reset(new QTemporaryDir);
     QVERIFY(mDir->isValid());
 
-    // Uploader first: the ScreenshotManager constructor connects to Uploader::instance().
-    mUploader.reset(new Uploader);
-    mNetwork.reset(new QNetworkAccessManager);
-    Uploader::setInstance(mUploader.data());
-    mUploader->setNetwork(mNetwork.data());
-
     mSettings.reset(new QSettings(mDir->filePath("settings.ini"), QSettings::IniFormat));
     mManager.reset(new ScreenshotManager(mSettings.data(), mDir->path() + QDir::separator()));
     ScreenshotManager::setInstance(mManager.data());
+
+    mNetwork.reset(new QNetworkAccessManager);
+    mUploader = mManager->uploader();
+    mUploader->setNetwork(mNetwork.data());
 }
 
 void tst_Settings::cleanup()
 {
     ScreenshotManager::setInstance(nullptr);
-    Uploader::setInstance(nullptr);
     mManager.reset();
+    mUploader = nullptr;
     mSettings.reset();
     mNetwork.reset();
-    mUploader.reset();
     mDir.reset();
 }
 

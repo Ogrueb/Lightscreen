@@ -52,11 +52,11 @@ HistoryDialog::HistoryDialog(QWidget *parent) :
     ui->tableView->setEnabled(false);
     ui->clearButton->setEnabled(false);
 
-    connect(Uploader::instance(), &Uploader::progressChanged, this, &HistoryDialog::uploadProgress);
-    connect(Uploader::instance(), &Uploader::done           , this, &HistoryDialog::refresh);
+    connect(ScreenshotManager::instance()->uploader(), &Uploader::progressChanged, this, &HistoryDialog::uploadProgress);
+    connect(ScreenshotManager::instance()->uploader(), &Uploader::done           , this, &HistoryDialog::refresh);
 
     connect(ui->uploadButton      , &QPushButton::clicked, this                    , &HistoryDialog::upload);
-    connect(ui->cancelUploadButton, &QPushButton::clicked, Uploader::instance()    , &Uploader::cancel);
+    connect(ui->cancelUploadButton, &QPushButton::clicked, ScreenshotManager::instance()->uploader()    , &Uploader::cancel);
     connect(ui->cancelUploadButton, &QPushButton::clicked, ui->uploadProgressWidget, &QWidget::hide);
 
     connect(ui->clearButton, &QPushButton::clicked, this, &HistoryDialog::clear);
@@ -189,7 +189,7 @@ void HistoryDialog::selectionChanged(const QItemSelection &selected, const QItem
 
 void HistoryDialog::upload()
 {
-    Uploader::instance()->upload(mSelectedScreenshot, Uploader::serviceName(ScreenshotManager::instance()->settings()->value("upload/service", 0).toInt()));
+    ScreenshotManager::instance()->uploader()->upload(mSelectedScreenshot, Uploader::serviceName(ScreenshotManager::instance()->settings()->value("upload/service", 0).toInt()));
     ui->uploadProgressWidget->setVisible(true);
 }
 
@@ -259,8 +259,8 @@ void HistoryDialog::init()
         setUpdatesEnabled(true);
     }
 
-    if (Uploader::instance()->progress() > 0) {
-        ui->uploadProgressBar->setValue(Uploader::instance()->progress());
+    if (ScreenshotManager::instance()->uploader()->progress() > 0) {
+        ui->uploadProgressBar->setValue(ScreenshotManager::instance()->uploader()->progress());
     } else {
         ui->uploadProgressWidget->setVisible(false);
     }

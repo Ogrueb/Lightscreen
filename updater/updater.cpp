@@ -27,14 +27,13 @@
 
 #include <updater/updater.h>
 #include <dialogs/updaterdialog.h>
-#include <tools/uploader/uploader.h>
 
 #ifndef UPDATE_REPO
 #error "UPDATE_REPO is set in CMakeLists.txt"
 #endif
 
-Updater::Updater(QObject *parent) :
-    QObject(parent)
+Updater::Updater(QNetworkAccessManager *network, QObject *parent) :
+    QObject(parent), mNetwork(network)
 {
 }
 
@@ -73,7 +72,7 @@ void Updater::check()
     request.setRawHeader("User-Agent", QStringLiteral("Lightscreen/%1").arg(qApp->applicationVersion()).toUtf8());
     request.setTransferTimeout(30000);
 
-    mReply = Uploader::network()->get(request);
+    mReply = mNetwork->get(request);
     connect(mReply.data(), &QNetworkReply::finished, this, &Updater::finished);
 }
 

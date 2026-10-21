@@ -17,19 +17,18 @@
  *
  */
 #include <tools/uploader/pomfuploader.h>
-#include <tools/uploader/uploader.h>
 
 #include <QtNetwork>
 #include <QJsonDocument>
 #include <QJsonObject>
 
-PomfUploader::PomfUploader(QObject *parent) : ImageUploader(parent)
+PomfUploader::PomfUploader(QSettings *settings, QNetworkAccessManager *network, QObject *parent) : ImageUploader(settings, network, parent)
 {
     mUploaderType = "pomf";
     loadSettings();
 }
 
-QNetworkReply* PomfUploader::verify(const QString &url, VerificationCallback callback)
+QNetworkReply* PomfUploader::verify(QNetworkAccessManager *network, const QString &url, VerificationCallback callback)
 {
     QNetworkRequest request(QUrl::fromUserInput(QString("%1/upload.php").arg(url)));
 
@@ -38,7 +37,7 @@ QNetworkReply* PomfUploader::verify(const QString &url, VerificationCallback cal
         return 0;
     }
 
-    QNetworkReply *reply = Uploader::network()->get(request);
+    QNetworkReply *reply = network->get(request);
 
     connect(reply, &QNetworkReply::finished, [reply, callback] {
         reply->deleteLater();
@@ -91,7 +90,7 @@ void PomfUploader::upload(const QString &fileName)
     file->setParent(multiPart);
     multiPart->append(imagePart);
 
-    QNetworkReply *reply = Uploader::network()->post(request, multiPart);
+    QNetworkReply *reply = mNetwork->post(request, multiPart);
     this->setProperty("fileName", fileName);
     multiPart->setParent(reply);
 

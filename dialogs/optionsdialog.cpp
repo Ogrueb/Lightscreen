@@ -109,7 +109,7 @@ void OptionsDialog::accepted()
 
 void OptionsDialog::checkUpdatesNow()
 {
-    Updater updater;
+    Updater updater(ScreenshotManager::instance()->uploader()->network());
     updater.checkWithFeedback();
 }
 

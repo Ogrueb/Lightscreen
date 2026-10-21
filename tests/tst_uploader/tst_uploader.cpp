@@ -7,8 +7,11 @@
 #include <QNetworkReply>
 #include <QPointer>
 #include <QSettings>
+#include <QSqlDatabase>
+#include <QSqlQuery>
 #include <QTemporaryDir>
 
+#include <tools/screenshot.h>
 #include <tools/screenshotmanager.h>
 #include <tools/uploader/imageuploader.h>
 #include <tools/uploader/pomfuploader.h>
@@ -114,6 +117,8 @@ protected:
 class PomfProbe : public PomfUploader
 {
 public:
+    using PomfUploader::PomfUploader;
+
     QVariantHash &settingsHash()
     {
         return mSettings;
@@ -127,7 +132,7 @@ class tst_Uploader : public QObject
 private:
     QTemporaryDir *mDir = nullptr;
     QSettings *mSettings = nullptr;
-    Uploader *mUploader = nullptr;
+    Uploader *mUploader = nullptr; // owned by mManager
     CannedNetwork *mNetwork = nullptr;
     ScreenshotManager *mManager = nullptr;
     QStringList mEvents; // "error:<text>" and "done:<file>|<url>|<deleteHash>", in emission order
@@ -165,13 +170,12 @@ private slots:
         mSettings->setValue("upload/pomf/pomf_url", "https://pomf.example");
         mSettings->setValue("options/history", false); // The manager writes history on Uploader::done; not tested here.
 
-        mUploader = new Uploader;
-        mNetwork = new CannedNetwork;
-        Uploader::setInstance(mUploader);
-        mUploader->setNetwork(mNetwork);
-
         mManager = new ScreenshotManager(mSettings, mDir->path() + QDir::separator());
         ScreenshotManager::setInstance(mManager);
+
+        mNetwork = new CannedNetwork;
+        mUploader = mManager->uploader();
+        mUploader->setNetwork(mNetwork);
 
         mEvents.clear();
         connect(mUploader, &Uploader::error, this, [this](const QString &errorString) {
@@ -188,9 +192,7 @@ private slots:
         QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
 
         ScreenshotManager::setInstance(nullptr);
-        Uploader::setInstance(nullptr);
         delete mManager;
-        delete mUploader;
         delete mNetwork;
         delete mSettings;
         delete mDir;
@@ -238,7 +240,7 @@ private slots:
         QFETCH(QString, name);
         QFETCH(QString, className);
 
-        QScopedPointer<ImageUploader> uploader(ImageUploader::factory(name));
+        QScopedPointer<ImageUploader> uploader(ImageUploader::factory(name, mSettings, mNetwork));
 
         if (className.isEmpty()) {
             QVERIFY(uploader.isNull());
@@ -256,24 +258,21 @@ private slots:
         QVariantHash saved;
         saved["pomf_url"] = "https://other.example";
         saved["number"] = 42;
-        ImageUploader::saveSettings("pomf", saved);
+        ImageUploader::saveSettings(mSettings, "pomf", saved);
 
         QCOMPARE(mSettings->value("upload/pomf/pomf_url").toString(), QStringLiteral("https://other.example"));
 
         QVariantHash expected = saved;
         expected["kept"] = "untouched"; // saveSettings merges: keys missing from the hash are left in place.
         // loadSettings reads child keys only, so "group/nested" is not returned.
-        QCOMPARE(ImageUploader::loadSettings("pomf"), expected);
+        QCOMPARE(ImageUploader::loadSettings(mSettings, "pomf"), expected);
 
-        QVERIFY(ImageUploader::loadSettings("nothing-here").isEmpty());
+        QVERIFY(ImageUploader::loadSettings(mSettings, "nothing-here").isEmpty());
 
         // Current behaviour: once written to the INI file and read back, numbers come back as strings.
         mSettings->sync();
         QSettings reopened(mSettings->fileName(), QSettings::IniFormat);
-        ScreenshotManager otherManager(&reopened, mDir->path() + QDir::separator());
-        ScreenshotManager::setInstance(&otherManager);
-        const QVariantHash reloaded = ImageUploader::loadSettings("pomf");
-        ScreenshotManager::setInstance(mManager);
+        const QVariantHash reloaded = ImageUploader::loadSettings(&reopened, "pomf");
 
         QCOMPARE(reloaded["number"], QVariant(QStringLiteral("42")));
         QCOMPARE(reloaded["pomf_url"], QVariant(QStringLiteral("https://other.example")));
@@ -281,7 +280,7 @@ private slots:
 
     void instanceSettingsRoundTrip()
     {
-        PomfProbe probe; // The constructor loads "upload/pomf".
+        PomfProbe probe(mSettings, mNetwork); // The constructor loads "upload/pomf".
         QCOMPARE(probe.settingsHash().value("pomf_url").toString(), QStringLiteral("https://pomf.example"));
 
         probe.settingsHash()["pomf_url"] = "https://changed.example";
@@ -532,6 +531,64 @@ private slots:
         QCOMPARE(mUploader->progress(), 42);
         QCOMPARE(progressSpy.count(), 1);
         QCOMPARE(progressSpy.last().at(0).toInt(), 42);
+    }
+
+    // S02 flow: a Screenshot no longer calls the uploader or the history itself. It emits uploadRequested, the
+    // manager hands that to its uploader, and the uploader's done reaches the history through the manager.
+    void screenshotUploadFlow()
+    {
+        mSettings->setValue("options/history", true);
+
+        Screenshot::Options options;
+        options.result = Screenshot::Failure;
+        options.format = Screenshot::PNG;
+        options.namingOptions = { Screenshot::Empty, false, 0, QString() };
+        options.directory = QDir(mDir->path());
+        options.prefix = QStringLiteral("flow");
+        options.uploadService = QStringLiteral("pomf");
+        options.mode = Screenshot::None;
+        options.quality = 80;
+        options.animations = options.clipboard = options.urlClipboard = options.currentMonitor = false;
+        options.cursor = options.magnify = options.optimize = options.preview = false;
+        options.replace = options.saveAs = false;
+        options.file = true;
+        options.upload = true;
+
+        QScopedPointer<Screenshot> screenshot(new Screenshot(nullptr, options));
+        mManager->connectScreenshot(screenshot.data());
+        QSignalSpy savedSpy(screenshot.data(), &Screenshot::saved);
+        QSignalSpy requestSpy(screenshot.data(), &Screenshot::uploadRequested);
+
+        QPixmap pixmap(8, 8);
+        pixmap.fill(Qt::red);
+        screenshot->pixmap() = pixmap;
+        screenshot->save();
+
+        const QString file = QDir::toNativeSeparators(mDir->filePath("flow.png"));
+        QCOMPARE(screenshot->options().result, Screenshot::Success);
+        QCOMPARE(screenshot->options().fileName, file);
+        QCOMPARE(savedSpy.count(), 0); // With upload on, the history row is written when the upload is done.
+        QCOMPARE(requestSpy.count(), 1);
+        QCOMPARE(requestSpy.at(0).at(0).toString(), file);
+        QCOMPARE(requestSpy.at(0).at(1).toString(), QStringLiteral("pomf"));
+
+        QCOMPARE(mUploader->uploading(), 1);
+        QCOMPARE(mNetwork->replies.size(), 1);
+        mNetwork->replies.first()->finish("{\"success\": true, \"files\": [{\"url\": \"https://pomf.example/flow.png\"}]}");
+
+        QCOMPARE(mEvents, QStringList() << doneEvent(file, "https://pomf.example/flow.png"));
+
+        {
+            QSqlQuery query("SELECT fileName, URL FROM history");
+            QVERIFY(query.next());
+            QCOMPARE(query.value(0).toString(), file);
+            QCOMPARE(query.value(1).toString(), QStringLiteral("https://pomf.example/flow.png"));
+            QVERIFY(!query.next());
+        }
+
+        // Close the history so the temporary directory can be removed on Windows.
+        QSqlDatabase::database(QSqlDatabase::defaultConnection, false).close();
+        QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
     }
 };
 

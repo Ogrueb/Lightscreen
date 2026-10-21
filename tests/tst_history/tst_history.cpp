@@ -34,7 +34,6 @@ private slots:
         QVERIFY(mDir->isValid());
         mHistoryPath = mDir->path() + QDir::separator() + "history" + QDir::separator();
 
-        Uploader::setInstance(&mUploader);
         mSettings = new QSettings(mDir->filePath("settings.ini"), QSettings::IniFormat);
         mManager = new ScreenshotManager(mSettings, mHistoryPath);
         ScreenshotManager::setInstance(mManager);
@@ -47,7 +46,6 @@ private slots:
         mManager = nullptr;
         delete mSettings;
         mSettings = nullptr;
-        Uploader::setInstance(nullptr);
 
         // The manager opens the default connection; close it so the temporary directory can be removed on Windows.
         closeDatabase();
@@ -188,7 +186,7 @@ private slots:
     void uploaderDoneUpdatesHistory()
     {
         mManager->saveHistory("/shots/a.png");
-        emit mUploader.done("/shots/a.png", "https://example.com/a.png", "https://example.com/delete/123");
+        emit mManager->uploader()->done("/shots/a.png", "https://example.com/a.png", "https://example.com/delete/123");
 
         const QList<HistoryRow> all = rows();
         QCOMPARE(all.count(), 1);
@@ -348,7 +346,6 @@ private:
     QString mHistoryPath;
     QSettings *mSettings = nullptr;
     ScreenshotManager *mManager = nullptr;
-    Uploader mUploader;
 };
 
 QTEST_MAIN(tst_History)

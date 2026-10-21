@@ -31,9 +31,7 @@
 #include <QStringBuilder>
 
 #include <tools/screenshot.h>
-#include <tools/screenshotmanager.h>
 #include <tools/windowpicker.h>
-#include <tools/uploader/uploader.h>
 
 #include <tools/os.h>
 
@@ -296,14 +294,14 @@ void Screenshot::save()
 
     if (mOptions.format == Screenshot::PNG && mOptions.optimize && mOptions.file) {
         if (!mOptions.upload) {
-            ScreenshotManager::instance()->saveHistory(mOptions.fileName);
+            emit saved(mOptions.fileName);
         }
 
         optimize();
     } else if (mOptions.upload) {
         upload();
     } else if (mOptions.file) {
-        ScreenshotManager::instance()->saveHistory(mOptions.fileName);
+        emit saved(mOptions.fileName);
         emit finished();
     } else {
         emit finished();
@@ -361,9 +359,9 @@ void Screenshot::take()
 void Screenshot::upload()
 {
     if (mOptions.file) {
-        Uploader::instance()->upload(mOptions.fileName, mOptions.uploadService);
+        emit uploadRequested(mOptions.fileName, mOptions.uploadService);
     } else if (unloadPixmap()) {
-        Uploader::instance()->upload(mUnloadFilename, mOptions.uploadService);
+        emit uploadRequested(mUnloadFilename, mOptions.uploadService);
     } else {
         emit finished();
     }
