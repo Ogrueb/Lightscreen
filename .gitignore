@@ -1,7 +1,5 @@
-*.2-pre1
 *.autosave
-*.pro.*
 build/
 
-# Out-of-tree test builds (docs/build.md)
-build-tests/
+# Local CMake presets (CMakePresets.json is the shared one)
+CMakeUserPresets.json

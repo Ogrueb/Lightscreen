@@ -1,6 +1,6 @@
 # Lightscreen fork
 
-A fork of the unmaintained Lightscreen screenshot tool (C++ / Qt 5 / qmake), being modernized in stages. See docs/PLAN.md.
+A fork of the unmaintained Lightscreen screenshot tool (C++ / Qt 6 / CMake), being modernized in stages. See docs/PLAN.md.
 
 Before starting: read docs/PLAN.md, docs/decisions.md and docs/status.md (each explains its folder of entries).
 Before finishing: add a new file docs/status/YYYY-MM-DD-<topic>.md (and docs/decisions/YYYY-MM-DD-<topic>.md if you made a decision; docs/known-bugs/NN-<topic>.md for a new bug). Never edit the index files docs/status.md, docs/decisions.md or docs/known-bugs.md to add an entry, and don't edit other threads' entries: one file per entry keeps parallel PRs free of merge conflicts.

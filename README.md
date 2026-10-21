@@ -15,7 +15,9 @@ This is a fork of [Lightscreen](https://github.com/ckaiser/Lightscreen) by Chris
 - Built with Qt 6 (6.2 or newer; CI and the Windows package use Qt 6.8) and C++17. QtWinExtras, QtX11Extras and QtMultimedia are no longer needed.
 - The Imgur uploader is removed; uploads go to a pomf-compatible host until the user-configurable uploader arrives.
 
-Still to come (see [docs/modernization-plan.md](docs/modernization-plan.md)): a CMake build, a user-configurable uploader in place of pomf, an update check against this fork's GitHub Releases, and the rename.
+- Built with CMake (presets for Windows MSVC and Linux) instead of qmake.
+
+Still to come (see [docs/modernization-plan.md](docs/modernization-plan.md)): a user-configurable uploader in place of pomf, an update check against this fork's GitHub Releases, and the rename.
 
 ### Building
 

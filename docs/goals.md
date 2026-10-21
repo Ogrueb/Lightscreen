@@ -40,7 +40,7 @@ Not part of "resilient": new features, a new UI, a plugin system, a rewrite in a
 ## Identity
 
 - **Name: [open]** The fork ships under a new name so bug reports stay off the original author's plate (decided). The name is not chosen yet; until it is, the code keeps "Lightscreen" and the release process waits.
-- Company and copyright strings in `version.pri`, the organization name in `main.cpp`, icons and the about text change together in one plan step once the name is chosen.
+- Company and copyright strings in `CMakeLists.txt`, the organization name in `main.cpp`, icons and the about text change together in one plan step once the name is chosen.
 - **License:** GPL v2, unchanged. The LGPL-based `areadialog` keeps its notice. Files with no license header get one.
 - **Releases:** unsigned (decided). Published as GitHub Releases with a zipped `windeployqt` output; an installer is a later nice-to-have.
 
