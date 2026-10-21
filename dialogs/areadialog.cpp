@@ -26,6 +26,8 @@
 #include <tools/screenshot.h>
 #include <tools/screenshotmanager.h>
 
+#include <utility>
+
 #include <QApplication>
 #include <QScreen>
 #include <QHBoxLayout>
@@ -412,7 +414,7 @@ void AreaDialog::mouseMoveEvent(QMouseEvent *e)
         }
 
         bool found = false;
-        for (QRect *r : qAsConst(mHandles)) {
+        for (QRect *r : std::as_const(mHandles)) {
             if (r->contains(e->position().toPoint())) {
                 mMouseOverHandle = r;
                 found = true;

@@ -20,6 +20,8 @@
 #include <tools/uploader/pomfuploader.h>
 #include <tools/os.h>
 
+#include <utility>
+
 #include <QSettings>
 #include <tools/screenshotmanager.h>
 
@@ -38,7 +40,7 @@ QVariantHash ImageUploader::loadSettings(const QString &uploaderType)
 
     QVariantHash settings;
 
-    for (auto key : qAsConst(keys)) {
+    for (auto key : std::as_const(keys)) {
         settings[key] = globalSettings->value(key);
     }
 

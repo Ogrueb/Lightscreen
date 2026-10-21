@@ -15,11 +15,7 @@
 #include "uglobal.h"
 
 // The type of the result parameter of QWidget::nativeEvent and QAbstractNativeEventFilter::nativeEventFilter.
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 typedef qintptr UNativeEventResult;
-#else
-typedef long UNativeEventResult;
-#endif
 
 #if defined(Q_OS_LINUX)
 

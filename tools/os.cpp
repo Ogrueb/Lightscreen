@@ -43,9 +43,6 @@
 #include <QPair>
 
 #ifdef Q_OS_WIN
-    #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-        #include <QtWin>
-    #endif
     #include <qt_windows.h>
     #include <ShlObj.h>
     #include <dwmapi.h>
@@ -56,9 +53,6 @@
         #define SM_CXPADDEDBORDER 92
     #endif
 #elif defined(Q_OS_LINUX)
-    #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-        #include <QX11Info>
-    #endif
     #include <X11/X.h>
     #include <X11/Xlib.h>
     #include <X11/Xutil.h>
@@ -70,9 +64,6 @@
 #ifdef Q_OS_WIN
 QPixmap os::pixmapFromHBITMAP(HBITMAP bitmap, bool alpha)
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    return QtWin::fromHBITMAP(bitmap, alpha ? QtWin::HBitmapAlpha : QtWin::HBitmapNoAlpha);
-#else
     if (!alpha) {
         return QPixmap::fromImage(QImage::fromHBITMAP(bitmap));
     }
@@ -105,16 +96,11 @@ QPixmap os::pixmapFromHBITMAP(HBITMAP bitmap, bool alpha)
     }
 
     return QPixmap::fromImage(image);
-#endif
 }
 
 QPixmap os::pixmapFromHICON(HICON icon)
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    return QtWin::fromHICON(icon);
-#else
     return QPixmap::fromImage(QImage::fromHICON(icon));
-#endif
 }
 #endif
 
@@ -427,12 +413,8 @@ QIcon os::icon(const QString &name, QColor backgroundColor)
 #ifdef Q_OS_LINUX
 Display *os::x11Display()
 {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     auto *x11 = qGuiApp->nativeInterface<QNativeInterface::QX11Application>();
     return x11 ? x11->display() : nullptr;
-#else
-    return QX11Info::display();
-#endif
 }
 
 Window os::x11RootWindow()

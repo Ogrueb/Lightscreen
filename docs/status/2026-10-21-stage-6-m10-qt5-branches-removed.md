@@ -1,0 +1,10 @@
+# 2026-10-21: Stage 6, M10 done (Qt 5 branches removed)
+
+- Every `QT_VERSION` branch M07, M08 and `tst_mainwindow` carried for Qt 5 is gone; only the Qt 6 side stays. Files: `tools/os.{h,cpp}` (HBITMAP/HICON conversions, `x11Display`), `tools/taskbar.cpp` (overlay icon), `tools/UGlobalHotkey/uglobalhotkeys.{h,cpp}` (xcb connection; `UNativeEventResult` is always `qintptr`), `tests/tst_mainwindow/tst_mainwindow.cpp`. No `<QtWin>` or `<QX11Info>` include is left.
+- qmake: `src.pri`, `uglobalhotkey-sources.pri` and the unused standalone `uglobalhotkey.pro` no longer add `winextras`/`x11extras` on Qt 5 (the `.pro` also moves to C++17 and asks for `widgets` without a version test). The Qt 6.2 minimum check in `src.pri` stays. `.github/workflows/ci.yml` had nothing Qt 5 left.
+- `qAsConst` became `std::as_const` at its three sites (`dialogs/areadialog.cpp`, `tools/uploader/imageuploader.cpp`, `tools/screenshotmanager.cpp`). The `QMouseEvent` leftovers the plan lists were already done in M09.
+- Also, from the M09 list of deprecations: `QSqlDatabase::exec` (deprecated in 6.6) became `QSqlQuery(history).exec(...)` for the history index, the same statement on the same connection.
+- `tools/UGlobalHotkey/VENDORED.md` now lists the M04 and M10 changes too; `tools/SingleApplication/VENDORED.md` gained a "Local changes" section (M04's `QRegularExpression`, pointer connect and `nullptr`).
+- Done-check: `grep -rn "QT_VERSION_CHECK" --include=*.cpp --include=*.h .` returns nothing. Local check (Ubuntu 24.04, apt Qt 6.4): app builds, all 11 test suites pass under Xvfb. CI (Qt 6.8, both platforms): see the PR.
+- No behaviour change, so no Windows QA entry: the removed code was only compiled on Qt 5.
+- Still open (not in M10's scope): the deprecated `QMessageBox::question` overload with button texts (`lightscreenwindow.cpp`, two calls) warns on Qt 6.8. Replacing it means building the message box by hand and keeping the button order, default and Escape behaviour; better done with a test in a structural step.

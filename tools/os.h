@@ -47,7 +47,7 @@ enum class Sound { Screenshot, Error };
 void playSound(Sound sound);
 
 #if defined(Q_OS_WIN)
-// QtWinExtras' conversions on Qt 5, QImage's on Qt 6. alpha reads the bitmap as premultiplied ARGB.
+// HBITMAP/HICON to QPixmap (what QtWinExtras did on Qt 5). alpha reads the bitmap as premultiplied ARGB.
 QPixmap pixmapFromHBITMAP(HBITMAP bitmap, bool alpha = false);
 QPixmap pixmapFromHICON(HICON icon);
 #endif
@@ -81,7 +81,7 @@ QIcon icon(const QString &name, QColor backgroundColor = QColor());
 
 // X11-specific functions for the Window Picker
 #if defined(Q_OS_LINUX)
-    // The application's X display connection (QX11Info on Qt 5, QNativeInterface::QX11Application on Qt 6).
+    // The application's X display connection (from QNativeInterface::QX11Application).
     Display *x11Display();
     // The root window of the default screen of x11Display().
     Window x11RootWindow();

@@ -1,10 +1,8 @@
-QT = core gui
-linux:lessThan(QT_MAJOR_VERSION, 6): QT += x11extras
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT = core gui widgets
 
 TARGET = UGlobalHotkey
 TEMPLATE = lib
-CONFIG += c++11
+CONFIG += c++17
 
 # Switch ABI to export (vs import, which is default)
 DEFINES += UGLOBALHOTKEY_LIBRARY
