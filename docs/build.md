@@ -127,7 +127,8 @@ Tests can run with `QT_QPA_PLATFORM=offscreen` except those that construct `Ligh
 Each test starts with `QStandardPaths::setTestModeEnabled(true)` and `QSettings::setDefaultFormat(QSettings::IniFormat)` so it never touches the developer's settings or data, works in a `QTemporaryDir`, and installs its own singletons through the seams:
 
 - `ScreenshotManager(QSettings *settings, const QString &historyPath, QObject *parent)` builds a manager on the given settings (not owned) and history directory (with a trailing separator), then `ScreenshotManager::setInstance(&manager)` makes it the one `ScreenshotManager::instance()` returns.
-- `Uploader::setInstance(&uploader)` does the same for the uploader, and `uploader.setNetwork(&nam)` makes every upload and network call use `nam` (not owned), typically a `QNetworkAccessManager` subclass whose `createRequest` returns a canned reply.
+- The manager owns its `Uploader` (since S02): `manager.uploader()->setNetwork(&nam)` makes every upload use `nam` (not owned), typically a `QNetworkAccessManager` subclass whose `createRequest` returns a canned reply. `Updater` and `PomfUploader::verify` take the network manager as an argument, so a test passes its stub directly.
+- A `Screenshot` built by the test (not by `ScreenshotManager::take`) reaches the history and the uploader only through its `saved` and `uploadRequested` signals: call `manager.connectScreenshot(&screenshot)` to wire them as `take` does.
 - `Screenshot::extensionFor(Format)` and `Screenshot::uniqueName(nameWithoutExtension, extension)` expose the extension lookup and the " (n)" collision naming used by `Screenshot::save()`.
 
 `setInstance` does not delete the previous instance; reset it to `nullptr` at the end of the test so a destroyed object is not left installed.

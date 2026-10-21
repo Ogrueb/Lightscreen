@@ -44,7 +44,6 @@ class tst_AreaDialog : public QObject
 private:
     QTemporaryDir *mDir = nullptr;
     QSettings *mSettings = nullptr;
-    Uploader *mUploader = nullptr;
     ScreenshotManager *mManager = nullptr;
     Screenshot *mScreenshot = nullptr;
 
@@ -133,9 +132,6 @@ private slots:
         mDir = new QTemporaryDir;
         QVERIFY(mDir->isValid());
 
-        mUploader = new Uploader;
-        Uploader::setInstance(mUploader);
-
         // The constructor reads options/areaAutoclose from the manager's settings; it is unset, so false.
         mSettings = new QSettings(mDir->filePath("settings.ini"), QSettings::IniFormat);
         mManager = new ScreenshotManager(mSettings, mDir->path() + QDir::separator());
@@ -148,10 +144,8 @@ private slots:
     {
         delete mScreenshot;
         ScreenshotManager::setInstance(nullptr);
-        Uploader::setInstance(nullptr);
         delete mManager;
         delete mSettings;
-        delete mUploader;
         delete mDir;
     }
 

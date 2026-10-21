@@ -25,6 +25,7 @@
 #include <tools/screenshot.h>
 
 class QSettings;
+class Uploader;
 class ScreenshotManager : public QObject
 {
     Q_OBJECT
@@ -50,6 +51,8 @@ public:
     void removeHistory(const QString &fileName, qint64 time);
     void clearHistory();
     QSettings *settings() const { return mSettings; }
+    Uploader *uploader() const { return mUploader; }
+    void connectScreenshot(Screenshot *screenshot);
 
 public slots:
     void areaSelectionNeeded();
@@ -66,7 +69,10 @@ signals:
     void activeCountChange();
 
 private:
+    void init();
+
     static ScreenshotManager *mInstance;
+    Uploader *mUploader;
     QList<Screenshot*> mScreenshots;
     QSettings *mSettings;
     QString mHistoryPath;

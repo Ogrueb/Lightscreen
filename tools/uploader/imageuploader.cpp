@@ -18,23 +18,20 @@
  */
 #include <tools/uploader/imageuploader.h>
 #include <tools/uploader/pomfuploader.h>
-#include <tools/os.h>
 
 #include <utility>
 
 #include <QSettings>
-#include <tools/screenshotmanager.h>
 
-ImageUploader *ImageUploader::factory(const QString &name)
+ImageUploader *ImageUploader::factory(const QString &name, QSettings *settings, QNetworkAccessManager *network)
 {
     // pomf is the only service until S03; unknown names fall back to it instead of returning nullptr.
     Q_UNUSED(name);
-    return new PomfUploader;
+    return new PomfUploader(settings, network);
 }
 
-QVariantHash ImageUploader::loadSettings(const QString &uploaderType)
+QVariantHash ImageUploader::loadSettings(QSettings *globalSettings, const QString &uploaderType)
 {
-    auto globalSettings = ScreenshotManager::instance()->settings();
     globalSettings->beginGroup("upload/" + uploaderType);
     auto keys = globalSettings->childKeys();
 
@@ -50,11 +47,10 @@ QVariantHash ImageUploader::loadSettings(const QString &uploaderType)
 
 void ImageUploader::loadSettings()
 {
-    mSettings = loadSettings(mUploaderType);
+    mSettings = loadSettings(mGlobalSettings, mUploaderType);
 }
 
-void ImageUploader::saveSettings(const QString &uploaderType, const QVariantHash &settings) {
-    auto globalSettings = ScreenshotManager::instance()->settings();
+void ImageUploader::saveSettings(QSettings *globalSettings, const QString &uploaderType, const QVariantHash &settings) {
     globalSettings->beginGroup("upload/" + uploaderType);
 
     for (auto key : settings.keys()) {
@@ -66,7 +62,7 @@ void ImageUploader::saveSettings(const QString &uploaderType, const QVariantHash
 
 void ImageUploader::saveSettings()
 {
-    saveSettings(mUploaderType, mSettings);
+    saveSettings(mGlobalSettings, mUploaderType, mSettings);
 }
 
 int ImageUploader::progress() const {

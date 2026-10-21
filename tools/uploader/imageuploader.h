@@ -22,14 +22,16 @@
 #include <QHash>
 #include <QVariant>
 
+class QNetworkAccessManager;
 class QNetworkReply;
+class QSettings;
 class ImageUploader : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(int progress READ progress WRITE setProgress NOTIFY progressChanged)
 
 public:
-    static ImageUploader *factory(const QString &type);
+    static ImageUploader *factory(const QString &type, QSettings *settings, QNetworkAccessManager *network);
 
     enum Error {
         FileError,
@@ -42,12 +44,15 @@ public:
     Q_ENUM(Error)
 
 public:
-    inline ImageUploader(QObject *parent = 0) : QObject(parent), mProgress(0) {}
+    // settings: the app's settings, read and written under "upload/<type>". network: used for every request.
+    // Neither is owned.
+    inline ImageUploader(QSettings *settings, QNetworkAccessManager *network, QObject *parent = 0) : QObject(parent),
+        mProgress(0), mGlobalSettings(settings), mNetwork(network) {}
 
-    static QVariantHash loadSettings(const QString &uploaderType);
+    static QVariantHash loadSettings(QSettings *settings, const QString &uploaderType);
     void loadSettings();
 
-    static void saveSettings(const QString &uploaderType, const QVariantHash &settings);
+    static void saveSettings(QSettings *settings, const QString &uploaderType, const QVariantHash &uploaderSettings);
     void saveSettings();
 
 public slots:
@@ -66,6 +71,8 @@ protected:
     int mProgress;
     QString mUploaderType;
     QVariantHash mSettings;
+    QSettings *mGlobalSettings;
+    QNetworkAccessManager *mNetwork;
 
 };
 

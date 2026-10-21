@@ -21,7 +21,6 @@ class tst_Screenshot : public QObject
 private:
     QTemporaryDir *mHistoryDir = nullptr;
     QSettings *mSettings = nullptr;
-    Uploader *mUploader = nullptr;
     ScreenshotManager *mManager = nullptr;
 
     static void touch(const QDir &dir, const QString &name)
@@ -124,9 +123,6 @@ private slots:
         mHistoryDir = new QTemporaryDir;
         QVERIFY(mHistoryDir->isValid());
 
-        mUploader = new Uploader;
-        Uploader::setInstance(mUploader);
-
         mSettings = new QSettings(mHistoryDir->filePath("settings.ini"), QSettings::IniFormat);
         mManager = new ScreenshotManager(mSettings, mHistoryDir->path() + QDir::separator());
         ScreenshotManager::setInstance(mManager);
@@ -138,10 +134,8 @@ private slots:
     void cleanupTestCase()
     {
         ScreenshotManager::setInstance(nullptr);
-        Uploader::setInstance(nullptr);
         delete mManager;
         delete mSettings;
-        delete mUploader;
         delete mHistoryDir;
     }
 
@@ -383,6 +377,8 @@ private slots:
         opts.quality = 10;
 
         Screenshot screenshot(nullptr, opts);
+
+        mManager->connectScreenshot(&screenshot);
         QCOMPARE(screenshot.options().format, Screenshot::PNG);
         QCOMPARE(screenshot.options().quality, 80);
 
@@ -501,6 +497,8 @@ private slots:
         opts.file = true;
 
         Screenshot screenshot(nullptr, opts);
+
+        mManager->connectScreenshot(&screenshot);
         QStringList log;
         record(&screenshot, &log);
         screenshot.pixmap() = testPixmap();
@@ -523,6 +521,8 @@ private slots:
         opts.clipboard = true;
 
         Screenshot screenshot(nullptr, opts);
+
+        mManager->connectScreenshot(&screenshot);
         QStringList log;
         record(&screenshot, &log);
         screenshot.pixmap() = testPixmap();
@@ -545,6 +545,8 @@ private slots:
         opts.clipboard = true;
 
         Screenshot screenshot(nullptr, opts);
+
+        mManager->connectScreenshot(&screenshot);
         QStringList log;
         record(&screenshot, &log);
         screenshot.pixmap() = testPixmap();
@@ -564,6 +566,7 @@ private slots:
     {
         QTemporaryDir dir;
         Screenshot screenshot(nullptr, options(dir.path()));
+        mManager->connectScreenshot(&screenshot);
         QStringList log;
         record(&screenshot, &log);
         screenshot.pixmap() = testPixmap();
@@ -584,6 +587,8 @@ private slots:
         opts.replace = true;
 
         Screenshot screenshot(nullptr, opts);
+
+        mManager->connectScreenshot(&screenshot);
         QStringList log;
         record(&screenshot, &log);
         screenshot.pixmap() = testPixmap();
@@ -604,6 +609,8 @@ private slots:
         opts.file = true;
 
         Screenshot screenshot(nullptr, opts);
+
+        mManager->connectScreenshot(&screenshot);
         screenshot.pixmap() = testPixmap();
         screenshot.save();
 
@@ -623,6 +630,8 @@ private slots:
         opts.replace = true;
 
         Screenshot screenshot(nullptr, opts);
+
+        mManager->connectScreenshot(&screenshot);
         screenshot.pixmap() = testPixmap();
         screenshot.save();
 
@@ -640,6 +649,8 @@ private slots:
         opts.file = true;
 
         Screenshot screenshot(nullptr, opts);
+
+        mManager->connectScreenshot(&screenshot);
         screenshot.pixmap() = testPixmap();
         screenshot.save();
 
@@ -656,6 +667,8 @@ private slots:
         opts.namingOptions = naming(Screenshot::Numeric);
 
         Screenshot screenshot(nullptr, opts);
+
+        mManager->connectScreenshot(&screenshot);
         screenshot.pixmap() = testPixmap();
         screenshot.save();
 
@@ -688,6 +701,8 @@ private slots:
         opts.quality = 50;
 
         Screenshot screenshot(nullptr, opts);
+
+        mManager->connectScreenshot(&screenshot);
         screenshot.pixmap() = testPixmap();
         screenshot.save();
 
@@ -715,6 +730,7 @@ private slots:
             opts.format = Screenshot::Format(format);
             opts.quality = 10;
             Screenshot screenshot(nullptr, opts);
+            mManager->connectScreenshot(&screenshot);
             QCOMPARE(screenshot.options().quality, format == Screenshot::PNG ? 80 : 10);
         }
     }
@@ -732,6 +748,7 @@ private slots:
             opts.format = Screenshot::JPEG;
             opts.quality = qualities[i];
             Screenshot screenshot(nullptr, opts);
+            mManager->connectScreenshot(&screenshot);
             screenshot.pixmap() = testPixmap();
             screenshot.save();
             QCOMPARE(screenshot.options().result, Screenshot::Success);
@@ -751,6 +768,8 @@ private slots:
         opts.file = true;
 
         auto *screenshot = new Screenshot(nullptr, opts);
+
+        mManager->connectScreenshot(screenshot);
         QStringList log;
         record(screenshot, &log);
         screenshot->setPixmap(testPixmap()); // calls confirmation()
@@ -777,6 +796,8 @@ private slots:
         opts.format = Screenshot::BMP;
 
         Screenshot screenshot(nullptr, opts);
+
+        mManager->connectScreenshot(&screenshot);
         screenshot.setPixmap(testPixmap());
         QVERIFY2(screenshot.unloadedFileName().endsWith(".bmp"), qPrintable(screenshot.unloadedFileName()));
     }
@@ -789,6 +810,8 @@ private slots:
         opts.clipboard = true;
 
         Screenshot screenshot(nullptr, opts);
+
+        mManager->connectScreenshot(&screenshot);
         screenshot.setPixmap(testPixmap());
 
         QVERIFY(screenshot.unloadedFileName().isEmpty());
@@ -804,6 +827,8 @@ private slots:
         opts.file = true;
 
         Screenshot screenshot(nullptr, opts);
+
+        mManager->connectScreenshot(&screenshot);
         QStringList log;
         record(&screenshot, &log);
         screenshot.setPixmap(testPixmap());
@@ -832,6 +857,8 @@ private slots:
         opts.clipboard = true;
 
         auto *screenshot = new Screenshot(nullptr, opts);
+
+        mManager->connectScreenshot(screenshot);
         QStringList log;
         record(screenshot, &log);
         screenshot->setPixmap(testPixmap());
@@ -860,6 +887,8 @@ private slots:
         opts.file = true;
 
         auto *screenshot = new Screenshot(nullptr, opts);
+
+        mManager->connectScreenshot(screenshot);
         QStringList log;
         record(screenshot, &log);
         screenshot->setPixmap(testPixmap());
@@ -885,6 +914,8 @@ private slots:
         opts.mode = Screenshot::SelectedArea;
 
         Screenshot screenshot(nullptr, opts);
+
+        mManager->connectScreenshot(&screenshot);
         QStringList log;
         record(&screenshot, &log);
         connect(&screenshot, &Screenshot::areaSelectionNeeded, [&log] { log.append("areaSelectionNeeded"); });
@@ -911,6 +942,8 @@ private slots:
         opts.mode = Screenshot::SelectedArea;
 
         Screenshot screenshot(nullptr, opts);
+
+        mManager->connectScreenshot(&screenshot);
         QStringList log;
         record(&screenshot, &log);
         connect(&screenshot, &Screenshot::areaSelectionNeeded, [&log] { log.append("areaSelectionNeeded"); });
@@ -936,6 +969,8 @@ private slots:
         opts.file = true;
 
         Screenshot screenshot(nullptr, opts);
+
+        mManager->connectScreenshot(&screenshot);
         QStringList log;
         record(&screenshot, &log);
         screenshot.setPixmap(QPixmap());

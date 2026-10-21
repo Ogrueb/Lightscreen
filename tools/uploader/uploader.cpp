@@ -17,36 +17,18 @@
  *
  */
 #include <tools/uploader/uploader.h>
-#include <tools/screenshotmanager.h>
 
 #include <QtNetwork>
 #include <QSettings>
 
-Uploader *Uploader::mInstance = 0;
-
-Uploader::Uploader(QObject *parent) : QObject(parent), mProgress(0)
+Uploader::Uploader(QSettings *settings, QObject *parent) : QObject(parent), mSettings(settings), mProgress(0)
 {
     mNetworkAccessManager = new QNetworkAccessManager(this);
 }
 
-Uploader *Uploader::instance()
+QNetworkAccessManager *Uploader::network() const
 {
-    if (!mInstance) {
-        mInstance = new Uploader();
-    }
-
-    return mInstance;
-}
-
-// Test seam: replaces the singleton. The previous instance is not deleted.
-void Uploader::setInstance(Uploader *uploader)
-{
-    mInstance = uploader;
-}
-
-QNetworkAccessManager *Uploader::network()
-{
-    return instance()->mNetworkAccessManager;
+    return mNetworkAccessManager;
 }
 
 // Test seam: replaces the network access manager used by all uploads. Ownership stays with the caller.
@@ -84,7 +66,7 @@ void Uploader::upload(const QString &fileName, const QString &uploadService)
         return;
     }
 
-    auto uploader = ImageUploader::factory(uploadService);
+    auto uploader = ImageUploader::factory(uploadService, mSettings, mNetworkAccessManager);
 
     connect(uploader, &ImageUploader::progressChanged, this    , &Uploader::reportProgress);
     connect(this    , &Uploader::cancelAll           , uploader, &ImageUploader::cancel);

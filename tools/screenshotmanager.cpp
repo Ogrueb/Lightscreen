@@ -32,7 +32,7 @@
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlQuery>
 
-ScreenshotManager::ScreenshotManager(QObject *parent) : ScreenshotManager(nullptr, QString(), parent)
+ScreenshotManager::ScreenshotManager(QObject *parent) : QObject(parent), mHistoryInitialized(false)
 {
     if (QFile::exists(qApp->applicationDirPath() + QDir::separator() + "config.ini")) {
         mSettings     = new QSettings(qApp->applicationDirPath() + QDir::separator() + "config.ini", QSettings::IniFormat, this);
@@ -43,6 +43,8 @@ ScreenshotManager::ScreenshotManager(QObject *parent) : ScreenshotManager(nullpt
         mPortableMode = false;
         mHistoryPath  = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + QDir::separator();
     }
+
+    init();
 }
 
 // Test seam: uses the given settings (not owned) and history directory (with a trailing separator) instead of
@@ -50,7 +52,14 @@ ScreenshotManager::ScreenshotManager(QObject *parent) : ScreenshotManager(nullpt
 ScreenshotManager::ScreenshotManager(QSettings *settings, const QString &historyPath, QObject *parent) : QObject(parent),
     mSettings(settings), mHistoryPath(historyPath), mPortableMode(false), mHistoryInitialized(false)
 {
-    connect(Uploader::instance(), &Uploader::done, this, &ScreenshotManager::uploadDone);
+    init();
+}
+
+// The manager owns the uploader, which reads its service settings from the manager's settings.
+void ScreenshotManager::init()
+{
+    mUploader = new Uploader(mSettings, this);
+    connect(mUploader, &Uploader::done, this, &ScreenshotManager::uploadDone);
 }
 
 void ScreenshotManager::initHistory()
@@ -194,11 +203,22 @@ void ScreenshotManager::finished()
     screenshot->deleteLater();
 }
 
+// A saved file goes into the history and an upload request to the uploader. take() does this for every
+// screenshot; tests that build a Screenshot themselves call it directly.
+void ScreenshotManager::connectScreenshot(Screenshot *screenshot)
+{
+    connect(screenshot, &Screenshot::saved, this, [this](const QString &fileName) {
+        saveHistory(fileName);
+    });
+    connect(screenshot, &Screenshot::uploadRequested, mUploader, &Uploader::upload);
+}
+
 void ScreenshotManager::take(Screenshot::Options &options)
 {
     Screenshot *newScreenshot = new Screenshot(this, options);
     mScreenshots.append(newScreenshot);
 
+    connectScreenshot(newScreenshot);
     connect(newScreenshot, &Screenshot::areaSelectionNeeded, this, &ScreenshotManager::areaSelectionNeeded);
     connect(newScreenshot, &Screenshot::askConfirmation    , this, &ScreenshotManager::askConfirmation);
     connect(newScreenshot, &Screenshot::cleanup            , this, &ScreenshotManager::cleanup);

@@ -23,6 +23,7 @@
 #include <QPointer>
 #include <QUrl>
 
+class QNetworkAccessManager;
 class QNetworkReply;
 
 // Asks GitHub for the latest release of UPDATE_REPO (CMakeLists.txt) and compares its tag with the running version.
@@ -30,7 +31,8 @@ class Updater : public QObject
 {
     Q_OBJECT
 public:
-    Updater(QObject *parent = 0);
+    // network: used for the request, not owned.
+    Updater(QNetworkAccessManager *network, QObject *parent = 0);
     ~Updater();
 
     static QString repository();
@@ -49,6 +51,7 @@ private slots:
     void finished();
 
 private:
+    QNetworkAccessManager *mNetwork;
     QPointer<QNetworkReply> mReply;
 
 };

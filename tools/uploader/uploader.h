@@ -24,6 +24,8 @@
 
 #include <tools/uploader/imageuploader.h>
 
+class QSettings;
+
 class Uploader : public QObject
 {
     Q_OBJECT
@@ -31,11 +33,10 @@ class Uploader : public QObject
     Q_PROPERTY(QString lastUrl READ lastUrl)
 
 public:
-    Uploader(QObject *parent = 0);
+    // settings: the app's settings, passed on to each service's uploader. Not owned.
+    Uploader(QSettings *settings, QObject *parent = 0);
 
-    static Uploader *instance();
-    static void setInstance(Uploader *uploader);
-    static QNetworkAccessManager *network();
+    QNetworkAccessManager *network() const;
     void setNetwork(QNetworkAccessManager *network);
     static QString serviceName(int index);
 
@@ -55,7 +56,7 @@ signals:
     void cancelAll();
 
 private:
-    static Uploader *mInstance;
+    QSettings *mSettings;
     QNetworkAccessManager *mNetworkAccessManager;
 
     int mProgress;

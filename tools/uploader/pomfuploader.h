@@ -27,10 +27,10 @@ class PomfUploader : public ImageUploader
     Q_OBJECT
 
 public:
-    PomfUploader(QObject *parent = 0);
+    PomfUploader(QSettings *settings, QNetworkAccessManager *network, QObject *parent = 0);
 
     typedef std::function<void(bool)> VerificationCallback;
-    static QNetworkReply* verify(const QString &url, VerificationCallback callback);
+    static QNetworkReply* verify(QNetworkAccessManager *network, const QString &url, VerificationCallback callback);
 
 public slots:
     void upload(const QString &fileName);

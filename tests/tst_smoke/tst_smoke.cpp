@@ -28,13 +28,6 @@ private slots:
         QTemporaryDir dir;
         QVERIFY(dir.isValid());
 
-        Uploader uploader;
-        QNetworkAccessManager network;
-        Uploader::setInstance(&uploader);
-        uploader.setNetwork(&network);
-        QCOMPARE(Uploader::instance(), &uploader);
-        QCOMPARE(Uploader::network(), &network);
-
         QSettings settings(dir.filePath("settings.ini"), QSettings::IniFormat);
         ScreenshotManager manager(&settings, dir.path() + QDir::separator());
         ScreenshotManager::setInstance(&manager);
@@ -42,8 +35,14 @@ private slots:
         QCOMPARE(ScreenshotManager::instance()->settings(), &settings);
         QVERIFY(!manager.portableMode());
 
+        // S02: the manager owns the uploader.
+        QNetworkAccessManager network;
+        QVERIFY(manager.uploader());
+        QCOMPARE(manager.uploader()->parent(), static_cast<QObject *>(&manager));
+        manager.uploader()->setNetwork(&network);
+        QCOMPARE(manager.uploader()->network(), &network);
+
         ScreenshotManager::setInstance(nullptr);
-        Uploader::setInstance(nullptr);
     }
 };
 

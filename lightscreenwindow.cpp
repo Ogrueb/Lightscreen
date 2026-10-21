@@ -96,9 +96,9 @@ LightscreenWindow::LightscreenWindow(QWidget *parent) :
     });
 
     // Uploader
-    connect(Uploader::instance(), &Uploader::progressChanged, this, &LightscreenWindow::uploadProgress);
-    connect(Uploader::instance(), &Uploader::done           , this, &LightscreenWindow::showUploaderMessage);
-    connect(Uploader::instance(), &Uploader::error          , this, &LightscreenWindow::showUploaderError);
+    connect(ScreenshotManager::instance()->uploader(), &Uploader::progressChanged, this, &LightscreenWindow::uploadProgress);
+    connect(ScreenshotManager::instance()->uploader(), &Uploader::done           , this, &LightscreenWindow::showUploaderMessage);
+    connect(ScreenshotManager::instance()->uploader(), &Uploader::error          , this, &LightscreenWindow::showUploaderError);
 
     // Manager
     connect(ScreenshotManager::instance(), &ScreenshotManager::areaSelection,     this, &LightscreenWindow::selectArea);
@@ -150,7 +150,7 @@ void LightscreenWindow::checkForUpdates()
         return;    // If 7 days have not passed since the last update check.
     }
 
-    mUpdater = new Updater(this);
+    mUpdater = new Updater(ScreenshotManager::instance()->uploader()->network(), this);
 
     connect(mUpdater, &Updater::done, this, &LightscreenWindow::updaterDone);
     connect(mUpdater, &Updater::failed, this, &LightscreenWindow::updaterFailed);
@@ -307,7 +307,7 @@ void LightscreenWindow::messageClicked()
     } else if (mLastMessage == 3) {
         QTimer::singleShot(0, this, &LightscreenWindow::showOptions);
     } else {
-        QDesktopServices::openUrl(QUrl(Uploader::instance()->lastUrl()));
+        QDesktopServices::openUrl(QUrl(ScreenshotManager::instance()->uploader()->lastUrl()));
     }
 }
 
@@ -424,7 +424,7 @@ void LightscreenWindow::quit()
         doing = tr("processing");
     }
 
-    if (Uploader::instance()->uploading() > 0) {
+    if (ScreenshotManager::instance()->uploader()->uploading() > 0) {
         if (doing.isEmpty()) {
             doing = tr("uploading");
         } else {
@@ -694,7 +694,7 @@ void LightscreenWindow::toggleVisibility()
 
 void LightscreenWindow::updateStatus()
 {
-    int uploadCount = Uploader::instance()->uploading();
+    int uploadCount = ScreenshotManager::instance()->uploader()->uploading();
     int activeCount = ScreenshotManager::instance()->activeCount();
 
     mTaskbar.setProgressState(Taskbar::Progress::Paused);
@@ -760,19 +760,19 @@ void LightscreenWindow::updaterFailed()
 
 void LightscreenWindow::upload(const QString &fileName)
 {
-    Uploader::instance()->upload(fileName, Uploader::serviceName(settings()->value("upload/service", 0).toInt()));
+    ScreenshotManager::instance()->uploader()->upload(fileName, Uploader::serviceName(settings()->value("upload/service", 0).toInt()));
 }
 
 void LightscreenWindow::uploadCancel()
 {
-    if (Uploader::instance()->uploading() <= 0) {
+    if (ScreenshotManager::instance()->uploader()->uploading() <= 0) {
         return;
     }
 
     int confirm = QMessageBox::question(this, tr("Upload cancel"), tr("Do you want to cancel all screenshot uploads?"), tr("Cancel"), tr("Don't Cancel"));
 
     if (confirm == 0) {
-        Uploader::instance()->cancel();
+        ScreenshotManager::instance()->uploader()->cancel();
         updateStatus();
     }
 }
@@ -788,7 +788,7 @@ void LightscreenWindow::uploadProgress(int progress)
     mTaskbar.setProgressValue(progress);
 
     if (isVisible() && progress > 0) {
-        int uploadCount = Uploader::instance()->uploading();
+        int uploadCount = ScreenshotManager::instance()->uploader()->uploading();
 
         if (uploadCount > 1) {
             setWindowTitle(tr("%1% of %2 uploads - Lightscreen").arg(progress).arg(uploadCount));

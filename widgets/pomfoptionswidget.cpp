@@ -44,7 +44,7 @@ PomfOptionsWidget::PomfOptionsWidget(QWidget *parent) : QWidget(parent)
         ui.cancelButton->disconnect();
 
         QPointer<QWidget> guard(parentWidget());
-        QPointer<QNetworkReply> reply = PomfUploader::verify(ui.pomfUrlComboBox->currentText(), [&, guard](bool result) {
+        QPointer<QNetworkReply> reply = PomfUploader::verify(ScreenshotManager::instance()->uploader()->network(), ui.pomfUrlComboBox->currentText(), [&, guard](bool result) {
             if (guard.isNull()) return;
 
             ui.verifyButton->setEnabled(true);
