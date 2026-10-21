@@ -21,3 +21,9 @@ history and in `docs/decisions.md`.
   `gui-private`. `nativeEventFilter`'s result parameter is the new
   `UNativeEventResult` typedef in `uglobalhotkeys.h`: `long` on Qt 5, `qintptr`
   on Qt 6. The Windows `nativeEvent` signature is unchanged (M09).
+- **M09 (2026-10-20), Qt 6.** The `UNativeEventResult` typedef now applies on
+  every platform, and the Windows `nativeEvent` and `winEvent` take it (`qintptr`
+  on Qt 6), with `override` on `nativeEvent`: with the old `long *` signature
+  Qt 6 would never call it and global hotkeys would stop working on Windows.
+  `UKeySequence::fromString` takes the key with `QKeyCombination::key()`, since
+  `QKeySequence::operator[]` returns a `QKeyCombination` on Qt 6.

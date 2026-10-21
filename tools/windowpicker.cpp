@@ -147,8 +147,8 @@ void WindowPicker::mouseMoveEvent(QMouseEvent *event)
 
 #if defined(Q_OS_WIN)
     POINT mousePos;
-    mousePos.x = event->globalX();
-    mousePos.y = event->globalY();
+    mousePos.x = event->globalPosition().toPoint().x();
+    mousePos.y = event->globalPosition().toPoint().y();
 
     HWND cWindow = GetAncestor(WindowFromPoint(mousePos), GA_ROOT);
 
@@ -288,8 +288,8 @@ void WindowPicker::mouseReleaseEvent(QMouseEvent *event)
     if (event->button() == Qt::LeftButton) {
 #if defined(Q_OS_WIN)
         POINT mousePos;
-        mousePos.x = event->globalX();
-        mousePos.y = event->globalY();
+        mousePos.x = event->globalPosition().toPoint().x();
+        mousePos.y = event->globalPosition().toPoint().y();
 
         HWND nativeWindow = GetAncestor(WindowFromPoint(mousePos), GA_ROOT);
 #elif defined(Q_OS_LINUX)

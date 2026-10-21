@@ -38,6 +38,30 @@
 #include <QToolTip>
 #include <QThread>
 
+namespace {
+// QRect::normalized() as in Qt 5: an inverted rectangle swaps its edges and keeps both corner points.
+// Qt 6's version also moves each swapped edge in by one pixel, which would make a selection dragged
+// up or to the left two pixels smaller than on Qt 5.
+QRect normalizedRect(const QRect &rect)
+{
+    QRect r = rect;
+
+    if (r.right() < r.left() - 1) {
+        const int left = r.left();
+        r.setLeft(r.right());
+        r.setRight(left);
+    }
+
+    if (r.bottom() < r.top() - 1) {
+        const int top = r.top();
+        r.setTop(r.bottom());
+        r.setBottom(top);
+    }
+
+    return r;
+}
+}
+
 AreaDialog::AreaDialog(Screenshot *screenshot) :
     QDialog(0), mScreenshot(screenshot), mMouseDown(false), mMouseMagnifier(false),
     mNewSelection(false), mHandleSize(10), mMouseOverHandle(0),
@@ -127,7 +151,7 @@ void AreaDialog::displayHelp()
 
 void AreaDialog::grabRect()
 {
-    QRect r = mSelection.normalized();
+    QRect r = normalizedRect(mSelection);
     if (!r.isNull() && r.isValid()) {
         mGrabbing = true;
         accept();
@@ -256,13 +280,13 @@ void AreaDialog::mouseMoveEvent(QMouseEvent *e)
     mMouseMagnifier = false;
 
     if (mMouseDown) {
-        mMousePos = e->pos();
+        mMousePos = e->position().toPoint();
 
         bool symmetryMod = qApp->keyboardModifiers() & Qt::ShiftModifier;
         bool aspectRatioMod = qApp->keyboardModifiers() & Qt::ControlModifier;
 
         if (mNewSelection) {
-            mSelection = QRect(mDragStartPoint, limitPointToRect(mMousePos, rect())).normalized();
+            mSelection = normalizedRect(QRect(mDragStartPoint, limitPointToRect(mMousePos, rect())));
 
             if (aspectRatioMod) {
                 // This is kinda wiggly but oh well
@@ -270,8 +294,8 @@ void AreaDialog::mouseMoveEvent(QMouseEvent *e)
             }
         } else if (mMouseOverHandle == 0) {
             // Moving the whole selection
-            QRect r = rect().normalized(), s = mSelectionBeforeDrag.normalized();
-            QPoint p = s.topLeft() + e->pos() - mDragStartPoint;
+            QRect r = normalizedRect(rect()), s = normalizedRect(mSelectionBeforeDrag);
+            QPoint p = s.topLeft() + e->position().toPoint() - mDragStartPoint;
             r.setBottomRight(r.bottomRight() - QPoint(s.width(), s.height()));
 
             if (!r.isNull() && r.isValid()) {
@@ -280,7 +304,7 @@ void AreaDialog::mouseMoveEvent(QMouseEvent *e)
         } else {
             // Dragging a handle
             QRect r = mSelectionBeforeDrag;
-            QPoint offset = e->pos() - mDragStartPoint;
+            QPoint offset = e->position().toPoint() - mDragStartPoint;
 
             if (mMouseOverHandle == &mTLHandle || mMouseOverHandle == &mTHandle
                     || mMouseOverHandle == &mTRHandle) { // dragging one of the top handles
@@ -318,7 +342,7 @@ void AreaDialog::mouseMoveEvent(QMouseEvent *e)
                 }
             }
 
-            r = r.normalized();
+            r = normalizedRect(r);
             r.setTopLeft(limitPointToRect(r.topLeft(), rect()));
             r.setBottomRight(limitPointToRect(r.bottomRight(), rect()));
 
@@ -334,7 +358,7 @@ void AreaDialog::mouseMoveEvent(QMouseEvent *e)
         }
 
         if (mAcceptWidget) {
-            QPoint acceptPos = e->pos();
+            QPoint acceptPos = e->position().toPoint();
             QRect  acceptRect = QRect(acceptPos, QSize(120, 70));
 
             if (mSelection.size().width() < acceptRect.size().width() || mSelection.size().height() < acceptRect.size().height()) {
@@ -389,7 +413,7 @@ void AreaDialog::mouseMoveEvent(QMouseEvent *e)
 
         bool found = false;
         for (QRect *r : qAsConst(mHandles)) {
-            if (r->contains(e->pos())) {
+            if (r->contains(e->position().toPoint())) {
                 mMouseOverHandle = r;
                 found = true;
                 break;
@@ -398,9 +422,9 @@ void AreaDialog::mouseMoveEvent(QMouseEvent *e)
 
         if (!found) {
             mMouseOverHandle = 0;
-            if (mSelection.contains(e->pos())) {
+            if (mSelection.contains(e->position().toPoint())) {
                 setCursor(Qt::OpenHandCursor);
-            } else if (mAcceptWidget && QRect(mAcceptWidget->mapToParent(mAcceptWidget->pos()), QSize(100, 60)).contains(e->pos())) {
+            } else if (mAcceptWidget && QRect(mAcceptWidget->mapToParent(mAcceptWidget->pos()), QSize(100, 60)).contains(e->position().toPoint())) {
                 setCursor(Qt::PointingHandCursor);
             } else {
                 setCursor(Qt::CrossCursor);
@@ -433,9 +457,9 @@ void AreaDialog::mousePressEvent(QMouseEvent *e)
 
     if (e->button() == Qt::LeftButton) {
         mMouseDown = true;
-        mDragStartPoint = e->pos();
+        mDragStartPoint = e->position().toPoint();
         mSelectionBeforeDrag = mSelection;
-        if (!mSelection.contains(e->pos())) {
+        if (!mSelection.contains(e->position().toPoint())) {
             mNewSelection = true;
             mSelection = QRect();
             mShowHelp = true;
@@ -465,7 +489,7 @@ void AreaDialog::mouseReleaseEvent(QMouseEvent *e)
     mNewSelection = false;
     mIdleTimer.start();
 
-    if (mMouseOverHandle == 0 && mSelection.contains(e->pos())) {
+    if (mMouseOverHandle == 0 && mSelection.contains(e->position().toPoint())) {
         setCursor(Qt::OpenHandCursor);
     }
 
@@ -492,7 +516,7 @@ void AreaDialog::paintEvent(QPaintEvent *e)
     painter.drawPixmap(0, 0, mScreenshot->pixmap());
     painter.setFont(font);
 
-    QRect r = mSelection.normalized().adjusted(0, 0, -1, -1);
+    QRect r = normalizedRect(mSelection).adjusted(0, 0, -1, -1);
 
     QRegion grey(rect());
     grey = grey.subtracted(r);
@@ -737,7 +761,7 @@ void AreaDialog::showEvent(QShowEvent *e)
 
 void AreaDialog::updateHandles()
 {
-    QRect r = mSelection.normalized().adjusted(0, 0, -1, -1);
+    QRect r = normalizedRect(mSelection).adjusted(0, 0, -1, -1);
     int s2 = mHandleSize / 2;
 
     mTLHandle.moveTopLeft(r.topLeft());

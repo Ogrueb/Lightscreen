@@ -163,7 +163,7 @@ void UGlobalHotkeys::onHotkeyPressed(size_t id)
 #endif
 
 #if defined(Q_OS_WIN)
-bool UGlobalHotkeys::winEvent(MSG *message, long *result)
+bool UGlobalHotkeys::winEvent(MSG *message, UNativeEventResult *result)
 {
     Q_UNUSED(result);
     if (message->message == WM_HOTKEY) {
@@ -175,7 +175,7 @@ bool UGlobalHotkeys::winEvent(MSG *message, long *result)
 }
 
 bool UGlobalHotkeys::nativeEvent(const QByteArray &eventType,
-                                 void *message, long *result)
+                                 void *message, UNativeEventResult *result)
 {
     Q_UNUSED(eventType);
     return winEvent((MSG *)message, result);

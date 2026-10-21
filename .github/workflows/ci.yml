@@ -23,17 +23,30 @@ jobs:
         run: .github/scripts/check-docs.sh
 
   linux:
-    name: Linux (Qt 5, apt)
+    name: Linux (Qt 6.8, GCC)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
 
       - name: Install dependencies
         run: |
+          # Build: X11/xcb headers and OpenGL headers (QtGui's build files reference them).
+          # Run: the xcb libraries Qt's xcb platform plugin loads (aqt's Qt does not pull them in).
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            qtbase5-dev libqt5x11extras5-dev \
-            libqt5sql5-sqlite libx11-dev libxcb-keysyms1-dev xvfb xdotool
+            build-essential libgl-dev libegl-dev libx11-dev libxcb-keysyms1-dev \
+            libfontconfig1 libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 libxcb-image0 \
+            libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-xinerama0 libxcb-xkb1 \
+            xvfb xdotool
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          host: linux
+          target: desktop
+          arch: linux_gcc_64
+          cache: true
 
       - name: Build
         run: |
@@ -132,7 +145,7 @@ jobs:
         run: xvfb-run -a make check
 
   windows:
-    name: Windows (Qt 5.15.2, MSVC)
+    name: Windows (Qt 6.8, MSVC)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
@@ -140,10 +153,10 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '5.15.2'
+          version: '6.8.3'
           host: windows
           target: desktop
-          arch: win64_msvc2019_64
+          arch: win64_msvc2022_64
           cache: true
 
       - name: Set up MSVC (x64)
@@ -177,6 +190,23 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: nmake check
+
+      - name: Show test output (on failure)
+        if: failure()
+        shell: cmd
+        working-directory: build-tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          rem nmake check shows no test output on Windows; run each test again with its output in a file.
+          for /d %%t in (tst_*) do (
+            if exist %%t\release\%%t.exe (
+              echo ===== %%t
+              %%t\release\%%t.exe -o %%t.txt,txt
+              type %%t.txt
+            )
+          )
+          exit /b 0
 
       - name: Deploy
         shell: cmd

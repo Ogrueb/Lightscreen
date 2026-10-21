@@ -73,11 +73,35 @@ QPixmap os::pixmapFromHBITMAP(HBITMAP bitmap, bool alpha)
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     return QtWin::fromHBITMAP(bitmap, alpha ? QtWin::HBitmapAlpha : QtWin::HBitmapNoAlpha);
 #else
-    QImage image = QImage::fromHBITMAP(bitmap);
+    if (!alpha) {
+        return QPixmap::fromImage(QImage::fromHBITMAP(bitmap));
+    }
 
-    if (alpha) {
-        // QtWin::HBitmapAlpha read the bitmap as premultiplied ARGB.
-        image.reinterpretAsFormat(QImage::Format_ARGB32_Premultiplied);
+    // QtWin::HBitmapAlpha read the bitmap as premultiplied ARGB. QImage::fromHBITMAP makes every pixel
+    // opaque, so read the 32-bit pixels, alpha included, with GetDIBits.
+    BITMAP info;
+
+    if (!::GetObject(bitmap, sizeof(info), &info)) {
+        return QPixmap();
+    }
+
+    QImage image(info.bmWidth, info.bmHeight, QImage::Format_ARGB32_Premultiplied);
+
+    BITMAPINFO bitmapInfo;
+    ZeroMemory(&bitmapInfo, sizeof(bitmapInfo));
+    bitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bitmapInfo.bmiHeader.biWidth = info.bmWidth;
+    bitmapInfo.bmiHeader.biHeight = -info.bmHeight; // top-down rows, as in QImage
+    bitmapInfo.bmiHeader.biPlanes = 1;
+    bitmapInfo.bmiHeader.biBitCount = 32;
+    bitmapInfo.bmiHeader.biCompression = BI_RGB;
+
+    HDC dc = ::GetDC(nullptr);
+    const int lines = ::GetDIBits(dc, bitmap, 0, info.bmHeight, image.bits(), &bitmapInfo, DIB_RGB_COLORS);
+    ::ReleaseDC(nullptr, dc);
+
+    if (lines != info.bmHeight) {
+        return QPixmap();
     }
 
     return QPixmap::fromImage(image);
@@ -121,7 +145,7 @@ QPair<QPixmap, QPoint> os::cursor()
         if (info.hbmColor) {
             pixmap = os::pixmapFromHBITMAP(info.hbmColor, true);
         } else {
-            QBitmap orig(os::pixmapFromHBITMAP(info.hbmMask));
+            QBitmap orig = QBitmap::fromPixmap(os::pixmapFromHBITMAP(info.hbmMask));
             QImage img = orig.toImage();
 
             int h = img.height() / 2;

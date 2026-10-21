@@ -33,7 +33,9 @@ int main(int argc, char *argv[])
     QApplication::setOrganizationName("K");
     QApplication::setApplicationName("Lightscreen");
     QApplication::setApplicationVersion(APP_VERSION);
-    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    // Qt 6 always scales for high DPI and keeps fractional scale factors (125%, 150%) by default.
+    // Rounding them as Qt 5 did keeps the capture and area-selection geometry as it was; S04 revisits this.
+    QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::Round);
 
     SingleApplication application(argc, argv);
 
