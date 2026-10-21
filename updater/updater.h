@@ -25,7 +25,7 @@
 
 class QNetworkReply;
 
-// Asks GitHub for the latest release of UPDATE_REPO (version.pri) and compares its tag with the running version.
+// Asks GitHub for the latest release of UPDATE_REPO (CMakeLists.txt) and compares its tag with the running version.
 class Updater : public QObject
 {
     Q_OBJECT

@@ -17,4 +17,7 @@ history and in `docs/decisions.md`.
   `UseUnicodePropertiesOption`, so `\w` matches what `QRegExp` matched) instead
   of `QRegExp`; the `newConnection` connect uses member-function pointers
   instead of `SIGNAL()`/`SLOT()` strings; `Q_NULLPTR` became `nullptr`.
+- **M11 (2026-10-21), CMake.** `singleapplication.pri` is replaced by
+  `CMakeLists.txt`, a static library with the same sources. No source file
+  changed.
 - No other change since vendoring; M09 and M10 needed none here.

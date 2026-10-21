@@ -37,3 +37,8 @@ history and in `docs/decisions.md`.
   `qintptr`, and `uglobalhotkey-sources.pri` and `uglobalhotkey.pro` no longer
   add `x11extras` (the standalone `.pro`, which the app does not use, also asks
   for C++17 and `widgets` unconditionally).
+- **M11 (2026-10-21), CMake.** The qmake files (`uglobalhotkey.pri`, the three
+  `uglobalhotkey-*.pri` and the standalone `uglobalhotkey.pro`) are replaced by
+  `CMakeLists.txt`, a static library with the same sources, the same
+  `UGLOBALHOTKEY_NOEXPORT` define and the same libraries (`user32` on Windows,
+  `xcb` and `xcb-keysyms` on Linux). No source file changed.

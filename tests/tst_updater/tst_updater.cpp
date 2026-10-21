@@ -1,4 +1,4 @@
-// M13: the update check reads the latest GitHub release of UPDATE_REPO (version.pri) and compares its tag
+// M13: the update check reads the latest GitHub release of UPDATE_REPO (CMakeLists.txt) and compares its tag
 // with the running version. The network is a stub; nothing here reaches GitHub.
 #include <QtTest>
 #include <cstring>

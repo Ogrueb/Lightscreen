@@ -30,7 +30,7 @@
 #include <tools/uploader/uploader.h>
 
 #ifndef UPDATE_REPO
-#error "UPDATE_REPO is set in version.pri"
+#error "UPDATE_REPO is set in CMakeLists.txt"
 #endif
 
 Updater::Updater(QObject *parent) :
