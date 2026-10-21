@@ -23,10 +23,6 @@
 #include <qt_windows.h>
 #include <shobjidl.h>
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    #include <QtWin>
-#endif
-
 #include <tools/taskbar.h>
 
 Taskbar::Taskbar() = default;
@@ -52,11 +48,7 @@ void Taskbar::setOverlayIcon(const QIcon &icon)
     const int size = ::GetSystemMetrics(SM_CXSMICON);
     const QPixmap pixmap = icon.pixmap(size, size);
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    HICON hicon = QtWin::toHICON(pixmap);
-#else
     HICON hicon = pixmap.toImage().toHICON();
-#endif
 
     // The taskbar keeps its own copy of the icon.
     mTaskbar->SetOverlayIcon(reinterpret_cast<HWND>(mWindow), hicon, L"");

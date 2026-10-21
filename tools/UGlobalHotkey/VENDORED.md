@@ -13,6 +13,10 @@ history and in `docs/decisions.md`.
 
 ## Local changes
 
+- **M04 (2026-10-15).** `unregisterAllHotkeys` iterates over a copy of the
+  registered ids with a range-based `for` instead of `foreach` (which Qt 6
+  deprecates); `unregisterHotkey` removes from the container being walked, so
+  the copy is what `foreach` made implicitly.
 - **M08 (2026-10-16), Linux only.** The constructor gets the xcb connection from
   `QX11Info::connection()` on Qt 5 and from
   `QNativeInterface::QX11Application::connection()` on Qt 6, instead of
@@ -27,3 +31,9 @@ history and in `docs/decisions.md`.
   Qt 6 would never call it and global hotkeys would stop working on Windows.
   `UKeySequence::fromString` takes the key with `QKeyCombination::key()`, since
   `QKeySequence::operator[]` returns a `QKeyCombination` on Qt 6.
+- **M10 (2026-10-21), Qt 5 branches removed.** Qt 6.2 is the minimum, so the
+  `QT_VERSION` checks are gone: the constructor always takes the xcb connection
+  from `QNativeInterface::QX11Application`, `UNativeEventResult` is always
+  `qintptr`, and `uglobalhotkey-sources.pri` and `uglobalhotkey.pro` no longer
+  add `x11extras` (the standalone `.pro`, which the app does not use, also asks
+  for C++17 and `widgets` unconditionally).

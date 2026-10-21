@@ -21,6 +21,8 @@
 #include <tools/uploader/uploader.h>
 #include <tools/os.h>
 
+#include <utility>
+
 #include <QApplication>
 #include <QDateTime>
 #include <QStandardPaths>
@@ -73,7 +75,7 @@ void ScreenshotManager::initHistory()
         QSqlQuery tableQuery;
         mHistoryInitialized = tableQuery.exec("CREATE TABLE IF NOT EXISTS history (fileName text, URL text, deleteURL text, time integer)");
 
-        history.exec("CREATE INDEX IF NOT EXISTS fileName_index ON history(fileName)");
+        QSqlQuery(history).exec("CREATE INDEX IF NOT EXISTS fileName_index ON history(fileName)");
     } else {
         qCritical() << "Could not open SQLite DB.";
         mHistoryInitialized = false;
@@ -200,7 +202,7 @@ void ScreenshotManager::take(Screenshot::Options &options)
 
 void ScreenshotManager::uploadDone(const QString &fileName, const QString &url, const QString &deleteHash)
 {
-    for (Screenshot *screenshot : qAsConst(mScreenshots)) {
+    for (Screenshot *screenshot : std::as_const(mScreenshots)) {
         if (screenshot->options().fileName == fileName
                 || screenshot->unloadedFileName() == fileName) {
             screenshot->uploadDone(url);

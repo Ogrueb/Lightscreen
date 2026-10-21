@@ -9,3 +9,12 @@ License: MIT, see `LICENSE` in this directory.
 
 Any change to these files after the copy is recorded in the parent repository's
 history and in `docs/decisions.md`.
+
+## Local changes
+
+- **M04 (2026-10-15), APIs Qt 6 removed.** In `singleapplication.cpp`: the
+  server name is cleaned with `QRegularExpression` (with
+  `UseUnicodePropertiesOption`, so `\w` matches what `QRegExp` matched) instead
+  of `QRegExp`; the `newConnection` connect uses member-function pointers
+  instead of `SIGNAL()`/`SLOT()` strings; `Q_NULLPTR` became `nullptr`.
+- No other change since vendoring; M09 and M10 needed none here.

@@ -60,9 +60,6 @@ include($$PWD/tools/SingleApplication/singleapplication.pri)
 include($$PWD/tools/UGlobalHotkey/uglobalhotkey.pri)
 
 windows {
-    # Qt 5 only: the HBITMAP/HICON conversions in tools/os.cpp and tools/taskbar.cpp (Qt 6 has them in QImage).
-    lessThan(QT_MAJOR_VERSION, 6): QT += winextras
-
     SOURCES += $$PWD/tools/taskbar.cpp
 
     # MSVC only; MinGW is not supported
@@ -72,6 +69,5 @@ windows {
 }
 
 unix:LIBS += -lX11
-unix:lessThan(QT_MAJOR_VERSION, 6): QT += x11extras
 
 include($$PWD/version.pri)

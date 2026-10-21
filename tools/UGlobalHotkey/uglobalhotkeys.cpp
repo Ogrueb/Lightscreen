@@ -3,9 +3,6 @@
 #include <windows.h>
 #elif defined(Q_OS_LINUX)
 #include <QApplication>
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-#include <QX11Info>
-#endif
 #endif
 
 #include "hotkeymap.h"
@@ -18,11 +15,7 @@ UGlobalHotkeys::UGlobalHotkeys(QWidget *parent)
 {
 #if defined(Q_OS_LINUX)
     qApp->installNativeEventFilter(this);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     X11Connection = qGuiApp->nativeInterface<QNativeInterface::QX11Application>()->connection();
-#else
-    X11Connection = QX11Info::connection();
-#endif
     X11Wid = xcb_setup_roots_iterator(xcb_get_setup(X11Connection)).data->root;
     X11KeySymbs = xcb_key_symbols_alloc(X11Connection);
 #endif
