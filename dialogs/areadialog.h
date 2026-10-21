@@ -31,19 +31,22 @@
 #include <QRegion>
 #include <QRect>
 #include <QPoint>
+#include <QPixmap>
+
+#include <tools/screenshot.h>
 
 class QPaintEvent;
 class QResizeEvent;
 class QMouseEvent;
-class Screenshot;
 
 class AreaDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    AreaDialog(Screenshot *screenshot);
+    AreaDialog(const QPixmap &pixmap, const Screenshot::Options &options);
     QRect resultRect() const;
+    void setPixmap(const QPixmap &pixmap);
 
 protected slots:
     void animationTick(int frame);
@@ -54,6 +57,7 @@ protected slots:
 
 signals:
     void regionGrabbed(const QPixmap &);
+    void refreshRequested();
 
 protected:
     void keyPressEvent(QKeyEvent *e);
@@ -70,7 +74,8 @@ protected:
 
     QPoint limitPointToRect(const QPoint &p, const QRect &r) const;
 
-    Screenshot *mScreenshot;
+    QPixmap mPixmap;
+    Screenshot::Options mOptions;
     QPoint mDragStartPoint;
     bool mMouseDown;
     bool mMouseMagnifier;

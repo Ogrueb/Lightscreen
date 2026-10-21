@@ -87,7 +87,7 @@ private:
     // A dialog of 640x480 with the selection at (10, 20) 30x40.
     TestAreaDialog *dialog()
     {
-        auto d = new TestAreaDialog(mScreenshot);
+        auto d = new TestAreaDialog(mScreenshot->pixmap(), mScreenshot->options());
         d->resize(640, 480);
         d->mSelection = QRect(10, 20, 30, 40);
         return d;

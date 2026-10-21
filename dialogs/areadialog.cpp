@@ -64,10 +64,10 @@ QRect normalizedRect(const QRect &rect)
 }
 }
 
-AreaDialog::AreaDialog(Screenshot *screenshot) :
-    QDialog(0), mScreenshot(screenshot), mMouseDown(false), mMouseMagnifier(false),
+AreaDialog::AreaDialog(const QPixmap &pixmap, const Screenshot::Options &options) :
+    QDialog(0), mPixmap(pixmap), mOptions(options), mMouseDown(false), mMouseMagnifier(false),
     mNewSelection(false), mHandleSize(10), mMouseOverHandle(0),
-    mShowHelp(true), mGrabbing(false), mOverlayAlpha(1), mAutoclose(false), mLocalMagnify(screenshot->options().magnify),
+    mShowHelp(true), mGrabbing(false), mOverlayAlpha(1), mAutoclose(false), mLocalMagnify(options.magnify),
     mTLHandle(0, 0, mHandleSize, mHandleSize), mTRHandle(0, 0, mHandleSize, mHandleSize),
     mBLHandle(0, 0, mHandleSize, mHandleSize), mBRHandle(0, 0, mHandleSize, mHandleSize),
     mLHandle(0, 0, mHandleSize, mHandleSize), mTHandle(0, 0, mHandleSize, mHandleSize),
@@ -126,12 +126,19 @@ AreaDialog::AreaDialog(Screenshot *screenshot) :
 
 QRect AreaDialog::resultRect() const
 {
-    auto devicePixelRatio = mScreenshot->pixmap().devicePixelRatio();
+    auto devicePixelRatio = mPixmap.devicePixelRatio();
 
     return QRect(mSelection.left()   * devicePixelRatio,
                  mSelection.top()    * devicePixelRatio,
                  mSelection.width()  * devicePixelRatio,
                  mSelection.height() * devicePixelRatio);
+}
+
+// Replaces the desktop shown behind the selection, after a refresh (F5).
+void AreaDialog::setPixmap(const QPixmap &pixmap)
+{
+    mPixmap = pixmap;
+    update();
 }
 
 void AreaDialog::animationTick(int frame)
@@ -241,7 +248,7 @@ void AreaDialog::keyPressEvent(QKeyEvent *e)
     } else if (e->key() == Qt::Key_F5) {
         setWindowOpacity(0);
         QThread::msleep(200); // Give the window system time to catch up
-        mScreenshot->refresh();
+        emit refreshRequested();
         setWindowOpacity(1);
     } else {
         if (e->key() == Qt::Key_Backspace && !mKeyboardSize.isEmpty()) {
@@ -388,11 +395,11 @@ void AreaDialog::mouseMoveEvent(QMouseEvent *e)
                 acceptRect.moveTo(mTHandle.bottomRight());
             }
 
-            if ((acceptRect.x() + 120) > mScreenshot->pixmap().rect().width()) {
+            if ((acceptRect.x() + 120) > mPixmap.rect().width()) {
                 acceptRect.setX(acceptRect.x() - 120);
             }
 
-            if ((acceptRect.y() + 70) > mScreenshot->pixmap().rect().height()) {
+            if ((acceptRect.y() + 70) > mPixmap.rect().height()) {
                 acceptRect.setY(acceptRect.y() - 70);
             }
 
@@ -515,7 +522,7 @@ void AreaDialog::paintEvent(QPaintEvent *e)
     QColor overlayColor(0, 0, 0, mOverlayAlpha);
     QColor textColor = pal.color(QPalette::Active, QPalette::Text);
     QColor textBackgroundColor = pal.color(QPalette::Active, QPalette::Base);
-    painter.drawPixmap(0, 0, mScreenshot->pixmap());
+    painter.drawPixmap(0, 0, mPixmap);
     painter.setFont(font);
 
     QRect r = normalizedRect(mSelection).adjusted(0, 0, -1, -1);
@@ -639,7 +646,7 @@ void AreaDialog::paintEvent(QPaintEvent *e)
     QPoint magStart, magEnd, drawPosition;
     QRect newRect;
 
-    QRect pixmapRect = mScreenshot->pixmap().rect();
+    QRect pixmapRect = mPixmap.rect();
 
     if (mMouseMagnifier) {
         drawPosition = mMousePos - QPoint(100, 100);
@@ -696,7 +703,7 @@ void AreaDialog::paintEvent(QPaintEvent *e)
         return;
     }
 
-    QPixmap magnified = mScreenshot->pixmap().copy(newRect).scaled(QSize(newRect.width() * 2, newRect.height() * 2));
+    QPixmap magnified = mPixmap.copy(newRect).scaled(QSize(newRect.width() * 2, newRect.height() * 2));
 
     QPainter magPainter(&magnified);
     magPainter.setPen(QPen(QBrush(QColor(35, 35, 35)), 2)); // Same border pen
@@ -739,7 +746,7 @@ void AreaDialog::showEvent(QShowEvent *e)
 
     QRect geometry = QGuiApplication::primaryScreen()->virtualGeometry();
 
-    if (mScreenshot->options().currentMonitor) {
+    if (mOptions.currentMonitor) {
         QScreen *cursorScreen = QGuiApplication::screenAt(QCursor::pos());
 
         if (!cursorScreen) {
@@ -752,7 +759,7 @@ void AreaDialog::showEvent(QShowEvent *e)
     resize(geometry.size());
     move(geometry.topLeft());
 
-    if (mScreenshot->options().animations) {
+    if (mOptions.animations) {
         os::effect(this, SLOT(animationTick(int)), 85, 300);
     } else {
         animationTick(85);

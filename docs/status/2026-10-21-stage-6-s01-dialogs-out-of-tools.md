@@ -1,0 +1,8 @@
+# 2026-10-21: Stage 6, S01 done (dialogs out of `tools/screenshot`)
+
+- `tools/` no longer includes anything from `dialogs/` or `widgets/`. `Screenshot::selectedArea()` grabs the desktop, sets `mPixmapDelay` and emits `areaSelectionNeeded()`; new slot `Screenshot::setArea(QRect)` crops and continues to confirmation, and `discard()` cancels as before. `ScreenshotManager` forwards the signal as `areaSelection(Screenshot *)`, and `LightscreenWindow::selectArea` runs the dialog (why not the manager: `docs/decisions/2026-10-21-s01-area-dialog-run-by-the-main-window.md`).
+- `AreaDialog(const QPixmap &, const Screenshot::Options &)` keeps its own copy of the desktop and options. F5 emits `refreshRequested()`; the window refreshes the screenshot and calls `AreaDialog::setPixmap()`. Magnifier (`Ctrl+M`), keyboard sizing, autoclose, animations, current-monitor geometry and `resultRect()` scaling are unchanged code.
+- New `tests/check-includes.sh`, run by the CI "Docs layout" job. It has the first rule only; S02 adds the `tools/uploader/` rule (it fails on today's code, which S02 fixes).
+- Tests: `tst_areadialog` builds the dialog with the new constructor, no expected value changed. `tst_screenshot` gains `take_selectedArea_setArea` and `take_selectedArea_discard` (the new hand-off; they skip on a platform that grabs a null desktop). `tst_mainwindow`'s `--area` row still sees the `AreaDialog`.
+- Local check (Ubuntu 24.04, apt Qt 6.4): app and tests build, all 11 suites pass under Xvfb. End to end under Xvfb: `--area`, a mouse drag from (100, 100) to (200, 180) with autoclose saves a 101x81 PNG, the same as on master. CI: see the PR.
+- Windows QA: `docs/windows-qa/2026-10-21-area-capture-after-s01.md`.

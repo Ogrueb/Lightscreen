@@ -22,6 +22,7 @@
 #include <QObject>
 #include <QDir>
 #include <QPixmap>
+#include <QRect>
 #include <QVariant>
 
 class Screenshot : public QObject
@@ -114,6 +115,7 @@ public slots:
     void optimize();
     void optimizationDone();
     void save();
+    void setArea(const QRect &area);
     void setPixmap(const QPixmap &pixmap);
     void take();
     void upload();
@@ -121,6 +123,7 @@ public slots:
     void refresh();
 
 signals:
+    void areaSelectionNeeded();
     void askConfirmation();
     void cleanup();
     void finished();

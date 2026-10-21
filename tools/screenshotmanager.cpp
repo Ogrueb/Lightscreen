@@ -168,6 +168,12 @@ void ScreenshotManager::clearHistory()
 
 //
 
+void ScreenshotManager::areaSelectionNeeded()
+{
+    Screenshot *s = qobject_cast<Screenshot *>(sender());
+    emit areaSelection(s);
+}
+
 void ScreenshotManager::askConfirmation()
 {
     Screenshot *s = qobject_cast<Screenshot *>(sender());
@@ -193,9 +199,10 @@ void ScreenshotManager::take(Screenshot::Options &options)
     Screenshot *newScreenshot = new Screenshot(this, options);
     mScreenshots.append(newScreenshot);
 
-    connect(newScreenshot, &Screenshot::askConfirmation, this, &ScreenshotManager::askConfirmation);
-    connect(newScreenshot, &Screenshot::cleanup        , this, &ScreenshotManager::cleanup);
-    connect(newScreenshot, &Screenshot::finished       , this, &ScreenshotManager::finished);
+    connect(newScreenshot, &Screenshot::areaSelectionNeeded, this, &ScreenshotManager::areaSelectionNeeded);
+    connect(newScreenshot, &Screenshot::askConfirmation    , this, &ScreenshotManager::askConfirmation);
+    connect(newScreenshot, &Screenshot::cleanup            , this, &ScreenshotManager::cleanup);
+    connect(newScreenshot, &Screenshot::finished           , this, &ScreenshotManager::finished);
 
     newScreenshot->take();
 }

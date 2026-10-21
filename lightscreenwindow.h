@@ -63,6 +63,7 @@ public slots:
     void executeArguments(const QStringList &arguments);
     void notify(const Screenshot::Result &result);
     void preview(Screenshot *screenshot);
+    void selectArea(Screenshot *screenshot);
     void quit();
     void restoreNotification();
     void setStatus(QString status = "");

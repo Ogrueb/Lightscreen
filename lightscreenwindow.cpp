@@ -42,6 +42,7 @@
 //Lightscreen includes
 //
 #include <lightscreenwindow.h>
+#include <dialogs/areadialog.h>
 #include <dialogs/optionsdialog.h>
 #include <dialogs/previewdialog.h>
 #include <dialogs/historydialog.h>
@@ -100,6 +101,7 @@ LightscreenWindow::LightscreenWindow(QWidget *parent) :
     connect(Uploader::instance(), &Uploader::error          , this, &LightscreenWindow::showUploaderError);
 
     // Manager
+    connect(ScreenshotManager::instance(), &ScreenshotManager::areaSelection,     this, &LightscreenWindow::selectArea);
     connect(ScreenshotManager::instance(), &ScreenshotManager::confirm,           this, &LightscreenWindow::preview);
     connect(ScreenshotManager::instance(), &ScreenshotManager::windowCleanup,     this, &LightscreenWindow::cleanup);
     connect(ScreenshotManager::instance(), &ScreenshotManager::activeCountChange, this, &LightscreenWindow::updateStatus);
@@ -391,6 +393,23 @@ void LightscreenWindow::preview(Screenshot *screenshot)
         mPreviewDialog->add(screenshot);
     } else {
         screenshot->confirm(true);
+    }
+}
+
+void LightscreenWindow::selectArea(Screenshot *screenshot)
+{
+    AreaDialog selector(screenshot->pixmap(), screenshot->options());
+
+    // F5 grabs the desktop again, behind the dialog.
+    connect(&selector, &AreaDialog::refreshRequested, screenshot, [&selector, screenshot] {
+        screenshot->refresh();
+        selector.setPixmap(screenshot->pixmap());
+    });
+
+    if (selector.exec() == QDialog::Accepted) {
+        screenshot->setArea(selector.resultRect());
+    } else {
+        screenshot->discard();
     }
 }
 

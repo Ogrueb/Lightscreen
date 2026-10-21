@@ -877,6 +877,57 @@ private slots:
         QVERIFY(!QFile::exists(temp));
     }
 
+    // SelectedArea (S01): take() grabs the desktop, emits areaSelectionNeeded and waits for setArea() or discard().
+    void take_selectedArea_setArea()
+    {
+        QTemporaryDir dir;
+        auto opts = options(dir.path());
+        opts.mode = Screenshot::SelectedArea;
+
+        Screenshot screenshot(nullptr, opts);
+        QStringList log;
+        record(&screenshot, &log);
+        connect(&screenshot, &Screenshot::areaSelectionNeeded, [&log] { log.append("areaSelectionNeeded"); });
+
+        screenshot.take();
+
+        if (!log.contains("areaSelectionNeeded")) {
+            QSKIP("This platform grabs a null desktop");
+        }
+
+        QCOMPARE(log, QStringList() << "areaSelectionNeeded");
+        QVERIFY(!screenshot.pixmap().isNull());
+
+        screenshot.setArea(QRect(2, 3, 10, 8));
+
+        QCOMPARE(log, QStringList() << "areaSelectionNeeded" << "askConfirmation");
+        QCOMPARE(screenshot.pixmap().size(), QSize(10, 8));
+    }
+
+    void take_selectedArea_discard()
+    {
+        QTemporaryDir dir;
+        auto opts = options(dir.path());
+        opts.mode = Screenshot::SelectedArea;
+
+        Screenshot screenshot(nullptr, opts);
+        QStringList log;
+        record(&screenshot, &log);
+        connect(&screenshot, &Screenshot::areaSelectionNeeded, [&log] { log.append("areaSelectionNeeded"); });
+
+        screenshot.take();
+
+        if (!log.contains("areaSelectionNeeded")) {
+            QSKIP("This platform grabs a null desktop");
+        }
+
+        screenshot.discard();
+
+        QCOMPARE(log, QStringList() << "areaSelectionNeeded" << "finished" << "cleanup");
+        QCOMPARE(screenshot.options().result, Screenshot::Cancel);
+        QVERIFY(screenshot.pixmap().isNull());
+    }
+
     // A null pixmap cancels straight away.
     void setPixmap_null()
     {
