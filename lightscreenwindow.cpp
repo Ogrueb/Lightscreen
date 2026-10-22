@@ -398,7 +398,7 @@ void LightscreenWindow::preview(Screenshot *screenshot)
 
 void LightscreenWindow::selectArea(Screenshot *screenshot)
 {
-    AreaDialog selector(screenshot->pixmap(), screenshot->options());
+    AreaDialog selector(screenshot->pixmap(), screenshot->options(), screenshot->deviceGeometry());
 
     // F5 grabs the desktop again, behind the dialog.
     connect(&selector, &AreaDialog::refreshRequested, screenshot, [&selector, screenshot] {

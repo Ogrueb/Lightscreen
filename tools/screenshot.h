@@ -101,6 +101,7 @@ public:
 
     const Screenshot::Options &options();
     QPixmap &pixmap();
+    const QRect &deviceGeometry() const;
     static QString getName(const NamingOptions &options, const QString &prefix, const QDir &directory);
     static QString extensionFor(Format format);
     static Format formatFromSetting(const QVariant &value);
@@ -143,6 +144,7 @@ private:
 private:
     Screenshot::Options mOptions;
     QPixmap mPixmap;
+    QRect mDeviceGeometry;
     bool mPixmapDelay;
     bool mUnloaded;
     QString mUnloadFilename;

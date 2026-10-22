@@ -38,6 +38,7 @@ add_library(lightscreen_core OBJECT
     dialogs/previewdialog.cpp dialogs/previewdialog.h
     dialogs/updaterdialog.cpp dialogs/updaterdialog.h
     lightscreenwindow.cpp lightscreenwindow.h lightscreenwindow.ui
+    tools/capturegeometry.cpp tools/capturegeometry.h
     tools/os.cpp tools/os.h
     tools/screenshot.cpp tools/screenshot.h
     tools/screenshotmanager.cpp tools/screenshotmanager.h

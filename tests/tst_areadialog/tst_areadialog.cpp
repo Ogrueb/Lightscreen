@@ -2,7 +2,7 @@
 // limitPointToRect and the handle positions). The dialog is never shown, so its size is whatever the test resizes
 // it to and no desktop grab happens.
 // These tests record current behaviour, quirks included, not intended behaviour (docs/modernization-plan.md, section 6).
-// S01 changes the constructor and S04 the resultRect mapping; both must keep these expectations unless they say why.
+// S01 changed the constructor; S04 replaced the resultRect mapping and flipped the fractional rows (bug 23).
 #include <QtTest>
 #include <QKeyEvent>
 #include <QSettings>
@@ -154,7 +154,8 @@ private slots:
         setPixmap(QSize(640, 480), 1);
     }
 
-    // resultRect: the selection times the pixmap's device pixel ratio, each value truncated to int.
+    // resultRect: the selection's corners times the pixmap's device pixel ratio, the near edges rounded down and the
+    // far edges up (S04, bug 23; until S04 each value was truncated), clipped to the pixmap.
 
     void resultRect_data()
     {
@@ -165,9 +166,13 @@ private slots:
         QTest::newRow("ratio 1") << qreal(1) << QRect(10, 20, 300, 200) << QRect(10, 20, 300, 200);
         QTest::newRow("ratio 2") << qreal(2) << QRect(10, 20, 300, 200) << QRect(20, 40, 600, 400);
         QTest::newRow("ratio 2, origin") << qreal(2) << QRect(0, 0, 640, 480) << QRect(0, 0, 1280, 960);
-        // 4.5, 7.5, 10.5 and 13.5 are truncated, not rounded.
-        QTest::newRow("ratio 1.5 truncates") << qreal(1.5) << QRect(3, 5, 7, 9) << QRect(4, 7, 10, 13);
-        QTest::newRow("ratio 1.25 truncates") << qreal(1.25) << QRect(1, 1, 3, 3) << QRect(1, 1, 3, 3);
+        // Device pixels 4.5 to 15 and 7.5 to 21: the half pixels at the near edges are included (bug 23; until S04
+        // these rows were "truncates", QRect(4, 7, 10, 13) and QRect(1, 1, 3, 3)).
+        QTest::newRow("ratio 1.5 covers every pixel") << qreal(1.5) << QRect(3, 5, 7, 9) << QRect(4, 7, 11, 14);
+        QTest::newRow("ratio 1.25 covers every pixel") << qreal(1.25) << QRect(1, 1, 3, 3) << QRect(1, 1, 4, 4);
+        QTest::newRow("ratio 1.75, far edge") << qreal(1.75) << QRect(0, 0, 640, 480) << QRect(0, 0, 1120, 840);
+        // New in S04: a selection past the pixmap's edge is clipped to it.
+        QTest::newRow("ratio 1, clipped") << qreal(1) << QRect(600, 400, 100, 100) << QRect(600, 400, 40, 80);
         QTest::newRow("ratio 2, empty selection") << qreal(2) << QRect() << QRect(0, 0, 0, 0);
         // The selection is not normalized first: a negative size stays negative.
         QTest::newRow("ratio 2, not normalized") << qreal(2) << QRect(QPoint(50, 50), QPoint(10, 10))
