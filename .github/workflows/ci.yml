@@ -205,6 +205,26 @@ jobs:
         shell: cmd
         run: ctest --preset windows-msvc-release
 
+      # A test whose output does not reach ctest (it once came back empty) is run again on its own, with QtTest
+      # writing to a file, and the file is printed.
+      - name: Show the output of failed tests
+        if: failure()
+        shell: pwsh
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          $failed = 'build\windows-msvc-release\Testing\Temporary\LastTestsFailed.log'
+          if (-not (Test-Path $failed)) { exit 0 }
+          foreach ($line in Get-Content $failed) {
+            $name = $line.Split(':')[1]
+            $dir = "build\windows-msvc-release\tests\$name"
+            Push-Location $dir
+            & ".\$name.exe" -o "$name-output.txt,txt"
+            Write-Host "== $name exited with $LASTEXITCODE"
+            if (Test-Path "$name-output.txt") { Get-Content "$name-output.txt" }
+            Pop-Location
+          }
+
       - name: Deploy
         shell: cmd
         run: |
