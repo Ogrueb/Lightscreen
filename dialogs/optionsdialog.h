@@ -64,6 +64,7 @@ private:
 
 private:
     Ui::OptionsDialog ui;
+    bool mOptimizerPicked = false;
 };
 
 #endif // OPTIONSDIALOG_H

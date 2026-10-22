@@ -17,10 +17,12 @@
  *
  */
 #include <tools/screenshotmanager.h>
+#include <tools/optimizer.h>
 #include <tools/screenshot.h>
 #include <tools/uploader/uploader.h>
 #include <tools/os.h>
 
+#include <memory>
 #include <utility>
 
 #include <QApplication>
@@ -55,11 +57,14 @@ ScreenshotManager::ScreenshotManager(QSettings *settings, const QString &history
     init();
 }
 
-// The manager owns the uploader, which reads its service settings from the manager's settings.
+// The manager owns the uploader, which reads its service settings from the manager's settings, and the optimization
+// queue, which keeps its pending list next to the history.
 void ScreenshotManager::init()
 {
     mUploader = new Uploader(mSettings, this);
     connect(mUploader, &Uploader::done, this, &ScreenshotManager::uploadDone);
+
+    mOptimizer = new Optimizer(mSettings, mHistoryPath, this);
 }
 
 void ScreenshotManager::initHistory()
@@ -211,6 +216,20 @@ void ScreenshotManager::connectScreenshot(Screenshot *screenshot)
         saveHistory(fileName);
     });
     connect(screenshot, &Screenshot::uploadRequested, mUploader, &Uploader::upload);
+
+    // The screenshot goes on once the optimizer is done with its file: once, even if the same file name is queued
+    // again by another screenshot (replace mode).
+    connect(screenshot, &Screenshot::optimizeRequested, this, [this, screenshot](const QString &fileName) {
+        auto connection = std::make_shared<QMetaObject::Connection>();
+        *connection = connect(mOptimizer, &Optimizer::optimizationDone, screenshot, [screenshot, fileName, connection](const QString &done) {
+            if (done == fileName) {
+                QObject::disconnect(*connection);
+                screenshot->optimizationDone();
+            }
+        });
+
+        mOptimizer->add(fileName);
+    });
 }
 
 void ScreenshotManager::take(Screenshot::Options &options)

@@ -47,6 +47,7 @@
 #include <dialogs/previewdialog.h>
 #include <dialogs/historydialog.h>
 
+#include <tools/optimizer.h>
 #include <tools/os.h>
 #include <tools/screenshot.h>
 #include <tools/screenshotmanager.h>
@@ -105,6 +106,10 @@ LightscreenWindow::LightscreenWindow(QWidget *parent) :
     connect(ScreenshotManager::instance(), &ScreenshotManager::confirm,           this, &LightscreenWindow::preview);
     connect(ScreenshotManager::instance(), &ScreenshotManager::windowCleanup,     this, &LightscreenWindow::cleanup);
     connect(ScreenshotManager::instance(), &ScreenshotManager::activeCountChange, this, &LightscreenWindow::updateStatus);
+    connect(ScreenshotManager::instance()->optimizer(), &Optimizer::pendingChanged, this, &LightscreenWindow::updateStatus);
+
+    // PNG optimizations left over when the app last stopped run again.
+    QTimer::singleShot(0, ScreenshotManager::instance()->optimizer(), &Optimizer::resume);
 
     if (!settings()->contains("file/format")) {
         showOptions();  // There are no options (or the options config is invalid or incomplete)
@@ -696,6 +701,7 @@ void LightscreenWindow::updateStatus()
 {
     int uploadCount = ScreenshotManager::instance()->uploader()->uploading();
     int activeCount = ScreenshotManager::instance()->activeCount();
+    int optimizeCount = ScreenshotManager::instance()->optimizer()->pending();
 
     mTaskbar.setProgressState(Taskbar::Progress::Paused);
 
@@ -705,6 +711,10 @@ void LightscreenWindow::updateStatus()
         mTaskbar.setProgressState(Taskbar::Progress::Normal);
 
         emit uploading(true);
+    } else if (optimizeCount > 0) {
+        setStatus(tr("%1 optimizing").arg(optimizeCount));
+
+        emit uploading(false);
     } else {
         if (activeCount > 1) {
             setStatus(tr("%1 processing").arg(activeCount));

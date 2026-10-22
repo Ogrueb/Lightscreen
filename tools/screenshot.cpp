@@ -22,12 +22,10 @@
 #include <QFileDialog>
 #include <QPainter>
 #include <QPixmap>
-#include <QProcess>
 #include <QRandomGenerator>
 #include <QRegularExpression>
 #include <QTextStream>
 #include <QScreen>
-#include <QStandardPaths>
 #include <QStringBuilder>
 
 #include <tools/capturegeometry.h>
@@ -45,24 +43,6 @@
     #include <X11/Xlib.h>
     #undef Success
 #endif
-
-#include <cstdio>
-
-namespace {
-
-// Moves source over target in one step, replacing target (QFile::rename refuses to replace an existing file).
-bool replaceFile(const QString &source, const QString &target)
-{
-#ifdef Q_OS_WIN
-    return MoveFileExW(reinterpret_cast<const wchar_t *>(QDir::toNativeSeparators(source).utf16()),
-                       reinterpret_cast<const wchar_t *>(QDir::toNativeSeparators(target).utf16()),
-                       MOVEFILE_REPLACE_EXISTING) != 0;
-#else
-    return std::rename(QFile::encodeName(source).constData(), QFile::encodeName(target).constData()) == 0;
-#endif
-}
-
-} // namespace
 
 Screenshot::Screenshot(QObject *parent, Screenshot::Options options):
     QObject(parent),
@@ -190,52 +170,10 @@ void Screenshot::markUpload()
     mOptions.upload = true;
 }
 
+// The manager runs the file through its optimization queue and answers with optimizationDone().
 void Screenshot::optimize()
 {
-    QString optiPNG;
-
-#ifdef Q_OS_UNIX
-    optiPNG = QStandardPaths::findExecutable("optipng");
-#else
-    optiPNG = qApp->applicationDirPath() % QDir::separator() % "optipng.exe";
-
-    if (!QFile::exists(optiPNG)) {
-        optiPNG.clear();
-    }
-#endif
-
-    if (optiPNG.isEmpty()) {
-        optimizationDone();
-        return;
-    }
-
-    // optipng writes to a temporary file that replaces the original only on success, so an interrupted run leaves
-    // the original intact. optipng refuses to overwrite an existing output, such as one left by an earlier crash.
-    const QString original  = mOptions.fileName;
-    const QString temporary = original % ".optipng.tmp";
-    QFile::remove(temporary);
-
-    QProcess *process = new QProcess(this);
-
-    connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this,
-            [this, process, original, temporary](int exitCode, QProcess::ExitStatus exitStatus) {
-        if (exitStatus != QProcess::NormalExit || exitCode != 0 || !QFile::exists(temporary) || !replaceFile(temporary, original)) {
-            QFile::remove(temporary);
-        }
-
-        process->deleteLater();
-        optimizationDone();
-    });
-
-    // finished is not emitted when the process cannot be started.
-    connect(process, &QProcess::errorOccurred, this, [this, process](QProcess::ProcessError error) {
-        if (error == QProcess::FailedToStart) {
-            process->deleteLater();
-            optimizationDone();
-        }
-    });
-
-    process->start(optiPNG, QStringList() << "-out" << temporary << original);
+    emit optimizeRequested(mOptions.fileName);
 }
 
 void Screenshot::optimizationDone()

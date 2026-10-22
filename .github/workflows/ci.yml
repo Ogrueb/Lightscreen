@@ -61,7 +61,7 @@ jobs:
             build-essential libgl-dev libegl-dev libx11-dev libxcb-keysyms1-dev \
             libfontconfig1 libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 libxcb-image0 \
             libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-xinerama0 libxcb-xkb1 \
-            ninja-build xvfb xdotool
+            ninja-build xvfb xdotool optipng
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
@@ -71,6 +71,19 @@ jobs:
           target: desktop
           arch: linux_gcc_64
           cache: true
+
+      # oxipng has no apt package on Ubuntu 24.04; build it once and cache the binary. With optipng from apt,
+      # tst_optimizer's realTool runs against both tools.
+      - name: Cache oxipng
+        id: oxipng-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/oxipng
+          key: oxipng-10.2.1-${{ runner.os }}
+
+      - name: Install oxipng
+        if: steps.oxipng-cache.outputs.cache-hit != 'true'
+        run: cargo install oxipng --version 10.2.1 --locked
 
       - name: Build (app and tests)
         run: |
@@ -192,12 +205,37 @@ jobs:
         shell: cmd
         run: ctest --preset windows-msvc-release
 
+      # A test whose output does not reach ctest (it once came back empty) is run again on its own, with QtTest
+      # writing to a file, and the file is printed.
+      - name: Show the output of failed tests
+        if: failure()
+        shell: pwsh
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          $failed = 'build\windows-msvc-release\Testing\Temporary\LastTestsFailed.log'
+          if (-not (Test-Path $failed)) { exit 0 }
+          foreach ($line in Get-Content $failed) {
+            $name = $line.Split(':')[1]
+            $dir = "build\windows-msvc-release\tests\$name"
+            Push-Location $dir
+            & ".\$name.exe" -o "$name-output.txt,txt"
+            Write-Host "== $name exited with $LASTEXITCODE"
+            if (Test-Path "$name-output.txt") { Get-Content "$name-output.txt" }
+            Pop-Location
+          }
+
       - name: Deploy
         shell: cmd
         run: |
           mkdir deploy
           copy build\windows-msvc-release\lightscreen.exe deploy\
           windeployqt --release --no-translations deploy\lightscreen.exe
+
+      # oxipng.exe and optipng.exe, pinned and hash-checked, with their licences (same script as the release).
+      - name: Add the PNG optimizers
+        shell: pwsh
+        run: .github\scripts\fetch-optimizers.ps1 -Destination deploy
 
       - name: Upload artifact
         uses: actions/upload-artifact@v5

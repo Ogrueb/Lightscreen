@@ -89,6 +89,8 @@ jobs:
           Copy-Item build\windows-msvc-release\lightscreen.exe $dir\
           windeployqt --release --no-translations "$dir\lightscreen.exe"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          # oxipng.exe and optipng.exe, pinned and hash-checked, with their licences.
+          .github\scripts\fetch-optimizers.ps1 -Destination $dir
           # The zip holds one top-level folder named like the zip.
           Compress-Archive -Path $dir -DestinationPath "${{ steps.version.outputs.zip }}"
 

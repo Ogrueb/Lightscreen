@@ -128,6 +128,7 @@ signals:
     void askConfirmation();
     void cleanup();
     void finished();
+    void optimizeRequested(const QString &fileName);
     void saved(const QString &fileName);
     void uploadRequested(const QString &fileName, const QString &service);
 

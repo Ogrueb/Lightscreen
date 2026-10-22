@@ -46,6 +46,7 @@
 #include <dialogs/namingdialog.h>
 #include <dialogs/historydialog.h>
 
+#include <tools/optimizer.h>
 #include <tools/os.h>
 #include <tools/screenshot.h>
 #include <tools/screenshotmanager.h>
@@ -228,18 +229,42 @@ void OptionsDialog::loadSettings()
     ui.replaceCheckBox->setChecked(settings()->value("replace", false).toBool());
     ui.uploadCheckBox->setChecked(settings()->value("uploadAuto", false).toBool());
 
-#ifdef Q_OS_WIN
-    if (!QFile::exists(qApp->applicationDirPath() + QDir::separator() + "optipng.exe")) {
-        ui.optiPngCheckBox->setEnabled(false);
-        ui.optiPngLabel->setText("optipng.exe not found");
-    }
-#elif defined(Q_OS_LINUX)
-    if (QStandardPaths::findExecutable("optipng").isEmpty()) {
-        ui.optiPngCheckBox->setChecked(false);
-        ui.optiPngCheckBox->setEnabled(false);
-        ui.optiPngLabel->setText(tr("Install 'OptiPNG'"));
+    // PNG optimizer: the stored choice, or what the automatic choice runs when nothing is stored. A tool that is not
+    // found stays selectable, so a choice made before installing it is kept. "optimizer" is written only once the
+    // user picks a tool.
+    ui.optimizerComboBox->clear();
+
+    for (const QString &tool : Optimizer::toolNames()) {
+        QString label = (tool == QLatin1String("optipng")) ? QStringLiteral("OptiPNG") : tool;
+
+        if (Optimizer::program(tool).isEmpty()) {
+            label += tr(" (not found)");
+        }
+
+        ui.optimizerComboBox->addItem(label, tool);
     }
 
+    const QString automatic = Optimizer::resolveTool(QString());
+    QString optimizer = settings()->value("optimizer").toString();
+
+    if (!Optimizer::toolNames().contains(optimizer)) {
+        optimizer = automatic.isEmpty() ? Optimizer::toolNames().first() : automatic;
+    }
+
+    ui.optimizerComboBox->setCurrentIndex(ui.optimizerComboBox->findData(optimizer));
+    mOptimizerPicked = false;
+
+    if (automatic.isEmpty()) {
+        ui.optiPngCheckBox->setEnabled(false);
+#ifdef Q_OS_WIN
+        ui.optiPngLabel->setText(tr("No optimizer found next to lightscreen.exe"));
+#else
+        ui.optiPngCheckBox->setChecked(false);
+        ui.optiPngLabel->setText(tr("Install oxipng or OptiPNG"));
+#endif
+    }
+
+#ifdef Q_OS_LINUX
     //TODO: Sound cue support on Linux
     ui.playSoundCheckBox->setVisible(false);
     ui.playSoundCheckBox->setChecked(false);
@@ -361,6 +386,11 @@ void OptionsDialog::saveSettings()
     settings()->setValue("clipboard", ui.clipboardCheckBox->isChecked());
     settings()->setValue("urlClipboard", ui.urlClipboardCheckBox->isChecked());
     settings()->setValue("optimize", ui.optiPngCheckBox->isChecked());
+
+    if (mOptimizerPicked || settings()->contains("optimizer")) {
+        settings()->setValue("optimizer", ui.optimizerComboBox->currentData().toString());
+    }
+
     settings()->setValue("currentMonitor", ui.currentMonitorCheckBox->isChecked());
     settings()->setValue("replace", ui.replaceCheckBox->isChecked());
 
@@ -570,6 +600,9 @@ void OptionsDialog::init()
 
     QAction *exportAction = new QAction(tr("&Export.."), optionsMenu);
     connect(exportAction, &QAction::triggered, this, &OptionsDialog::exportSettings);
+    connect(ui.optimizerComboBox, &QComboBox::activated, this, [this] {
+        mOptimizerPicked = true;
+    });
 
     QAction *importAction = new QAction(tr("&Import.."), optionsMenu);
     connect(importAction, &QAction::triggered, this, &OptionsDialog::importSettings);
