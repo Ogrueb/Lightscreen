@@ -1,27 +1,25 @@
-## Lightscreen (fork)
-[![CI](https://github.com/Ogrueb/Lightscreen/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Ogrueb/Lightscreen/actions/workflows/ci.yml)
+## Lightscreen Rd
+[![CI](https://github.com/Ogrueb/Lightscreen-Rd/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Ogrueb/Lightscreen-Rd/actions/workflows/ci.yml)
 
 A screenshot tool for Windows and Linux.
 
-This is a fork of [Lightscreen](https://github.com/ckaiser/Lightscreen) by Christian Kaiser, which has not been updated in several years. The fork is being modernized in stages and will ship under a new name; until that name is chosen the code still says "Lightscreen". Please report problems with this fork here, not to the original project.
+Lightscreen Rd ("Redeveloped") is a maintained fork of [Lightscreen](https://github.com/ckaiser/Lightscreen) by Christian Kaiser, which has not been updated in several years. The original code is kept as the base and rebuilt on current frameworks, so the app looks and works as it did. Please report problems with Lightscreen Rd here, not to the original project.
 
-### What changed from upstream 2.5
+Settings and screenshot history from Lightscreen 2.5 carry over: Lightscreen Rd reads them from the same place.
 
-- Builds on a current toolchain, with GitHub Actions CI on Windows and Linux on every push and pull request.
-- A test suite (QtTest) covering settings, screenshot naming and saving, history, the uploader, the hotkey widget, the area selector, the main window and the OS helpers.
-- Many known bugs fixed: see [docs/known-bugs.md](docs/known-bugs.md) and the files under `docs/known-bugs/`.
-- The SingleApplication and UGlobalHotkey submodules are vendored under `tools/`, so a plain clone builds.
-- Windows 10 is the minimum; code for older Windows versions and the XP build flags are gone.
-- Built with Qt 6 (6.2 or newer; CI and the Windows package use Qt 6.8) and C++17. QtWinExtras, QtX11Extras and QtMultimedia are no longer needed.
-- The Imgur and pomf uploaders are replaced by one the user configures: upload URL, form field, optional headers, and the JSON path to the returned link (Options > Upload). A pomf URL from older settings is carried over.
+### What changed from Lightscreen 2.5
 
-- Built with CMake (presets for Windows MSVC and Linux) instead of qmake.
-
-Still to come (see [docs/modernization-plan.md](docs/modernization-plan.md)): an update check against this fork's GitHub Releases, and the rename.
+- **Qt 6.8 and Windows 10 or later** (64-bit), built with CMake. Linux (X11) is kept and tested in CI.
+- **Configurable uploader** in place of Imgur and pomf: upload URL, form field, optional headers, and where the link is in the reply (Options > Upload), with a "Test upload" button. A pomf URL from older settings is carried over.
+- **PNG optimization queue**, with oxipng or OptiPNG chosen in the options; one file at a time, the original replaced only on success, and pending files resumed after a restart. The Windows package includes both tools.
+- **Capture on mixed-DPI setups**: each screen is grabbed at its own scale, and area selection maps to exact pixels at fractional scaling.
+- **Update check** against this fork's GitHub Releases; no calls to the original author's server.
+- **Many bugs fixed**: see [docs/known-bugs.md](docs/known-bugs.md).
+- CI on Windows and Linux for every change, with a test suite (QtTest) and a release workflow.
 
 ### Building
 
-See [docs/build.md](docs/build.md) for Windows (MSVC) and Linux, and for running the tests. Every CI run on Windows also uploads a ready-to-run `lightscreen-win64` zip.
+See [docs/build.md](docs/build.md) for Windows (MSVC) and Linux, and for running the tests. Every CI run on Windows also uploads a ready-to-run `lightscreen-win64` zip; releases are published as `lightscreen-rd-<version>-win64.zip`.
 
 ### License
 

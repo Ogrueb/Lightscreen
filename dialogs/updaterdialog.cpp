@@ -29,7 +29,7 @@
 UpdaterDialog::UpdaterDialog(QWidget *parent) :
     QProgressDialog("", tr("Cancel"), 0, 0, parent)
 {
-    setWindowTitle(tr("Updater - Lightscreen"));
+    setWindowTitle(tr("Updater - Lightscreen Rd"));
     setWindowFlags(windowFlags() ^ Qt::WindowContextHelpButtonHint);
     setAutoClose(false);
 

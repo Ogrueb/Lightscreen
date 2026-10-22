@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Options - Lightscreen</string>
+   <string>Options - Lightscreen Rd</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_4">
    <item>
@@ -1357,8 +1357,8 @@ Warning: Cannot be used in tandem with the &quot;After uploading, copy the URL t
        <item>
         <widget class="QLabel" name="mainLabel">
          <property name="text">
-          <string>Lightscreen is a simple tool to take screenshots, designed to be customizable and lightweight.&lt;br&gt;&lt;br&gt;
-Created by &lt;a href=&quot;https://ckaiser.com.ar&quot;&gt;Christian Kaiser&lt;/a&gt;, with &lt;a href=&quot;#aboutqt&quot;&gt;Qt&lt;/a&gt;.</string>
+          <string>Lightscreen Rd (Redeveloped) is a maintained fork of Lightscreen, a simple tool to take screenshots, designed to be customizable and lightweight.&lt;br&gt;&lt;br&gt;
+Lightscreen was created by &lt;a href=&quot;https://ckaiser.com.ar&quot;&gt;Christian Kaiser&lt;/a&gt;, with &lt;a href=&quot;#aboutqt&quot;&gt;Qt&lt;/a&gt;. Please report problems with Lightscreen Rd to the fork, not to the original project.</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -1395,7 +1395,7 @@ Created by &lt;a href=&quot;https://ckaiser.com.ar&quot;&gt;Christian Kaiser&lt;
        <item>
         <widget class="QLabel" name="linksLabel">
          <property name="text">
-          <string>&lt;a href=&quot;https://github.com/ckaiser/Lightscreen/&quot;&gt;Original Lightscreen on GitHub&lt;/a&gt;</string>
+          <string>&lt;a href=&quot;https://github.com/Ogrueb/Lightscreen-Rd&quot;&gt;Lightscreen Rd on GitHub&lt;/a&gt; · &lt;a href=&quot;https://github.com/ckaiser/Lightscreen/&quot;&gt;Original Lightscreen&lt;/a&gt;</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>

@@ -534,7 +534,7 @@ void OptionsDialog::dialogButtonClicked(QAbstractButton *button)
 void OptionsDialog::restoreDefaults()
 {
     QMessageBox msgBox;
-    msgBox.setWindowTitle(tr("Lightscreen - Restore Default Options"));
+    msgBox.setWindowTitle(tr("Lightscreen Rd - Restore Default Options"));
     msgBox.setText(tr("Restoring the default options will cause you to lose all of your current configuration."));
     msgBox.setIcon(QMessageBox::Warning);
 

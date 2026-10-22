@@ -167,7 +167,7 @@ private slots:
         QCOMPARE(mNetwork->replies.at(0)->operation(), QNetworkAccessManager::GetOperation);
         QCOMPARE(request.url(), Updater::latestReleaseApiUrl());
         QCOMPARE(request.rawHeader("Accept"), QByteArray("application/vnd.github+json"));
-        QCOMPARE(request.rawHeader("User-Agent"), QByteArray("Lightscreen/2.5"));
+        QCOMPARE(request.rawHeader("User-Agent"), QByteArray("Lightscreen-Rd/2.5"));
         QVERIFY(mEvents.isEmpty());
     }
 

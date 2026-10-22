@@ -69,7 +69,7 @@ void Updater::check()
 
     QNetworkRequest request(latestReleaseApiUrl());
     request.setRawHeader("Accept", "application/vnd.github+json");
-    request.setRawHeader("User-Agent", QStringLiteral("Lightscreen/%1").arg(qApp->applicationVersion()).toUtf8());
+    request.setRawHeader("User-Agent", QStringLiteral("Lightscreen-Rd/%1").arg(qApp->applicationVersion()).toUtf8());
     request.setTransferTimeout(30000);
 
     mReply = mNetwork->get(request);

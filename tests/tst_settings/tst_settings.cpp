@@ -35,6 +35,7 @@ private slots:
     void cleanup();
 
     void dialogDefaults();
+    void applicationIdentity();
     void defaultsAgreeWithDialog();
     void dialogRoundTrip();
     void dialogOutOfRangeIndexes();
@@ -272,6 +273,26 @@ void tst_Settings::dialogDefaults()
     }
 
     COMPARE_LINES(dump(), golden("defaults.golden"));
+}
+
+// The rename (M16) changes only the display name. The organization and application names decide where QSettings keeps
+// the settings (and the history next to them) and key the single-instance check, so they must stay as upstream had
+// them, or an upgrade starts from empty settings.
+void tst_Settings::applicationIdentity()
+{
+    const QString organization = QCoreApplication::organizationName();
+    const QString application = QCoreApplication::applicationName();
+    const QString display = QGuiApplication::applicationDisplayName();
+
+    Settings::applyApplicationIdentity();
+
+    QCOMPARE(QCoreApplication::organizationName(), QStringLiteral("K"));
+    QCOMPARE(QCoreApplication::applicationName(), QStringLiteral("Lightscreen"));
+    QCOMPARE(QGuiApplication::applicationDisplayName(), QStringLiteral("Lightscreen Rd"));
+
+    QCoreApplication::setOrganizationName(organization);
+    QCoreApplication::setApplicationName(application);
+    QGuiApplication::setApplicationDisplayName(display);
 }
 
 // One default per key (S06): every option the dialog writes on empty settings is listed in tools/settings with the
