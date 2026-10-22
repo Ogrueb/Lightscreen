@@ -7,4 +7,4 @@ The owner asked for a review of the Windows QA list before the one pass; the own
 - **Removed:** `2026-10-21-upload-after-s02.md`, covered by `custom-uploader` (upload, history) and `update-check`.
 - **Every check now uses the latest `master` artifact** instead of a given PR's.
 - **New:** `2026-10-22-fresh-install.md` (first run in a portable folder: S06 defaults, and Print Screen on Windows 11, where the Snipping Tool may take the key) and `2026-10-22-release-v3.md` (the published release: title, zip, update check).
-- 21 checks, as `ls docs/windows-qa` lists them. The pass stays on hold (owner).
+- 22 checks (21 before: one removed, two added), as `ls docs/windows-qa` lists them. The pass stays on hold (owner).
