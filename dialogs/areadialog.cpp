@@ -22,6 +22,7 @@
  *
  */
 #include <dialogs/areadialog.h>
+#include <tools/capturegeometry.h>
 #include <tools/os.h>
 #include <tools/screenshot.h>
 #include <tools/screenshotmanager.h>
@@ -64,9 +65,9 @@ QRect normalizedRect(const QRect &rect)
 }
 }
 
-AreaDialog::AreaDialog(const QPixmap &pixmap, const Screenshot::Options &options) :
-    QDialog(0), mPixmap(pixmap), mOptions(options), mMouseDown(false), mMouseMagnifier(false),
-    mNewSelection(false), mHandleSize(10), mMouseOverHandle(0),
+AreaDialog::AreaDialog(const QPixmap &pixmap, const Screenshot::Options &options, const QRect &deviceGeometry) :
+    QDialog(0), mPixmap(pixmap), mOptions(options), mDeviceGeometry(deviceGeometry), mMouseDown(false),
+    mMouseMagnifier(false), mNewSelection(false), mHandleSize(10), mMouseOverHandle(0),
     mShowHelp(true), mGrabbing(false), mOverlayAlpha(1), mAutoclose(false), mLocalMagnify(options.magnify),
     mTLHandle(0, 0, mHandleSize, mHandleSize), mTRHandle(0, 0, mHandleSize, mHandleSize),
     mBLHandle(0, 0, mHandleSize, mHandleSize), mBRHandle(0, 0, mHandleSize, mHandleSize),
@@ -124,14 +125,16 @@ AreaDialog::AreaDialog(const QPixmap &pixmap, const Screenshot::Options &options
     });
 }
 
+// The selection in the pixmap's device pixels: every device pixel the selection touches, within the pixmap.
 QRect AreaDialog::resultRect() const
 {
-    auto devicePixelRatio = mPixmap.devicePixelRatio();
+    return CaptureGeometry::selectionToDevice(mSelection, mPixmap.devicePixelRatio(), mPixmap.size());
+}
 
-    return QRect(mSelection.left()   * devicePixelRatio,
-                 mSelection.top()    * devicePixelRatio,
-                 mSelection.width()  * devicePixelRatio,
-                 mSelection.height() * devicePixelRatio);
+// The pixmap's size in the dialog's coordinates.
+QRect AreaDialog::pixmapRect() const
+{
+    return QRect(QPoint(0, 0), mPixmap.deviceIndependentSize().toSize());
 }
 
 // Replaces the desktop shown behind the selection, after a refresh (F5).
@@ -395,11 +398,11 @@ void AreaDialog::mouseMoveEvent(QMouseEvent *e)
                 acceptRect.moveTo(mTHandle.bottomRight());
             }
 
-            if ((acceptRect.x() + 120) > mPixmap.rect().width()) {
+            if ((acceptRect.x() + 120) > pixmapRect().width()) {
                 acceptRect.setX(acceptRect.x() - 120);
             }
 
-            if ((acceptRect.y() + 70) > mPixmap.rect().height()) {
+            if ((acceptRect.y() + 70) > pixmapRect().height()) {
                 acceptRect.setY(acceptRect.y() - 70);
             }
 
@@ -522,6 +525,12 @@ void AreaDialog::paintEvent(QPaintEvent *e)
     QColor overlayColor(0, 0, 0, mOverlayAlpha);
     QColor textColor = pal.color(QPalette::Active, QPalette::Text);
     QColor textBackgroundColor = pal.color(QPalette::Active, QPalette::Base);
+    // The pixmap holds the desktop in device pixels and the dialog covers the same native area, so drawn at the
+    // dialog's own ratio it maps one to one, whichever screens the dialog spans.
+    if (!mPixmap.isNull() && !qFuzzyCompare(mPixmap.devicePixelRatio(), devicePixelRatioF())) {
+        mPixmap.setDevicePixelRatio(devicePixelRatioF());
+    }
+
     painter.drawPixmap(0, 0, mPixmap);
     painter.setFont(font);
 
@@ -646,7 +655,7 @@ void AreaDialog::paintEvent(QPaintEvent *e)
     QPoint magStart, magEnd, drawPosition;
     QRect newRect;
 
-    QRect pixmapRect = mPixmap.rect();
+    QRect pixmapRect = this->pixmapRect();
 
     if (mMouseMagnifier) {
         drawPosition = mMousePos - QPoint(100, 100);
@@ -703,7 +712,8 @@ void AreaDialog::paintEvent(QPaintEvent *e)
         return;
     }
 
-    QPixmap magnified = mPixmap.copy(newRect).scaled(QSize(newRect.width() * 2, newRect.height() * 2));
+    QPixmap magnified = mPixmap.copy(CaptureGeometry::selectionToDevice(newRect, mPixmap.devicePixelRatio()))
+                            .scaled(QSize(newRect.width() * 2, newRect.height() * 2));
 
     QPainter magPainter(&magnified);
     magPainter.setPen(QPen(QBrush(QColor(35, 35, 35)), 2)); // Same border pen
@@ -744,20 +754,34 @@ void AreaDialog::showEvent(QShowEvent *e)
 {
     Q_UNUSED(e)
 
-    QRect geometry = QGuiApplication::primaryScreen()->virtualGeometry();
+    // Cover the grabbed desktop's native area. Qt maps a window's coordinates to native pixels through the screen at
+    // its top left corner (or, when no screen is there, the window's screen), around that screen's top left, so the
+    // window is put on the screen that starts at the area's top left when there is one.
+    QList<QScreen *> screens = QGuiApplication::screens();
+    QList<CaptureGeometry::Screen> layout;
 
-    if (mOptions.currentMonitor) {
-        QScreen *cursorScreen = QGuiApplication::screenAt(QCursor::pos());
-
-        if (!cursorScreen) {
-            cursorScreen = QGuiApplication::primaryScreen();
-        }
-
-        geometry = cursorScreen->geometry();
+    for (QScreen *screen : screens) {
+        layout.append({ screen->geometry(), screen->devicePixelRatio(), QSize() });
     }
 
-    resize(geometry.size());
-    move(geometry.topLeft());
+    QRect device = mDeviceGeometry;
+
+    if (device.isEmpty()) {
+        device = QRect(QGuiApplication::primaryScreen()->virtualGeometry().topLeft(), mPixmap.size());
+    }
+
+    int index = CaptureGeometry::screenAt(layout, device.topLeft());
+
+    if (index < 0) {
+        index = CaptureGeometry::dominantScreen(layout, device);
+    }
+
+    if (index >= 0) {
+        setScreen(screens.at(index));
+        setGeometry(CaptureGeometry::windowGeometry(layout.at(index), device));
+    } else {
+        setGeometry(device);
+    }
 
     if (mOptions.animations) {
         os::effect(this, SLOT(animationTick(int)), 85, 300);

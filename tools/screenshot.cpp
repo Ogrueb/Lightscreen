@@ -30,6 +30,7 @@
 #include <QStandardPaths>
 #include <QStringBuilder>
 
+#include <tools/capturegeometry.h>
 #include <tools/screenshot.h>
 #include <tools/windowpicker.h>
 
@@ -146,6 +147,12 @@ const Screenshot::Options &Screenshot::options()
 QPixmap &Screenshot::pixmap()
 {
     return mPixmap;
+}
+
+// Where the desktop grabbed for a whole-screen or area capture lies on the native desktop, in device pixels.
+const QRect &Screenshot::deviceGeometry() const
+{
+    return mDeviceGeometry;
 }
 
 //
@@ -476,10 +483,12 @@ QString Screenshot::uniqueName(const QString &nameWithoutExtension, const QStrin
     return candidate;
 }
 
+// Grabs every screen (or the one under the cursor) at its own device pixel ratio and composes the grabs on one
+// canvas in native desktop pixels, so screens with different scale factors keep their real size and position.
 void Screenshot::grabDesktop()
 {
-    QRect geometry;
-    QPoint cursorPosition = QCursor::pos();
+    const QPoint cursorPosition = QCursor::pos();
+    QList<QScreen *> screens = QGuiApplication::screens();
 
     if (mOptions.currentMonitor) {
         QScreen *currentScreen = QGuiApplication::screenAt(cursorPosition);
@@ -488,48 +497,54 @@ void Screenshot::grabDesktop()
             currentScreen = QGuiApplication::primaryScreen();
         }
 
-        geometry = currentScreen->geometry();
-        cursorPosition = cursorPosition - geometry.topLeft();
-    } else {
-        int top = 0;
-
-        for (QScreen *screen : QGuiApplication::screens()) {
-            auto screenRect = screen->geometry();
-
-            if (screenRect.top() < 0) {
-                top += screenRect.top() * -1;
-            }
-
-            if (screenRect.left() < 0) {
-                cursorPosition.setX(cursorPosition.x() + screenRect.width()); //= localCursorPos + screenRect.normalized().topLeft();
-            }
-
-            geometry = geometry.united(screenRect);
-        }
-
-        cursorPosition.setY(cursorPosition.y() + top);
+        screens = { currentScreen };
     }
 
-    mPixmap = QApplication::primaryScreen()->grabWindow(0, geometry.x(), geometry.y(), geometry.width(), geometry.height());
-    mPixmap.setDevicePixelRatio(QGuiApplication::primaryScreen()->devicePixelRatio());
+    QList<CaptureGeometry::Screen> layout;
+    QList<QPixmap> grabs;
+    bool grabbed = false;
 
-    if (mOptions.cursor && !mPixmap.isNull()) {
-        QPainter painter(&mPixmap);
+    for (QScreen *screen : screens) {
+        const QPixmap grab = screen->grabWindow(0);
+        grabbed = grabbed || !grab.isNull();
+        grabs.append(grab);
+        layout.append({ screen->geometry(), screen->devicePixelRatio(), grab.size() });
+    }
+
+    mDeviceGeometry = CaptureGeometry::deviceUnion(layout);
+
+    if (!grabbed || mDeviceGeometry.isEmpty()) {
+        mPixmap = QPixmap();
+        return;
+    }
+
+    QPixmap canvas(mDeviceGeometry.size());
+    canvas.fill(Qt::black);
+
+    QPainter painter(&canvas);
+
+    for (int i = 0; i < grabs.size(); ++i) {
+        QPixmap grab = grabs.at(i);
+        grab.setDevicePixelRatio(1);
+        painter.drawPixmap(CaptureGeometry::deviceRect(layout.at(i)).topLeft() - mDeviceGeometry.topLeft(), grab);
+    }
+
+    if (mOptions.cursor) {
         auto cursorInfo = os::cursor();
         auto cursorPixmap = cursorInfo.first;
-        cursorPixmap.setDevicePixelRatio(QGuiApplication::primaryScreen()->devicePixelRatio()); 
+        cursorPixmap.setDevicePixelRatio(1);
 
-#if 0 // Debug cursor position helper
-        painter.setBrush(QBrush(Qt::darkRed));
-        painter.setPen(QPen(QBrush(Qt::red), 5));
-        QRectF rect;
-        rect.setSize(QSizeF(100, 100));
-        rect.moveCenter(cursorPosition);
-        painter.drawRoundRect(rect, rect.size().height()*2, rect.size().height()*2);
-#endif
-
-        painter.drawPixmap(cursorPosition-cursorInfo.second, cursorPixmap);
+        const QPoint cursorDevice = CaptureGeometry::logicalToDevice(layout, cursorPosition) - mDeviceGeometry.topLeft();
+        painter.drawPixmap(cursorDevice - cursorInfo.second, cursorPixmap);
     }
+
+    painter.end();
+
+    // Previews show the canvas at the scale of the screen that holds most of it.
+    const int dominant = CaptureGeometry::dominantScreen(layout, mDeviceGeometry);
+    canvas.setDevicePixelRatio(dominant >= 0 ? layout.at(dominant).ratio : 1);
+
+    mPixmap = canvas;
 }
 
 const QString Screenshot::newFileName() const

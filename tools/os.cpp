@@ -245,8 +245,14 @@ QPixmap os::grabWindow(WId winId)
     width = rcWindow.right - rcWindow.left;
     height = rcWindow.bottom - rcWindow.top;
 
+    // The whole virtual desktop (every monitor), in the same physical pixels as the window rectangle: Qt 6 makes the
+    // process per-monitor DPI aware. GetDesktopWindow() covers only the primary monitor, which sent every window on
+    // another monitor down the window DC path below.
     RECT rcScreen;
-    GetWindowRect(GetDesktopWindow(), &rcScreen);
+    rcScreen.left = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    rcScreen.top = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    rcScreen.right = rcScreen.left + GetSystemMetrics(SM_CXVIRTUALSCREEN);
+    rcScreen.bottom = rcScreen.top + GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
     RECT rcResult;
     UnionRect(&rcResult, &rcWindow, &rcScreen);

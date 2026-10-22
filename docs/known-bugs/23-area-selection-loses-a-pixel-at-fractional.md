@@ -6,3 +6,4 @@
 - **Fix:** map the corners (`QRectF` scaled, then `toAlignedRect()` or rounded corners) instead of truncating origin and size separately.
 - **Platform:** Windows (or X11 with `QT_SCALE_FACTOR`) at 125%, 150% or 175%. **Test:** `tst_AreaDialog::resultRect` rows "ratio 1.5 truncates" and "ratio 1.25 truncates" record the current values. Confirmed by the test; not reproduced in the running app.
 - **Triage:** deferred to S04 (replaces the mapping); its done-check flips the fractional rows.
+- **Status:** fixed in S04 (Stage 6). `CaptureGeometry::selectionToDevice` rounds the near edges down and the far edges up; the `tst_AreaDialog::resultRect` rows flipped ("covers every pixel"). Reproduced and checked in the running app under Xvfb with `QT_SCALE_FACTOR=1.5`: the same drag gave 301 pixels on `master` and 302 with the fix.

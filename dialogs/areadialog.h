@@ -44,7 +44,7 @@ class AreaDialog : public QDialog
     Q_OBJECT
 
 public:
-    AreaDialog(const QPixmap &pixmap, const Screenshot::Options &options);
+    AreaDialog(const QPixmap &pixmap, const Screenshot::Options &options, const QRect &deviceGeometry = QRect());
     QRect resultRect() const;
     void setPixmap(const QPixmap &pixmap);
 
@@ -73,9 +73,11 @@ protected:
     QRegion handleMask() const;
 
     QPoint limitPointToRect(const QPoint &p, const QRect &r) const;
+    QRect pixmapRect() const;
 
     QPixmap mPixmap;
     Screenshot::Options mOptions;
+    QRect mDeviceGeometry; // where the pixmap lies on the native desktop; empty: at the virtual desktop's top left
     QPoint mDragStartPoint;
     bool mMouseDown;
     bool mMouseMagnifier;
