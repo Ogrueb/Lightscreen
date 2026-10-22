@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Lightscreen</string>
+   <string>Lightscreen Rd</string>
   </property>
   <property name="windowIcon">
    <iconset resource="lightscreen.qrc">

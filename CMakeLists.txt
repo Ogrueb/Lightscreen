@@ -1,14 +1,15 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(Lightscreen VERSION 2.5 LANGUAGES CXX)
+project(Lightscreen VERSION 3.0 LANGUAGES CXX)
 
-# GitHub repository ("owner/name") whose releases the update check reads. M16 changes it with the rename.
-set(LIGHTSCREEN_UPDATE_REPO "Ogrueb/Lightscreen")
+# GitHub repository ("owner/name") whose releases the update check reads (renamed with M16).
+set(LIGHTSCREEN_UPDATE_REPO "Ogrueb/Lightscreen-Rd")
 
 # Shown in the Windows file properties (cmake/lightscreen.rc.in).
-set(LIGHTSCREEN_COMPANY "Christian Kaiser")
-set(LIGHTSCREEN_DESCRIPTION "Lightscreen Screenshot Tool")
-set(LIGHTSCREEN_COPYRIGHT "Copyright (C) 2008-2021 Christian Kaiser")
+set(LIGHTSCREEN_PRODUCT_NAME "Lightscreen Rd")
+set(LIGHTSCREEN_COMPANY "Lightscreen Rd contributors")
+set(LIGHTSCREEN_DESCRIPTION "Lightscreen Rd Screenshot Tool")
+set(LIGHTSCREEN_COPYRIGHT "Copyright (C) 2008-2021 Christian Kaiser, 2026 Lightscreen Rd contributors")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

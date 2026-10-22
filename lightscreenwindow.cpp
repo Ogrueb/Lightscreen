@@ -226,7 +226,7 @@ bool LightscreenWindow::closingWithoutTray()
     }
 
     QMessageBox msgBox;
-    msgBox.setWindowTitle(tr("Lightscreen"));
+    msgBox.setWindowTitle(tr("Lightscreen Rd"));
     msgBox.setText(tr("You have chosen to hide Lightscreen when there's no system tray icon, so you will not be able to access the program <b>unless you have selected a hotkey to do so</b>.<br>What do you want to do?"));
     msgBox.setIcon(QMessageBox::Warning);
 
@@ -595,7 +595,7 @@ void LightscreenWindow::showHotkeyError(const QStringList &hotkeys)
     messageText += tr("<br><i>What do you want to do?</i>");
 
     QMessageBox msgBox(this);
-    msgBox.setWindowTitle(tr("Lightscreen"));
+    msgBox.setWindowTitle(tr("Lightscreen Rd"));
     msgBox.setText(messageText);
 
     QPushButton *changeButton  = msgBox.addButton(tr("Change") , QMessageBox::ActionRole);
@@ -744,7 +744,7 @@ void LightscreenWindow::updaterDone(bool newer, const QString &htmlUrl)
     }
 
     QMessageBox msgBox;
-    msgBox.setWindowTitle(tr("Lightscreen"));
+    msgBox.setWindowTitle(tr("Lightscreen Rd"));
     msgBox.setText(tr("There's a new version of Lightscreen available.<br>Would you like to see more information?<br>(<em>You can turn this notification off</em>)"));
     msgBox.setIcon(QMessageBox::Information);
 
@@ -804,9 +804,9 @@ void LightscreenWindow::uploadProgress(int progress)
         int uploadCount = ScreenshotManager::instance()->uploader()->uploading();
 
         if (uploadCount > 1) {
-            setWindowTitle(tr("%1% of %2 uploads - Lightscreen").arg(progress).arg(uploadCount));
+            setWindowTitle(tr("%1% of %2 uploads - Lightscreen Rd").arg(progress).arg(uploadCount));
         } else {
-            setWindowTitle(tr("%1% - Lightscreen").arg(progress));
+            setWindowTitle(tr("%1% - Lightscreen Rd").arg(progress));
         }
     }
 }
@@ -952,9 +952,9 @@ void LightscreenWindow::createTrayIcon()
 void LightscreenWindow::setStatus(QString status)
 {
     if (status.isEmpty()) {
-        status = tr("Lightscreen");
+        status = tr("Lightscreen Rd");
     } else {
-        status += tr(" - Lightscreen");
+        status += tr(" - Lightscreen Rd");
     }
 
     if (mTrayIcon) {

@@ -1,4 +1,6 @@
 /*
+ * Copyright (C) 2026 Lightscreen Rd contributors
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -38,6 +40,11 @@ QVariant value(const QSettings *settings, const QString &key, bool portable = fa
 
 // Every listed key.
 QStringList keys();
+
+// Sets the organization and application names QSettings files the settings under, "K" and "Lightscreen" as upstream
+// did, and the display name, "Lightscreen Rd" (M16). The first two also key the single-instance check; changing them
+// would lose every user's settings and history on upgrade, so they stay even though the product is renamed.
+void applyApplicationIdentity();
 
 } // namespace Settings
 

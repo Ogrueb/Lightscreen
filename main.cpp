@@ -20,6 +20,7 @@
 #include <QLocale>
 
 #include <tools/os.h>
+#include <tools/settings.h>
 #include "tools/SingleApplication/singleapplication.h"
 
 #include <lightscreenwindow.h>
@@ -30,8 +31,7 @@ int main(int argc, char *argv[])
     qSetMessagePattern("%{message} @%{line}[%{function}()]");
 #endif
 
-    QApplication::setOrganizationName("K");
-    QApplication::setApplicationName("Lightscreen");
+    Settings::applyApplicationIdentity();
     QApplication::setApplicationVersion(APP_VERSION);
     // Qt 6 always scales for high DPI and keeps fractional scale factors (125%, 150%) by default.
     // Rounding them as Qt 5 did keeps the capture and area-selection geometry as it was; S04 revisits this.

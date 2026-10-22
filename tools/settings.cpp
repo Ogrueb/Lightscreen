@@ -1,4 +1,6 @@
 /*
+ * Copyright (C) 2026 Lightscreen Rd contributors
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -18,6 +20,7 @@
 #include <tools/os.h>
 
 #include <QCoreApplication>
+#include <QGuiApplication>
 #include <QDir>
 #include <QHash>
 #include <QSettings>
@@ -113,6 +116,13 @@ QVariant value(const QSettings *settings, const QString &key, bool portable)
 {
     const QString group = settings->group();
     return settings->value(key, defaultValue(group.isEmpty() ? key : group + '/' + key, portable));
+}
+
+void applyApplicationIdentity()
+{
+    QCoreApplication::setOrganizationName(QStringLiteral("K"));
+    QCoreApplication::setApplicationName(QStringLiteral("Lightscreen"));
+    QGuiApplication::setApplicationDisplayName(QStringLiteral("Lightscreen Rd"));
 }
 
 QStringList keys()
