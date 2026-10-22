@@ -17,8 +17,28 @@ jobs:
   docs:
     name: Docs layout
     runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.changes.outputs.build }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+      # A pull request that only changes Markdown (docs/ or any *.md) skips the Linux and Windows
+      # builds; they show as skipped. Pushes to master always build, so the lightscreen-win64
+      # artifact used for Windows QA stays current.
+      - name: Decide whether the builds run
+        id: changes
+        run: |
+          build=true
+          if [ "${{ github.event_name }}" = pull_request ]; then
+            # The checkout is GitHub's merge commit; its first parent is the base branch.
+            files="$(git diff --name-only HEAD^1 HEAD)"
+            if [ -n "$files" ] && ! grep -qvE '^docs/|\.md$' <<< "$files"; then
+              build=false
+            fi
+          fi
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+          echo "Builds run: $build"
       - name: Check one-file-per-entry layout
         run: .github/scripts/check-docs.sh
       - name: Include-graph check (tools/ includes no dialogs/ or widgets/)
@@ -26,6 +46,8 @@ jobs:
 
   linux:
     name: Linux (Qt 6.8, GCC)
+    needs: docs
+    if: needs.docs.outputs.build == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -138,6 +160,8 @@ jobs:
 
   windows:
     name: Windows (Qt 6.8, MSVC)
+    needs: docs
+    if: needs.docs.outputs.build == 'true'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
