@@ -43,6 +43,7 @@ add_library(lightscreen_core OBJECT
     tools/os.cpp tools/os.h
     tools/screenshot.cpp tools/screenshot.h
     tools/screenshotmanager.cpp tools/screenshotmanager.h
+    tools/settings.cpp tools/settings.h
     tools/taskbar.h
     tools/windowpicker.cpp tools/windowpicker.h
     tools/uploader/imageuploader.cpp tools/uploader/imageuploader.h

@@ -50,6 +50,7 @@
 #include <tools/os.h>
 #include <tools/screenshot.h>
 #include <tools/screenshotmanager.h>
+#include <tools/settings.h>
 #include <tools/uploader/customuploader.h>
 #include <tools/uploader/uploader.h>
 
@@ -172,62 +173,54 @@ void OptionsDialog::loadSettings()
     ui.trayCheckBox->toggle();
     ui.previewAutocloseCheckBox->toggle();
 
-    QString targetDefault;
-
-    if (ScreenshotManager::instance()->portableMode()) {
-        targetDefault = tr("Screenshots");
-    } else {
-        targetDefault = os::getDocumentsPath() + QDir::separator() + tr("Screenshots");
-    }
-
     settings()->beginGroup("file");
-    ui.formatComboBox->setCurrentIndex(settings()->value("format", 1).toInt());
-    ui.prefixLineEdit->setText(settings()->value("prefix", tr("screenshot.")).toString());
-    ui.namingComboBox->setCurrentIndex(settings()->value("naming", 0).toInt());
-    ui.targetLineEdit->setText(settings()->value("target", targetDefault).toString());
-    ui.fileGroupBox->setChecked(settings()->value("enabled", true).toBool());
+    ui.formatComboBox->setCurrentIndex(Settings::value(settings(), "format").toInt());
+    ui.prefixLineEdit->setText(Settings::value(settings(), "prefix").toString());
+    ui.namingComboBox->setCurrentIndex(Settings::value(settings(), "naming").toInt());
+    ui.targetLineEdit->setText(Settings::value(settings(), "target", ScreenshotManager::instance()->portableMode()).toString());
+    ui.fileGroupBox->setChecked(Settings::value(settings(), "enabled").toBool());
     settings()->endGroup();
 
     settings()->beginGroup("options");
-    ui.startupCheckBox->setChecked(settings()->value("startup", false).toBool());
-    ui.startupHideCheckBox->setChecked(settings()->value("startupHide", true).toBool());
-    ui.hideCheckBox->setChecked(settings()->value("hide", true).toBool());
-    ui.delaySpinBox->setValue(settings()->value("delay", 0).toInt());
-    flipToggled(settings()->value("flip", false).toBool());
-    ui.trayCheckBox->setChecked(settings()->value("tray", true).toBool());
-    ui.messageCheckBox->setChecked(settings()->value("message", true).toBool());
-    ui.qualitySlider->setValue(settings()->value("quality", 100).toInt());
-    ui.playSoundCheckBox->setChecked(settings()->value("playSound", false).toBool());
-    ui.updaterCheckBox->setChecked(!settings()->value("disableUpdater", false).toBool());
-    ui.magnifyCheckBox->setChecked(settings()->value("magnify", false).toBool());
+    ui.startupCheckBox->setChecked(Settings::value(settings(), "startup").toBool());
+    ui.startupHideCheckBox->setChecked(Settings::value(settings(), "startupHide").toBool());
+    ui.hideCheckBox->setChecked(Settings::value(settings(), "hide").toBool());
+    ui.delaySpinBox->setValue(Settings::value(settings(), "delay").toInt());
+    flipToggled(Settings::value(settings(), "flip").toBool());
+    ui.trayCheckBox->setChecked(Settings::value(settings(), "tray").toBool());
+    ui.messageCheckBox->setChecked(Settings::value(settings(), "message").toBool());
+    ui.qualitySlider->setValue(Settings::value(settings(), "quality").toInt());
+    ui.playSoundCheckBox->setChecked(Settings::value(settings(), "playSound").toBool());
+    ui.updaterCheckBox->setChecked(!Settings::value(settings(), "disableUpdater").toBool());
+    ui.magnifyCheckBox->setChecked(Settings::value(settings(), "magnify").toBool());
 
 #ifdef Q_OS_WIN
-    ui.cursorCheckBox->setChecked(settings()->value("cursor", true).toBool());
+    ui.cursorCheckBox->setChecked(Settings::value(settings(), "cursor").toBool());
 #else
-    ui.cursorCheckBox->setChecked(settings()->value("cursor", true).toBool());
+    ui.cursorCheckBox->setChecked(Settings::value(settings(), "cursor").toBool());
 #endif
 
-    ui.saveAsCheckBox->setChecked(settings()->value("saveAs", false).toBool());
-    ui.previewGroupBox->setChecked(settings()->value("preview", false).toBool());
-    ui.previewSizeSpinBox->setValue(settings()->value("previewSize", 300).toInt());
-    ui.previewPositionComboBox->setCurrentIndex(settings()->value("previewPosition", 3).toInt());
-    ui.previewAutocloseCheckBox->setChecked(settings()->value("previewAutoclose", false).toBool());
-    ui.previewAutocloseTimeSpinBox->setValue(settings()->value("previewAutocloseTime", 15).toInt());
-    ui.previewAutocloseActionComboBox->setCurrentIndex(settings()->value("previewAutocloseAction", 0).toInt());
-    ui.previewDefaultActionComboBox->setCurrentIndex(settings()->value("previewDefaultAction", 0).toInt());
-    ui.areaAutocloseCheckBox->setChecked(settings()->value("areaAutoclose", false).toBool());
+    ui.saveAsCheckBox->setChecked(Settings::value(settings(), "saveAs").toBool());
+    ui.previewGroupBox->setChecked(Settings::value(settings(), "preview").toBool());
+    ui.previewSizeSpinBox->setValue(Settings::value(settings(), "previewSize").toInt());
+    ui.previewPositionComboBox->setCurrentIndex(Settings::value(settings(), "previewPosition").toInt());
+    ui.previewAutocloseCheckBox->setChecked(Settings::value(settings(), "previewAutoclose").toBool());
+    ui.previewAutocloseTimeSpinBox->setValue(Settings::value(settings(), "previewAutocloseTime").toInt());
+    ui.previewAutocloseActionComboBox->setCurrentIndex(Settings::value(settings(), "previewAutocloseAction").toInt());
+    ui.previewDefaultActionComboBox->setCurrentIndex(Settings::value(settings(), "previewDefaultAction").toInt());
+    ui.areaAutocloseCheckBox->setChecked(Settings::value(settings(), "areaAutoclose").toBool());
 
     // History mode is neat for normal operation but I'll keep it disabled by default on portable mode.
-    ui.historyCheckBox->setChecked(settings()->value("history", (ScreenshotManager::instance()->portableMode()) ? false : true).toBool());
+    ui.historyCheckBox->setChecked(Settings::value(settings(), "history", ScreenshotManager::instance()->portableMode()).toBool());
 
     // Advanced
-    ui.clipboardCheckBox->setChecked(settings()->value("clipboard", true).toBool());
-    ui.urlClipboardCheckBox->setChecked(settings()->value("urlClipboard", false).toBool());
-    ui.optiPngCheckBox->setChecked(settings()->value("optimize", false).toBool());
-    ui.closeHideCheckBox->setChecked(settings()->value("closeHide", true).toBool());
-    ui.currentMonitorCheckBox->setChecked(settings()->value("currentMonitor", false).toBool());
-    ui.replaceCheckBox->setChecked(settings()->value("replace", false).toBool());
-    ui.uploadCheckBox->setChecked(settings()->value("uploadAuto", false).toBool());
+    ui.clipboardCheckBox->setChecked(Settings::value(settings(), "clipboard").toBool());
+    ui.urlClipboardCheckBox->setChecked(Settings::value(settings(), "urlClipboard").toBool());
+    ui.optiPngCheckBox->setChecked(Settings::value(settings(), "optimize").toBool());
+    ui.closeHideCheckBox->setChecked(Settings::value(settings(), "closeHide").toBool());
+    ui.currentMonitorCheckBox->setChecked(Settings::value(settings(), "currentMonitor").toBool());
+    ui.replaceCheckBox->setChecked(Settings::value(settings(), "replace").toBool());
+    ui.uploadCheckBox->setChecked(Settings::value(settings(), "uploadAuto").toBool());
 
     // PNG optimizer: the stored choice, or what the automatic choice runs when nothing is stored. A tool that is not
     // found stays selectable, so a choice made before installing it is kept. "optimizer" is written only once the
@@ -285,38 +278,38 @@ void OptionsDialog::loadSettings()
     ui.directoryCheckBox->toggle();
 
     settings()->beginGroup("screen");
-    ui.screenCheckBox->setChecked(settings()->value("enabled", true).toBool());
-    ui.screenHotkeyWidget->setHotkey(settings()->value("hotkey", "Print").toString());
+    ui.screenCheckBox->setChecked(Settings::value(settings(), "enabled").toBool());
+    ui.screenHotkeyWidget->setHotkey(Settings::value(settings(), "hotkey").toString());
     settings()->endGroup();
 
     settings()->beginGroup("area");
-    ui.areaCheckBox->setChecked(settings()->value("enabled").toBool());
-    ui.areaHotkeyWidget->setHotkey(settings()->value("hotkey", "Ctrl+Print").toString());
+    ui.areaCheckBox->setChecked(Settings::value(settings(), "enabled").toBool());
+    ui.areaHotkeyWidget->setHotkey(Settings::value(settings(), "hotkey").toString());
     settings()->endGroup();
 
     settings()->beginGroup("window");
-    ui.windowCheckBox->setChecked(settings()->value("enabled").toBool());
-    ui.windowHotkeyWidget->setHotkey(settings()->value("hotkey", "Alt+Print").toString());
+    ui.windowCheckBox->setChecked(Settings::value(settings(), "enabled").toBool());
+    ui.windowHotkeyWidget->setHotkey(Settings::value(settings(), "hotkey").toString());
     settings()->endGroup();
 
     settings()->beginGroup("windowPicker");
-    ui.windowPickerCheckBox->setChecked(settings()->value("enabled").toBool());
-    ui.windowPickerHotkeyWidget->setHotkey(settings()->value("hotkey", "Ctrl+Alt+Print").toString());
+    ui.windowPickerCheckBox->setChecked(Settings::value(settings(), "enabled").toBool());
+    ui.windowPickerHotkeyWidget->setHotkey(Settings::value(settings(), "hotkey").toString());
     settings()->endGroup();
 
     settings()->beginGroup("open");
-    ui.openCheckBox->setChecked(settings()->value("enabled").toBool());
-    ui.openHotkeyWidget->setHotkey(settings()->value("hotkey", "Ctrl+PgUp").toString());
+    ui.openCheckBox->setChecked(Settings::value(settings(), "enabled").toBool());
+    ui.openHotkeyWidget->setHotkey(Settings::value(settings(), "hotkey").toString());
     settings()->endGroup();
 
     settings()->beginGroup("directory");
-    ui.directoryCheckBox->setChecked(settings()->value("enabled").toBool());
-    ui.directoryHotkeyWidget->setHotkey(settings()->value("hotkey", "Ctrl+PgDown").toString());
+    ui.directoryCheckBox->setChecked(Settings::value(settings(), "enabled").toBool());
+    ui.directoryHotkeyWidget->setHotkey(Settings::value(settings(), "hotkey").toString());
     settings()->endGroup();
     settings()->endGroup();
 
     settings()->beginGroup("upload");
-    const int service = settings()->value("service").toInt();
+    const int service = Settings::value(settings(), "service").toInt();
     ui.uploadServiceComboBox->setCurrentIndex((service >= 0 && service < ui.uploadServiceComboBox->count()) ? service : 0);
 
     settings()->endGroup();
@@ -444,9 +437,9 @@ void OptionsDialog::updatePreview()
     Screenshot::NamingOptions options;
 
     options.naming       = (Screenshot::Naming) ui.namingComboBox->currentIndex();
-    options.flip         = settings()->value("options/flip", false).toBool();
-    options.leadingZeros = settings()->value("options/naming/leadingZeros", 0).toInt();
-    options.dateFormat   = settings()->value("options/naming/dateFormat", "yyyy-MM-dd").toString();
+    options.flip         = Settings::value(settings(), "options/flip").toBool();
+    options.leadingZeros = Settings::value(settings(), "options/naming/leadingZeros").toInt();
+    options.dateFormat   = Settings::value(settings(), "options/naming/dateFormat").toString();
 
     if (ui.fileGroupBox->isChecked()) { // Only change the naming button when file options are enabled.
         ui.namingOptionsButton->setDisabled((options.naming == Screenshot::Empty));
@@ -733,7 +726,7 @@ void OptionsDialog::namingOptions()
     NamingDialog namingDialog((Screenshot::Naming) ui.namingComboBox->currentIndex());
 
     namingDialog.exec();
-    flipToggled(settings()->value("options/flip").toBool());
+    flipToggled(Settings::value(settings(), "options/flip").toBool());
     updatePreview();
 }
 

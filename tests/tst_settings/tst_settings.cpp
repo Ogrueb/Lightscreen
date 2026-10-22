@@ -21,6 +21,7 @@
 #include <tools/os.h>
 #include <tools/screenshot.h>
 #include <tools/screenshotmanager.h>
+#include <tools/settings.h>
 #include <tools/uploader/uploader.h>
 #include <widgets/hotkeywidget.h>
 
@@ -34,6 +35,7 @@ private slots:
     void cleanup();
 
     void dialogDefaults();
+    void defaultsAgreeWithDialog();
     void dialogRoundTrip();
     void dialogOutOfRangeIndexes();
     void dialogLegacyImgurSettings();
@@ -270,6 +272,44 @@ void tst_Settings::dialogDefaults()
     }
 
     COMPARE_LINES(dump(), golden("defaults.golden"));
+}
+
+// One default per key (S06): every option the dialog writes on empty settings is listed in tools/settings with the
+// value the dialog wrote, except the two the dialog forces off on Linux (no cursor or sound support there). Keys the
+// table leaves out on purpose: the uploader's upload/custom/*, whose defaults live in CustomUploader.
+void tst_Settings::defaultsAgreeWithDialog()
+{
+    {
+        OptionsDialog dialog;
+        QTRY_VERIFY(dialog.isEnabled());
+        dialog.saveSettings();
+    }
+
+    const QStringList keys = Settings::keys();
+    QStringList mismatches;
+
+    for (const QString &line : dump()) {
+        const QString key = line.section('=', 0, 0);
+        const QString written = line.section('=', 1);
+
+        if (key.startsWith("upload/custom/")) {
+            continue;
+        }
+
+#ifdef Q_OS_LINUX
+        if (key == "options/cursor" || key == "options/playSound") {
+            continue;
+        }
+#endif
+
+        if (!keys.contains(key)) {
+            mismatches << key + " is not in Settings::keys()";
+        } else if (placeholders(Settings::defaultValue(key).toString()) != written) {
+            mismatches << QString("%1: dialog wrote %2, default is %3").arg(key, written, Settings::defaultValue(key).toString());
+        }
+    }
+
+    QVERIFY2(mismatches.isEmpty(), qPrintable(mismatches.join('\n')));
 }
 
 // Every widget set to a non-default value, saved, loaded into a second dialog, saved again.
@@ -517,9 +557,9 @@ void tst_Settings::dialogUploaderHeaders()
 #endif
 
 // What screenshotAction reads when the settings hold only what the window needs to start quietly. "file/format"
-// must exist or the constructor opens the options dialog instead, so the window's own format default (0 by
-// toInt()) is never reached. Its other defaults differ from the dialog's: file saving off, empty prefix,
-// a relative (current directory) target, and the cursor on.
+// must exist or the constructor opens the options dialog instead. Since S06 the window's defaults are the dialog's
+// (tools/settings): file saving on, prefix "screenshot.", the Screenshots folder under Documents (until S06: off,
+// empty, the current directory). The cursor is on: only the dialog forces it off on Linux.
 void tst_Settings::windowReadsEmptySettings()
 {
     REQUIRE_WINDOW_PLATFORM();
@@ -537,8 +577,8 @@ void tst_Settings::windowReadsEmptySettings()
         "clipboard=true",
         "currentMonitor=false",
         "cursor=true",
-        "directory=<cwd>",
-        "file=false",
+        "directory=<documents>/Screenshots",
+        "file=true",
         "format=1",
         "magnify=false",
         "naming.dateFormat=yyyy-MM-dd",
@@ -546,7 +586,7 @@ void tst_Settings::windowReadsEmptySettings()
         "naming.leadingZeros=0",
         "naming.naming=0",
         "optimize=false",
-        "prefix=",
+        "prefix=screenshot.",
         "preview=false",
         "quality=100",
         "replace=false",
@@ -584,7 +624,7 @@ void tst_Settings::windowReadsDialogDefaults()
         "cursor=false", // The dialog forces it off on Linux.
         "directory=<documents>/Screenshots",
         "file=true",
-        "format=1",
+        "format=0", // PNG since S06 (the dialog's default was JPEG, 1).
         "magnify=false",
         "naming.dateFormat=yyyy-MM-dd",
         "naming.flip=false",
@@ -593,7 +633,7 @@ void tst_Settings::windowReadsDialogDefaults()
         "optimize=false",
         "prefix=screenshot.",
         "preview=false",
-        "quality=100",
+        "quality=80", // Forced for PNG (bug 20).
         "replace=false",
         "saveAs=false",
         "upload=false",

@@ -51,6 +51,7 @@
 #include <tools/os.h>
 #include <tools/screenshot.h>
 #include <tools/screenshotmanager.h>
+#include <tools/settings.h>
 #include <tools/UGlobalHotkey/uglobalhotkeys.h>
 #include <tools/uploader/uploader.h>
 
@@ -146,7 +147,7 @@ void LightscreenWindow::areaHotkey()
 
 void LightscreenWindow::checkForUpdates()
 {
-    if (settings()->value("options/disableUpdater", false).toBool()) {
+    if (Settings::value(settings(), "options/disableUpdater").toBool()) {
         return;
     }
 
@@ -165,9 +166,9 @@ void LightscreenWindow::checkForUpdates()
 void LightscreenWindow::cleanup(const Screenshot::Options &options)
 {
     // Reversing settings, once no other request is waiting to be taken with the window hidden
-    if (settings()->value("options/hide").toBool() && mPendingScreenshots == 0) {
+    if (Settings::value(settings(), "options/hide").toBool() && mPendingScreenshots == 0) {
 #ifndef Q_OS_LINUX // X is not quick enough and the notification ends up everywhere but in the icon
-        if (settings()->value("options/tray").toBool() && mTrayIcon) {
+        if (Settings::value(settings(), "options/tray").toBool() && mTrayIcon) {
             mTrayIcon->show();
         }
 #endif
@@ -185,16 +186,16 @@ void LightscreenWindow::cleanup(const Screenshot::Options &options)
         mHideTrigger = false;
     }
 
-    if (settings()->value("options/tray").toBool() && mTrayIcon) {
+    if (Settings::value(settings(), "options/tray").toBool() && mTrayIcon) {
         notify(options.result);
 
-        if (settings()->value("options/message").toBool() && options.file && !options.upload) {
+        if (Settings::value(settings(), "options/message").toBool() && options.file && !options.upload) {
             // This message wll get shown only when messages are enabled and the file won't get another upload pop-up soon.
             showScreenshotMessage(options.result, options.fileName);
         }
     }
 
-    if (settings()->value("options/playSound", false).toBool()) {
+    if (Settings::value(settings(), "options/playSound").toBool()) {
         os::playSound(options.result == Screenshot::Success ? os::Sound::Screenshot : os::Sound::Error);
     }
 
@@ -209,7 +210,7 @@ void LightscreenWindow::cleanup(const Screenshot::Options &options)
 
 void LightscreenWindow::closeToTrayWarning()
 {
-    if (!settings()->value("options/closeToTrayWarning", true).toBool()) {
+    if (!Settings::value(settings(), "options/closeToTrayWarning").toBool()) {
         return;
     }
 
@@ -220,7 +221,7 @@ void LightscreenWindow::closeToTrayWarning()
 
 bool LightscreenWindow::closingWithoutTray()
 {
-    if (settings()->value("options/disableHideAlert", false).toBool()) {
+    if (Settings::value(settings(), "options/disableHideAlert").toBool()) {
         return false;
     }
 
@@ -292,7 +293,7 @@ void LightscreenWindow::goToFolder()
         QProcess::startDetached("explorer", {"/select,", QDir::toNativeSeparators(mLastScreenshot)});
     } else {
 #endif
-        QDir path(settings()->value("file/target").toString());
+        QDir path(Settings::value(settings(), "file/target", ScreenshotManager::instance()->portableMode()).toString());
 
         // We might want to go to the folder without it having been created by taking a screenshot yet.
         if (!path.exists()) {
@@ -340,8 +341,10 @@ void LightscreenWindow::executeArgument(const QString &message)
         showOptions();
     } else if (message == "--quit") {
         // Queued, so that it also works before the event loop starts (main runs our own arguments before exec,
-        // which would reset an immediate quit; bug 29).
-        QTimer::singleShot(0, qApp, &QCoreApplication::quit);
+        // which would reset an immediate quit; bug 29). exit() rather than quit(): Qt 6's quit() first sends the
+        // windows a close event, and with "close hides the window" on and no tray icon that close asks whether to
+        // hide instead, so --quit waited on a dialog (found in S06, where closeHide became on by default).
+        QTimer::singleShot(0, qApp, [] { QCoreApplication::exit(0); });
     }
 }
 
@@ -470,7 +473,7 @@ void LightscreenWindow::screenshotAction(Screenshot::Mode mode)
 
     int delayms = -1;
 
-    bool optionsHide = settings()->value("options/hide").toBool(); // Option cache, used a couple of times.
+    bool optionsHide = Settings::value(settings(), "options/hide").toBool(); // Option cache, used a couple of times.
 
     if (!mHideTrigger) {
         mWasVisible = isVisible();
@@ -489,7 +492,7 @@ void LightscreenWindow::screenshotAction(Screenshot::Mode mode)
     }
 
     // Screenshot delay
-    delayms = settings()->value("options/delay", 0).toInt();
+    delayms = Settings::value(settings(), "options/delay").toInt();
     delayms = delayms * 1000; // Converting the delay to milliseconds.
 
     delayms += 400;
@@ -515,35 +518,35 @@ void LightscreenWindow::takeScreenshot(Screenshot::Mode mode)
 
     if (!mDoCache) {
         // Populating the option object that will then be passed to the screenshot engine (sounds fancy huh?)
-        options.file           = settings()->value("file/enabled").toBool();
-        options.format         = Screenshot::formatFromSetting(settings()->value("file/format"));
-        options.prefix         = settings()->value("file/prefix").toString();
+        options.file           = Settings::value(settings(), "file/enabled").toBool();
+        options.format         = Screenshot::formatFromSetting(Settings::value(settings(), "file/format"));
+        options.prefix         = Settings::value(settings(), "file/prefix").toString();
 
-        QDir dir(settings()->value("file/target").toString());
+        QDir dir(Settings::value(settings(), "file/target", ScreenshotManager::instance()->portableMode()).toString());
         dir.makeAbsolute();
 
         options.directory      = dir;
 
-        options.quality        = settings()->value("options/quality", 100).toInt();
-        options.currentMonitor = settings()->value("options/currentMonitor", false).toBool();
-        options.clipboard      = settings()->value("options/clipboard",      true).toBool();
-        options.urlClipboard   = settings()->value("options/urlClipboard",   false).toBool();
-        options.preview        = settings()->value("options/preview",        false).toBool();
-        options.magnify        = settings()->value("options/magnify",        false).toBool();
-        options.cursor         = settings()->value("options/cursor",         true).toBool();
-        options.saveAs         = settings()->value("options/saveAs",         false).toBool();
-        options.animations     = settings()->value("options/animations",     true)  .toBool();
-        options.replace        = settings()->value("options/replace",        false).toBool();
-        options.upload         = settings()->value("options/uploadAuto",     false).toBool();
-        options.optimize       = settings()->value("options/optimize",       false).toBool();
+        options.quality        = Settings::value(settings(), "options/quality").toInt();
+        options.currentMonitor = Settings::value(settings(), "options/currentMonitor").toBool();
+        options.clipboard      = Settings::value(settings(), "options/clipboard").toBool();
+        options.urlClipboard   = Settings::value(settings(), "options/urlClipboard").toBool();
+        options.preview        = Settings::value(settings(), "options/preview").toBool();
+        options.magnify        = Settings::value(settings(), "options/magnify").toBool();
+        options.cursor         = Settings::value(settings(), "options/cursor").toBool();
+        options.saveAs         = Settings::value(settings(), "options/saveAs").toBool();
+        options.animations     = Settings::value(settings(), "options/animations")  .toBool();
+        options.replace        = Settings::value(settings(), "options/replace").toBool();
+        options.upload         = Settings::value(settings(), "options/uploadAuto").toBool();
+        options.optimize       = Settings::value(settings(), "options/optimize").toBool();
 
-        options.uploadService  = Uploader::serviceName(settings()->value("upload/service", 0).toInt());
+        options.uploadService  = Uploader::serviceName(Settings::value(settings(), "upload/service").toInt());
 
         Screenshot::NamingOptions namingOptions;
-        namingOptions.naming       = (Screenshot::Naming) settings()->value("file/naming").toInt();
-        namingOptions.leadingZeros = settings()->value("options/naming/leadingZeros", 0).toInt();
-        namingOptions.flip         = settings()->value("options/flip", false).toBool();
-        namingOptions.dateFormat   = settings()->value("options/naming/dateFormat", "yyyy-MM-dd").toString();
+        namingOptions.naming       = (Screenshot::Naming) Settings::value(settings(), "file/naming").toInt();
+        namingOptions.leadingZeros = Settings::value(settings(), "options/naming/leadingZeros").toInt();
+        namingOptions.flip         = Settings::value(settings(), "options/flip").toBool();
+        namingOptions.dateFormat   = Settings::value(settings(), "options/naming/dateFormat").toString();
 
         options.namingOptions = namingOptions;
 
@@ -645,10 +648,10 @@ void LightscreenWindow::showScreenshotMessage(const Screenshot::Result &result, 
     if (result == Screenshot::Success) {
         title = QFileInfo(fileName).fileName();
 
-        if (settings()->value("file/target").toString().isEmpty()) {
+        if (Settings::value(settings(), "file/target", ScreenshotManager::instance()->portableMode()).toString().isEmpty()) {
             message = QDir::toNativeSeparators(QCoreApplication::applicationDirPath());
         } else {
-            message = tr("Saved to \"%1\"").arg(settings()->value("file/target").toString());
+            message = tr("Saved to \"%1\"").arg(Settings::value(settings(), "file/target", ScreenshotManager::instance()->portableMode()).toString());
         }
     } else {
         title   = tr("The screenshot was not taken");
@@ -664,7 +667,7 @@ void LightscreenWindow::showUploaderError(const QString &error)
     mLastMessage = -1;
     updateStatus();
 
-    if (mTrayIcon && !error.isEmpty() && settings()->value("options/message").toBool()) {
+    if (mTrayIcon && !error.isEmpty() && Settings::value(settings(), "options/message").toBool()) {
         mTrayIcon->showMessage(tr("Upload error"), error);
     }
 
@@ -673,7 +676,7 @@ void LightscreenWindow::showUploaderError(const QString &error)
 
 void LightscreenWindow::showUploaderMessage(const QString &fileName, const QString &url)
 {
-    if (mTrayIcon && settings()->value("options/message").toBool() && !url.isEmpty()) {
+    if (mTrayIcon && Settings::value(settings(), "options/message").toBool() && !url.isEmpty()) {
         QString screenshot = QFileInfo(fileName).fileName();
 
         if (screenshot.startsWith(".lstemp.")) {
@@ -770,7 +773,7 @@ void LightscreenWindow::updaterFailed()
 
 void LightscreenWindow::upload(const QString &fileName)
 {
-    ScreenshotManager::instance()->uploader()->upload(fileName, Uploader::serviceName(settings()->value("upload/service", 0).toInt()));
+    ScreenshotManager::instance()->uploader()->upload(fileName, Uploader::serviceName(Settings::value(settings(), "upload/service").toInt()));
 }
 
 void LightscreenWindow::uploadCancel()
@@ -820,7 +823,7 @@ void LightscreenWindow::windowPickerHotkey()
 
 void LightscreenWindow::applySettings()
 {
-    bool tray = settings()->value("options/tray", true).toBool();
+    bool tray = Settings::value(settings(), "options/tray").toBool();
 
     if (tray && !mTrayIcon) {
         createTrayIcon();
@@ -837,7 +840,7 @@ void LightscreenWindow::applySettings()
         mLastScreenshot = settings()->value("lastScreenshot").toString();
     }
 
-    os::setStartup(settings()->value("options/startup").toBool(), settings()->value("options/startupHide").toBool());
+    os::setStartup(Settings::value(settings(), "options/startup").toBool(), Settings::value(settings(), "options/startupHide").toBool());
 }
 
 void LightscreenWindow::connectHotkeys()
@@ -847,8 +850,8 @@ void LightscreenWindow::connectHotkeys()
     size_t id = Screenshot::WholeScreen;
 
     for (auto action : actions) {
-        if (settings()->value("actions/" + action + "/enabled").toBool()) {
-            if (!mGlobalHotkeys->registerHotkey(settings()->value("actions/" + action + "/hotkey").toString(), id)) {
+        if (Settings::value(settings(), "actions/" + action + "/enabled").toBool()) {
+            if (!mGlobalHotkeys->registerHotkey(Settings::value(settings(), "actions/" + action + "/hotkey").toString(), id)) {
                 failed << action;
             }
         }
@@ -980,10 +983,10 @@ bool LightscreenWindow::event(QEvent *event)
     } else if (event->type() == QEvent::Hide) {
         settings()->setValue("position", pos());
     } else if (event->type() == QEvent::Close) {
-        if (settings()->value("options/tray").toBool() && settings()->value("options/closeHide").toBool()) {
+        if (Settings::value(settings(), "options/tray").toBool() && Settings::value(settings(), "options/closeHide").toBool()) {
             closeToTrayWarning();
             hide();
-        } else if (settings()->value("options/closeHide").toBool()) {
+        } else if (Settings::value(settings(), "options/closeHide").toBool()) {
             if (closingWithoutTray()) {
                 hide();
             }

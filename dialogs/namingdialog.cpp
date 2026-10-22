@@ -20,6 +20,7 @@
 #include <tools/screenshot.h>
 #include <tools/os.h>
 #include <tools/screenshotmanager.h>
+#include <tools/settings.h>
 
 #include <QDateTime>
 #include <QDesktopServices>
@@ -39,20 +40,20 @@ NamingDialog::NamingDialog(Screenshot::Naming naming, QWidget *parent) :
 
     // Settings
     auto settings = ScreenshotManager::instance()->settings();
-    ui.flipNamingCheckBox->setChecked(settings->value("options/flip", false).toBool());
+    ui.flipNamingCheckBox->setChecked(Settings::value(settings, "options/flip").toBool());
 
     ui.dateFormatComboBox->setCurrentIndex(
-        ui.dateFormatComboBox->findText(settings->value("options/naming/dateFormat", "yyyy-MM-dd").toString())
+        ui.dateFormatComboBox->findText(Settings::value(settings, "options/naming/dateFormat").toString())
     );
 
     if (ui.dateFormatComboBox->currentIndex() == -1) {
-        ui.dateFormatComboBox->addItem(settings->value("options/naming/dateFormat", "yyyy-MM-dd").toString());
+        ui.dateFormatComboBox->addItem(Settings::value(settings, "options/naming/dateFormat").toString());
         ui.dateFormatComboBox->setCurrentIndex(ui.dateFormatComboBox->count() - 1);
     }
 
     updateDatePreview();
 
-    ui.leadingZerosSpinBox->setValue(settings->value("options/naming/leadingZeros", 0).toInt());
+    ui.leadingZerosSpinBox->setValue(Settings::value(settings, "options/naming/leadingZeros").toInt());
 
     // Signals/Slots
     connect(ui.buttonBox    , &QDialogButtonBox::accepted, this, &NamingDialog::saveSettings);
