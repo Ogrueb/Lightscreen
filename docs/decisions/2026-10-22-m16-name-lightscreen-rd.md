@@ -12,9 +12,10 @@ Considered and not chosen: "Lightscreen Qt6" (names an implementation detail tha
 | About tab | "Lightscreen Rd (Redeveloped) is a maintained fork of Lightscreen…", credit to Christian Kaiser, links to the fork and to the original |
 | Windows file properties | product "Lightscreen Rd", company "Lightscreen Rd contributors", description "Lightscreen Rd Screenshot Tool" |
 | Update check | `Ogrueb/Lightscreen-Rd`; User-Agent `Lightscreen-Rd/<version>` |
+| Release zip | `lightscreen-rd-<version>-win64.zip` |
 | Application display name | "Lightscreen Rd" (`QGuiApplication::applicationDisplayName`) |
 
-**What stays.** `lightscreen.exe`; the `lightscreen-` prefix of the release zip (`lightscreen-<version>-win64.zip`) and of CI's `lightscreen-win64` artifact (owner, 2026-10-22: the table's `lightscreen-rd-` zip name was dropped); the organization and application names `K` / `Lightscreen`, which locate the settings and history and key the single-instance check (now set in `Settings::applyApplicationIdentity`, with a test); the start-at-login entry named "Lightscreen" (registry value and `.desktop` file), so an upgrade reuses it; portable `config.ini`; sentences that mention the app by name ("Lightscreen will keep running…") and labels such as "Lightscreen Settings (*.ini)"; the CMake project name (the release workflow reads it).
+**What stays.** `lightscreen.exe`; the default file prefix for saved screenshots (`screenshot.`, unchanged since upstream; owner, 2026-10-22); CI's `lightscreen-win64` artifact name; the organization and application names `K` / `Lightscreen`, which locate the settings and history and key the single-instance check (now set in `Settings::applyApplicationIdentity`, with a test); the start-at-login entry named "Lightscreen" (registry value and `.desktop` file), so an upgrade reuses it; portable `config.ini`; sentences that mention the app by name ("Lightscreen will keep running…") and labels such as "Lightscreen Settings (*.ini)"; the CMake project name (the release workflow reads it).
 
 **Choices made in M16, for the owner to override.**
 - **Version 3.0** in `CMakeLists.txt`, so the first release can be tagged `v3.0.0` (Stage 7). The release workflow refuses a tag that does not match.

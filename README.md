@@ -19,7 +19,7 @@ Settings and screenshot history from Lightscreen 2.5 carry over: Lightscreen Rd 
 
 ### Building
 
-See [docs/build.md](docs/build.md) for Windows (MSVC) and Linux, and for running the tests. Every CI run on Windows also uploads a ready-to-run `lightscreen-win64` zip; releases are published as `lightscreen-<version>-win64.zip`.
+See [docs/build.md](docs/build.md) for Windows (MSVC) and Linux, and for running the tests. Every CI run on Windows also uploads a ready-to-run `lightscreen-win64` zip; releases are published as `lightscreen-rd-<version>-win64.zip`.
 
 ### License
 

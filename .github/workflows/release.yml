@@ -52,7 +52,7 @@ jobs:
             fi
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "zip=lightscreen-$version-win64.zip" >> "$GITHUB_OUTPUT"
+          echo "zip=lightscreen-rd-$version-win64.zip" >> "$GITHUB_OUTPUT"
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
@@ -84,7 +84,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $dir = "lightscreen-${{ steps.version.outputs.version }}-win64"
+          $dir = "lightscreen-rd-${{ steps.version.outputs.version }}-win64"
           New-Item -ItemType Directory $dir | Out-Null
           Copy-Item build\windows-msvc-release\lightscreen.exe $dir\
           windeployqt --release --no-translations "$dir\lightscreen.exe"
