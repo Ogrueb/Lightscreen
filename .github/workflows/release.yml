@@ -123,13 +123,13 @@ jobs:
           set -euo pipefail
           if [ "$GITHUB_REF_TYPE" = "tag" ]; then
             gh release create "$GITHUB_REF_NAME" "$ZIP" --draft --verify-tag \
-              --title "Lightscreen $VERSION" \
+              --title "Lightscreen Rd $VERSION" \
               --notes "Draft created by the release workflow. Write the release notes, then publish."
           else
             # Dry run: a draft under a tag that does not match v*. GitHub creates the
             # tag only when a release is published; delete this draft instead.
             gh release create "dry-run-$GITHUB_RUN_NUMBER" "$ZIP" --draft --prerelease \
               --target "$GITHUB_SHA" \
-              --title "Dry run $GITHUB_RUN_NUMBER (Lightscreen $VERSION, $GITHUB_REF_NAME)" \
+              --title "Dry run $GITHUB_RUN_NUMBER (Lightscreen Rd $VERSION, $GITHUB_REF_NAME)" \
               --notes "Dry run of the release workflow from $GITHUB_SHA. Delete this draft; do not publish it."
           fi

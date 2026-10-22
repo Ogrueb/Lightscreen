@@ -1,6 +1,6 @@
 # PNG optimizers after S05 (S05, bug 10)
 
-Use the `lightscreen-win64` artifact (it now contains `oxipng.exe`, `optipng.exe` and a `licenses` folder), Options > Advanced > "Optimize PNG screenshots" on, format PNG.
+Use the `lightscreen-win64` artifact of the latest `master` CI run (it contains `oxipng.exe`, `optipng.exe` and a `licenses` folder), with Options tab > Screenshots > "Optimize PNG screenshots." on and format PNG (General tab).
 
 1. **oxipng.** Choose "oxipng" in the box next to the checkbox, save, take a full-screen screenshot: the file ends up smaller than the same screenshot with optimization off, and opens fine.
 2. **OptiPNG.** The same with "OptiPNG".
