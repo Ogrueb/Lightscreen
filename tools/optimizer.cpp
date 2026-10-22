@@ -212,7 +212,8 @@ void Optimizer::save()
 
     QSaveFile file(mPendingFileName);
 
-    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    // Written with "\n" on every platform; resume() reads it in text mode, which accepts "\r\n" too.
+    if (file.open(QIODevice::WriteOnly)) {
         file.write(mQueue.join('\n').toUtf8() + '\n');
         file.commit();
     }
