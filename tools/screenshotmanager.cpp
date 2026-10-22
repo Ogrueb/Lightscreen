@@ -17,6 +17,7 @@
  *
  */
 #include <tools/screenshotmanager.h>
+#include <tools/settings.h>
 #include <tools/optimizer.h>
 #include <tools/screenshot.h>
 #include <tools/uploader/uploader.h>
@@ -108,7 +109,7 @@ bool ScreenshotManager::portableMode()
 
 void ScreenshotManager::saveHistory(const QString &fileName, const QString &url, const QString &deleteUrl)
 {
-    if (!mSettings->value("/options/history", true).toBool()) {
+    if (!Settings::value(mSettings, "options/history", mPortableMode).toBool()) {
         return;
     }
 
@@ -127,7 +128,7 @@ void ScreenshotManager::saveHistory(const QString &fileName, const QString &url,
 
 void ScreenshotManager::updateHistory(const QString &fileName, const QString &url, const QString &deleteUrl)
 {
-    if (!mSettings->value("/options/history", true).toBool() || url.isEmpty()) {
+    if (!Settings::value(mSettings, "options/history", mPortableMode).toBool() || url.isEmpty()) {
         return;
     }
 

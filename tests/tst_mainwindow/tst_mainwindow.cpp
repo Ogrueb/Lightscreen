@@ -67,6 +67,7 @@ private slots:
     // Last on purpose: they run QApplication::exec() and quit it.
     void quitFlagQuitsTheApplication();
     void quitFlagBeforeEventLoopQuits();
+    void quitFlagWithCloseHideAndNoTray();
 
 public slots:
     void openUrl(const QUrl &url);
@@ -644,7 +645,7 @@ void tst_MainWindow::emptyHotkeyShowsError()
     QCOMPARE(mSettings->value("actions/area/enabled").toBool(), false);
 }
 
-// --quit calls QApplication::quit() directly. Unlike LightscreenWindow::quit (the tray menu's Quit), it does not
+// --quit exits the event loop directly (QCoreApplication::exit; QApplication::quit until S06). Unlike LightscreenWindow::quit (the tray menu's Quit), it does not
 // ask when screenshots are processing or uploading, does not save the window position, and does not emit finished.
 void tst_MainWindow::quitFlagQuitsTheApplication()
 {
@@ -671,6 +672,24 @@ void tst_MainWindow::quitFlagBeforeEventLoopQuits()
     QTimer::singleShot(3000, qApp, [] { QCoreApplication::exit(1); });
 
     QCOMPARE(qApp->exec(), 0);
+}
+
+// S06 made "close hides the window" the default. With it on and no tray icon, closing the window asks whether to hide
+// instead (closingWithoutTray). --quit must not go through that: it exits without sending the window a close event,
+// so no dialog opens and the visible window does not block it.
+void tst_MainWindow::quitFlagWithCloseHideAndNoTray()
+{
+    mSettings->setValue("options/closeHide", true);
+    mSettings->setValue("options/tray", false);
+    startWindow();
+    mWindow->show();
+    QVERIFY(QTest::qWaitForWindowExposed(mWindow.data()));
+
+    QTimer::singleShot(0, mWindow.data(), [this] { mWindow->executeArgument("--quit"); });
+    QTimer::singleShot(3000, qApp, [] { QCoreApplication::exit(1); });
+
+    QCOMPARE(qApp->exec(), 0);
+    QVERIFY(mDialogs.isEmpty());
 }
 
 QTEST_MAIN(tst_MainWindow)

@@ -19,6 +19,7 @@
 #include <dialogs/previewdialog.h>
 #include <tools/screenshot.h>
 #include <tools/screenshotmanager.h>
+#include <tools/settings.h>
 #include <tools/os.h>
 
 #include <QApplication>
@@ -50,13 +51,13 @@ PreviewDialog::PreviewDialog(QWidget *parent) :
 
     auto settings = ScreenshotManager::instance()->settings();
 
-    mSize     = settings->value("options/previewSize", 300).toInt();
-    mPosition = settings->value("options/previewPosition", 3).toInt();
+    mSize     = Settings::value(settings, "options/previewSize").toInt();
+    mPosition = Settings::value(settings, "options/previewPosition").toInt();
 
-    if (settings->value("options/previewAutoclose", false).toBool()) {
-        mAutoclose = settings->value("options/previewAutocloseTime").toInt();
+    if (Settings::value(settings, "options/previewAutoclose").toBool()) {
+        mAutoclose = Settings::value(settings, "options/previewAutocloseTime").toInt();
         mAutocloseReset = mAutoclose;
-        mAutocloseAction = settings->value("options/previewAutocloseAction").toInt();
+        mAutocloseAction = Settings::value(settings, "options/previewAutocloseAction").toInt();
     }
 
     auto layout = new QHBoxLayout;
@@ -164,12 +165,12 @@ void PreviewDialog::add(Screenshot *screenshot)
     confirmPushButton->setCursor(Qt::PointingHandCursor);
     confirmPushButton->setGraphicsEffect(os::shadow(Qt::white));
 
-    if (ScreenshotManager::instance()->settings()->value("options/previewDefaultAction", 0).toInt() == 0
-            || ScreenshotManager::instance()->settings()->value("options/uploadAuto").toBool()) {
+    if (Settings::value(ScreenshotManager::instance()->settings(), "options/previewDefaultAction").toInt() == 0
+            || Settings::value(ScreenshotManager::instance()->settings(), "options/uploadAuto").toBool()) {
         // Default button, confirm & upload.
         confirmPushButton->setIcon(os::icon("yes"));
 
-        if (!ScreenshotManager::instance()->settings()->value("options/uploadAuto").toBool()) {
+        if (!Settings::value(ScreenshotManager::instance()->settings(), "options/uploadAuto").toBool()) {
             QMenu *confirmMenu = new QMenu(confirmPushButton);
             confirmMenu->setObjectName("confirmMenu");
 

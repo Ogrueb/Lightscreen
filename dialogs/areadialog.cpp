@@ -26,6 +26,7 @@
 #include <tools/os.h>
 #include <tools/screenshot.h>
 #include <tools/screenshotmanager.h>
+#include <tools/settings.h>
 
 #include <utility>
 
@@ -88,7 +89,7 @@ AreaDialog::AreaDialog(const QPixmap &pixmap, const Screenshot::Options &options
     connect(&mIdleTimer, &QTimer::timeout, this, &AreaDialog::displayHelp);
     mIdleTimer.start(2000);
 
-    mAutoclose = ScreenshotManager::instance()->settings()->value("options/areaAutoclose").toBool();
+    mAutoclose = Settings::value(ScreenshotManager::instance()->settings(), "options/areaAutoclose").toBool();
 
     if (mAutoclose) {
         return;    // Avoid creating the accept widget if it's not going to get used.

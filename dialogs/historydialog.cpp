@@ -22,6 +22,7 @@
 #include <tools/os.h>
 #include <tools/uploader/uploader.h>
 #include <tools/screenshotmanager.h>
+#include <tools/settings.h>
 
 #include <QClipboard>
 #include <QDesktopServices>
@@ -189,7 +190,7 @@ void HistoryDialog::selectionChanged(const QItemSelection &selected, const QItem
 
 void HistoryDialog::upload()
 {
-    ScreenshotManager::instance()->uploader()->upload(mSelectedScreenshot, Uploader::serviceName(ScreenshotManager::instance()->settings()->value("upload/service", 0).toInt()));
+    ScreenshotManager::instance()->uploader()->upload(mSelectedScreenshot, Uploader::serviceName(Settings::value(ScreenshotManager::instance()->settings(), "upload/service").toInt()));
     ui->uploadProgressWidget->setVisible(true);
 }
 
