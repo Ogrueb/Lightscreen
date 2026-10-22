@@ -1,6 +1,6 @@
 # 2026-10-22: Remaining work after S03
 
-Snapshot of what is left once M03-M15 and S01-S03 are merged (S03 = PR #50). No PRs were open at the time of writing. Nothing in the code changed; this entry only collects the open items from the plan, the bug files and the Windows QA list.
+Snapshot of what is left once M03-M15 and S01-S03 are merged (S03 = PR #50). No PRs were open at the time of writing. The code did not change. This entry collects the open items from the plan, the bug files and the Windows QA list.
 
 ## Plan steps still to do
 
@@ -32,3 +32,7 @@ Smaller leftovers from earlier entries: the deprecated `QMessageBox::question` o
 1. The fork name (blocks M16).
 2. Whether to run S06.
 3. Whether to try a capture spike for bug 9 or leave it documented.
+
+## Also in this PR: CI skips the builds for docs-only PRs
+
+At the owner's request, `.github/workflows/ci.yml` now skips the Linux and Windows builds on a pull request that only changes `docs/` or `*.md` files; pushes to `master` still build. Details: `docs/decisions/2026-10-22-ci-skips-builds-for-docs-only-prs.md`, `docs/build.md` ("Continuous integration"). This PR changes the workflow, so its own builds still run; the next docs-only PR is the first to show the skip.
