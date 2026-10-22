@@ -1,6 +1,6 @@
 # Area capture after S01 (dialog moved out of `tools/screenshot`)
 
-The area dialog is now opened by the main window instead of by the screenshot itself. Use the `lightscreen-win64` artifact of the S01 PR's CI run, with the area action on a hotkey (or the tray menu's "Area").
+The area dialog is now opened by the main window instead of by the screenshot itself. Use the `lightscreen-win64` artifact of the latest `master` CI run, with the area action on a hotkey (or the tray menu's "Area").
 
 1. **Without autoclose** (Options > "Area" autoclose off). Take an area screenshot, drag a rectangle, click the green tick: the saved file is the selected rectangle.
 2. **With autoclose** on: the screenshot is saved as soon as the mouse is released.
