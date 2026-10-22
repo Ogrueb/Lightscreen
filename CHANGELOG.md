@@ -17,6 +17,7 @@ First release of the fork, based on upstream Lightscreen 2.5. Settings and scree
 - **History dialog:** "Delete from imgur.com" is now "Open delete link", for any upload that returned one.
 - **Defaults:** every setting has one default (the options dialog's). A settings file with keys missing now behaves as a fresh install would: save to `Documents\Screenshots` with the `screenshot.` prefix, PNG format, tray icon on. Existing complete settings are unaffected.
 - **Sound:** played without QtMultimedia; the error sound is the system default sound.
+- **Display scaling:** the app's windows follow the exact Windows scale (125%, 150%, 175%) instead of being rounded to 100% or 200%.
 
 ### Added
 
@@ -50,7 +51,6 @@ First release of the fork, based on upstream Lightscreen 2.5. Settings and scree
 
 - Browsers on an HDR monitor can be captured brighter than they appear (bug 9).
 - PNG screenshots always use compression quality 80, whatever the quality setting (bug 20).
-- With fractional Windows scaling (125%, 150%, 175%), the app's own windows are drawn at the nearest whole scale (100% or 200%); captures are not affected.
 - Wayland and macOS are not supported.
 
 ### For developers

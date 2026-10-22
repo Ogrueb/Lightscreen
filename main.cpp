@@ -33,9 +33,10 @@ int main(int argc, char *argv[])
 
     Settings::applyApplicationIdentity();
     QApplication::setApplicationVersion(APP_VERSION);
-    // Qt 6 always scales for high DPI and keeps fractional scale factors (125%, 150%) by default.
-    // Rounding them as Qt 5 did keeps the capture and area-selection geometry as it was; S04 revisits this.
-    QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::Round);
+    // Qt 6 always scales for high DPI. PassThrough (Qt 6's default, set here to be explicit) uses the exact Windows
+    // scale (125%, 150%, 175%), so the windows match other apps; until 3.0 it was rounded to 100% or 200% as in
+    // Qt 5. Capture and area selection work in fractional ratios since S04 (tools/capturegeometry).
+    QApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
     SingleApplication application(argc, argv);
 
