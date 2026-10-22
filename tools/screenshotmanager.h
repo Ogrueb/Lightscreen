@@ -24,6 +24,7 @@
 
 #include <tools/screenshot.h>
 
+class Optimizer;
 class QSettings;
 class Uploader;
 class ScreenshotManager : public QObject
@@ -52,6 +53,7 @@ public:
     void clearHistory();
     QSettings *settings() const { return mSettings; }
     Uploader *uploader() const { return mUploader; }
+    Optimizer *optimizer() const { return mOptimizer; }
     void connectScreenshot(Screenshot *screenshot);
 
 public slots:
@@ -73,6 +75,7 @@ private:
 
     static ScreenshotManager *mInstance;
     Uploader *mUploader;
+    Optimizer *mOptimizer;
     QList<Screenshot*> mScreenshots;
     QSettings *mSettings;
     QString mHistoryPath;

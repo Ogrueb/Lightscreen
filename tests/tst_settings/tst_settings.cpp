@@ -17,6 +17,7 @@
 
 #include <dialogs/optionsdialog.h>
 #include <lightscreenwindow.h>
+#include <tools/optimizer.h>
 #include <tools/os.h>
 #include <tools/screenshot.h>
 #include <tools/screenshotmanager.h>
@@ -37,6 +38,7 @@ private slots:
     void dialogOutOfRangeIndexes();
     void dialogLegacyImgurSettings();
     void dialogUploaderHeaders();
+    void dialogOptimizerChoice();
     void windowReadsEmptySettings();
     void windowReadsDialogDefaults();
     void windowCachesOptions();
@@ -357,14 +359,15 @@ void tst_Settings::dialogRoundTrip()
     }
 
     // What the second save changes. On Linux, loadSettings forces the sound cue and cursor options off (both are
-    // hidden there), and turns optimization off when "optipng" cannot be started (not on PATH). Everything else survives.
+    // hidden there), and turns optimization off when neither oxipng nor optipng is on PATH (S05; until S05, when optipng
+    // was not). Everything else survives.
     QStringList expected = saved;
 
 #ifdef Q_OS_LINUX
     expected.replaceInStrings(QRegularExpression("^options/cursor=.*"), "options/cursor=false");
     expected.replaceInStrings(QRegularExpression("^options/playSound=.*"), "options/playSound=false");
 
-    if (QStandardPaths::findExecutable("optipng").isEmpty()) {
+    if (Optimizer::resolveTool(QString()).isEmpty()) {
         expected.replaceInStrings(QRegularExpression("^options/optimize=.*"), "options/optimize=false");
     }
 #endif
@@ -393,6 +396,55 @@ void tst_Settings::dialogOutOfRangeIndexes()
     QCOMPARE(mSettings->value("file/naming").toString(), QStringLiteral("9"));
     QCOMPARE(mSettings->value("options/previewPosition").toString(), QStringLiteral("9"));
     QCOMPARE(mSettings->value("upload/service").toString(), QStringLiteral("0"));
+}
+
+// The PNG optimizer choice (S05): "options/optimizer" stays absent until the user picks a tool, the combo box then
+// shows the automatic choice; a picked tool is saved, and a stored one is shown and kept, found or not.
+void tst_Settings::dialogOptimizerChoice()
+{
+    {
+        OptionsDialog dialog;
+        QTRY_VERIFY(dialog.isEnabled());
+        auto combo = dialog.findChild<QComboBox *>("optimizerComboBox");
+        QVERIFY(combo);
+        QCOMPARE(combo->count(), 2);
+        QCOMPARE(combo->itemData(0).toString(), QStringLiteral("oxipng"));
+        QCOMPARE(combo->itemData(1).toString(), QStringLiteral("optipng"));
+
+        const QString automatic = Optimizer::resolveTool(QString());
+        QCOMPARE(combo->currentData().toString(), automatic.isEmpty() ? QStringLiteral("oxipng") : automatic);
+
+        for (int i = 0; i < combo->count(); ++i) {
+            const bool found = !Optimizer::program(combo->itemData(i).toString()).isEmpty();
+            QCOMPARE(combo->itemText(i).endsWith(" (not found)"), !found);
+        }
+
+        dialog.saveSettings();
+    }
+
+    QVERIFY(!mSettings->contains("options/optimizer"));
+
+    {
+        OptionsDialog dialog;
+        QTRY_VERIFY(dialog.isEnabled());
+        auto combo = dialog.findChild<QComboBox *>("optimizerComboBox");
+        combo->setCurrentIndex(1);
+        emit combo->activated(1);
+        dialog.saveSettings();
+    }
+
+    QCOMPARE(mSettings->value("options/optimizer").toString(), QStringLiteral("optipng"));
+
+    mSettings->setValue("options/optimizer", "oxipng");
+
+    {
+        OptionsDialog dialog;
+        QTRY_VERIFY(dialog.isEnabled());
+        QCOMPARE(dialog.findChild<QComboBox *>("optimizerComboBox")->currentData().toString(), QStringLiteral("oxipng"));
+        dialog.saveSettings();
+    }
+
+    QCOMPARE(mSettings->value("options/optimizer").toString(), QStringLiteral("oxipng"));
 }
 
 // Settings written before M12 still load. "upload/service" 1 (pomf when Imgur was 0) is beyond the one-entry list and

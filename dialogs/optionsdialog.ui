@@ -1090,10 +1090,17 @@ Warning: Cannot be used in tandem with the &quot;Copy screenshot to clipboard&qu
                 <item>
                  <widget class="QCheckBox" name="optiPngCheckBox">
                   <property name="toolTip">
-                   <string>Runs OptiPNG which reduces screenshot file size.</string>
+                   <string>Runs oxipng or OptiPNG, which reduce the file size without changing the image.</string>
                   </property>
                   <property name="text">
                    <string>O&amp;ptimize PNG screenshots.</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="optimizerComboBox">
+                  <property name="toolTip">
+                   <string>The tool that optimizes PNG screenshots. If it is not found, the other one runs.</string>
                   </property>
                  </widget>
                 </item>
@@ -1463,6 +1470,7 @@ Created by &lt;a href=&quot;https://ckaiser.com.ar&quot;&gt;Christian Kaiser&lt;
   <tabstop>cursorCheckBox</tabstop>
   <tabstop>magnifyCheckBox</tabstop>
   <tabstop>optiPngCheckBox</tabstop>
+  <tabstop>optimizerComboBox</tabstop>
   <tabstop>replaceCheckBox</tabstop>
   <tabstop>areaAutocloseCheckBox</tabstop>
   <tabstop>delaySpinBox</tabstop>

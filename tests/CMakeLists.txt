@@ -1,6 +1,6 @@
 # One executable per test, each linking the app's sources (lightscreen_core), so a file added to the app
 # goes into the root CMakeLists.txt only. Each test is built into its own directory, as with qmake:
-# tst_history and tst_optimize put files next to their executable.
+# tst_history and tst_optimizer put files next to their executable.
 find_package(Qt6 REQUIRED COMPONENTS Test)
 
 function(lightscreen_add_test name)
@@ -22,15 +22,18 @@ lightscreen_add_test(tst_os)
 lightscreen_add_test(tst_hotkeywidget)
 lightscreen_add_test(tst_mainwindow)
 lightscreen_add_test(tst_updater)
-lightscreen_add_test(tst_optimize)
+lightscreen_add_test(tst_optimizer)
 
-# A stand-in for optipng, used by tst_optimize. Built as "optipng" into tst_optimize's stub/ directory.
-set(optipng_stub_dir "${CMAKE_CURRENT_BINARY_DIR}/tst_optimize/stub")
-add_executable(optipng_stub optipng_stub/main.cpp)
-set_target_properties(optipng_stub PROPERTIES
-    OUTPUT_NAME optipng
-    RUNTIME_OUTPUT_DIRECTORY "$<1:${optipng_stub_dir}>"
-    AUTOMOC OFF AUTOUIC OFF AUTORCC OFF
-)
-target_compile_definitions(tst_optimize PRIVATE OPTIPNG_STUB_DIR="${optipng_stub_dir}")
-add_dependencies(tst_optimize optipng_stub)
+# A stand-in for oxipng and optipng, used by tst_optimizer. Built under both names, each into its own directory under
+# tst_optimizer's stub/, so a test can put either one, both or neither on PATH (or next to the test on Windows).
+set(optimizer_stub_dir "${CMAKE_CURRENT_BINARY_DIR}/tst_optimizer/stub")
+foreach(tool oxipng optipng)
+    add_executable(optimizer_stub_${tool} optimizer_stub/main.cpp)
+    set_target_properties(optimizer_stub_${tool} PROPERTIES
+        OUTPUT_NAME ${tool}
+        RUNTIME_OUTPUT_DIRECTORY "$<1:${optimizer_stub_dir}/${tool}>"
+        AUTOMOC OFF AUTOUIC OFF AUTORCC OFF
+    )
+    add_dependencies(tst_optimizer optimizer_stub_${tool})
+endforeach()
+target_compile_definitions(tst_optimizer PRIVATE OPTIMIZER_STUB_DIR="${optimizer_stub_dir}")
