@@ -30,7 +30,7 @@ struct UHotkeyData {
 #endif
 
 class UGLOBALHOTKEY_EXPORT UGlobalHotkeys : public QWidget
-#if defined(Q_OS_LINUX)
+#if defined(Q_OS_LINUX) || defined(Q_OS_WIN)
     , public QAbstractNativeEventFilter
 #endif
 {
@@ -46,8 +46,7 @@ public:
 
 protected:
 #if defined(Q_OS_WIN)
-    bool winEvent(MSG *message, UNativeEventResult *result);
-    bool nativeEvent(const QByteArray &eventType, void *message, UNativeEventResult *result) override;
+    bool nativeEventFilter(const QByteArray &eventType, void *message, UNativeEventResult *result) override;
 #elif defined(Q_OS_LINUX)
     bool nativeEventFilter(const QByteArray &eventType, void *message, UNativeEventResult *result);
     bool linuxEvent(xcb_generic_event_t *message);

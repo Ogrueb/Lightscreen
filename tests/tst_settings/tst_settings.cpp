@@ -5,8 +5,10 @@
 // describe current behaviour, quirks included; a change that moves any of them must update this file on purpose.
 #include <QtTest>
 #include <algorithm>
+#include <QAbstractItemView>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QCompleter>
 #include <QGroupBox>
 #include <QLineEdit>
 #include <QPlainTextEdit>
@@ -15,6 +17,7 @@
 #include <QSpinBox>
 #include <QTemporaryDir>
 
+#include <dialogs/namingdialog.h>
 #include <dialogs/optionsdialog.h>
 #include <lightscreenwindow.h>
 #include <tools/optimizer.h>
@@ -46,6 +49,8 @@ private slots:
     void windowReadsDialogDefaults();
     void windowCachesOptions();
     void windowPngQualityIsForced();
+    void targetFolderCompletes();
+    void dateFormatRejectsFileNameCharacters();
 
 private:
     QStringList dump() const;
@@ -709,6 +714,55 @@ void tst_Settings::windowPngQualityIsForced()
     Screenshot::Options options;
     QVERIFY(probeWindow(window, &options));
     QCOMPARE(options.quality, 30);
+}
+
+// Typing a folder path into the target box suggests its subfolders, and no "." or ".." (M04 replaced QDirModel).
+void tst_Settings::targetFolderCompletes()
+{
+    QTemporaryDir folder;
+    QVERIFY(folder.isValid());
+    QVERIFY(QDir(folder.path()).mkdir("alpha"));
+    QVERIFY(QDir(folder.path()).mkdir("beta"));
+
+    OptionsDialog dialog;
+    QTRY_VERIFY(dialog.isEnabled());
+    dialog.show();
+    QVERIFY(QTest::qWaitForWindowExposed(&dialog));
+
+    QLineEdit *target = dialog.findChild<QLineEdit *>("targetLineEdit");
+    QVERIFY(target);
+    QVERIFY(target->completer());
+    target->setFocus();
+    target->clear();
+    QTest::keyClicks(target, QDir::toNativeSeparators(folder.path()) + QDir::separator() + "a");
+
+    QTRY_VERIFY_WITH_TIMEOUT(target->completer()->popup()->isVisible(), 5000);
+    QCOMPARE(target->completer()->completionCount(), 1);
+    QCOMPARE(target->completer()->currentCompletion(), QDir::toNativeSeparators(folder.path()) + QDir::separator() + "alpha");
+
+    // Right after the separator: both subfolders and nothing else.
+    target->clear();
+    QTest::keyClicks(target, QDir::toNativeSeparators(folder.path()) + QDir::separator());
+    QTRY_COMPARE(target->completer()->completionCount(), 2);
+}
+
+// The naming dialog's date format box takes no character a file name cannot hold, typed into its text field.
+void tst_Settings::dateFormatRejectsFileNameCharacters()
+{
+    NamingDialog dialog(Screenshot::Date);
+    dialog.show();
+    QVERIFY(QTest::qWaitForWindowExposed(&dialog));
+
+    QComboBox *format = dialog.findChild<QComboBox *>("dateFormatComboBox");
+    QVERIFY(format && format->lineEdit());
+    format->lineEdit()->setFocus();
+    format->lineEdit()->clear();
+#ifdef Q_OS_WIN
+    QTest::keyClicks(format->lineEdit(), "yy?:*|MM/dd");
+#else
+    QTest::keyClicks(format->lineEdit(), "yy/MM/dd");
+#endif
+    QCOMPARE(format->currentText(), QString("yyMMdd"));
 }
 
 QTEST_MAIN(tst_Settings)

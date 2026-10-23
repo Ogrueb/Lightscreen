@@ -62,9 +62,10 @@ int dominantScreen(const QList<Screen> &screens, const QRect &device);
 // a window's widget coordinates scale its native area by its own screen's ratio around that screen's top left.
 QRect windowGeometry(const Screen &screen, const QRect &device);
 
-// A selection in a window's coordinates as device pixels relative to the window: left and top rounded down and the
-// far edges rounded up, so every device pixel the selection touches is included. Not normalized first; a selection
-// with a positive size is clipped to the bounds when they are not empty.
+// A selection in a window's coordinates as device pixels relative to the window: the near edges rounded to the
+// nearest device pixel and the size scaled and rounded, so a selection keeps its size times the ratio (a typed
+// 100x100 at 125% is always 125x125) and its edges move by at most half a device pixel. Not normalized first; a
+// selection with a positive size is clipped to the bounds when they are not empty.
 QRect selectionToDevice(const QRect &selection, qreal ratio, const QSize &bounds = QSize());
 
 } // namespace CaptureGeometry

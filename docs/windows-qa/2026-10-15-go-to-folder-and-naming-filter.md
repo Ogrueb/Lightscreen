@@ -1,7 +1,6 @@
-# Go to folder and the naming dialog's character filter (M04)
+# Naming dialog's character filter and folder suggestions: re-checks (M04, bugs 40 and 41)
 
-Optional and short. Use the `lightscreen-win64` artifact of the latest `master` CI run.
+Step 1 ("Go to folder" with a space in the path) passed in the 2026-10-23 pass. Use a PR #58 build or later.
 
-1. Take a screenshot to a folder whose path contains a space, then use "Go to folder" from the tray menu: Explorer opens that folder with the screenshot selected.
-2. In Options, Naming, choose Date and open the date format box: typing `?`, `:` or `*` does nothing; letters and digits still type.
-3. In Options, start typing a folder path in the target box: directory suggestions appear, and no `.` or `..` entries.
+1. **Date format (bug 40).** In Options, set Naming to Date and press the button next to it to open the Naming dialog. In its date format box, typing `?`, `:` or `*` does nothing; letters, digits, `-` and `.` still type. Pasting text with `:` in it is refused too.
+2. **Folder suggestions (bug 41).** In Options, clear the Directory box and type `C:\` and then `U`: a list drops down with `C:\Users`. Go on typing a path; after each `\` the subfolders of that folder are listed, with no `.` or `..`. Lower case works too (`c:\u`).

@@ -22,7 +22,7 @@
 #include <QDesktopServices>
 #include <QScreen>
 #include <QFileDialog>
-#include <QFileSystemModel>
+#include <QStringListModel>
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <QProcess>
@@ -612,13 +612,35 @@ void OptionsDialog::init()
     optionsButton->setMenu(optionsMenu);
     ui.buttonBox->addButton(optionsButton, QDialogButtonBox::ResetRole);
 
-    // Set up the autocomplete for the directory.
+    // Autocomplete for the directory: the subfolders of the folder typed so far, read as you type. (QFileSystemModel,
+    // which replaced Qt 5's QDirModel in M04, loads folders in the background and QCompleter does not retry once they
+    // have loaded, so it suggested nothing; found in the Windows QA pass.)
     QCompleter *completer = new QCompleter(this);
-    QFileSystemModel *directoryModel = new QFileSystemModel(completer);
-    directoryModel->setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
-    directoryModel->setRootPath(QString());
-    completer->setModel(directoryModel);
+    QStringListModel *folders = new QStringListModel(completer);
+    completer->setModel(folders);
+#ifdef Q_OS_WIN
+    completer->setCaseSensitivity(Qt::CaseInsensitive);
+#endif
     ui.targetLineEdit->setCompleter(completer);
+
+    connect(ui.targetLineEdit, &QLineEdit::textEdited, completer, [completer, folders](const QString &text) {
+        const QString path = QDir::fromNativeSeparators(text);
+        const QString parent = path.left(path.lastIndexOf('/') + 1);
+        QStringList paths;
+
+        if (!parent.isEmpty()) {
+            for (const QString &name : QDir(parent).entryList(QDir::Dirs | QDir::NoDotAndDotDot)) {
+                paths << QDir::toNativeSeparators(parent + name);
+            }
+        }
+
+        if (paths != folders->stringList()) {
+            folders->setStringList(paths);
+        }
+
+        completer->setCompletionPrefix(text);
+        completer->complete();
+    });
 
     // HotkeyWidget icons.
     ui.screenHotkeyWidget->setIcon(os::icon("screen"));
@@ -630,7 +652,8 @@ void OptionsDialog::init()
 
     // Version
     ui.versionLabel->setText(tr("Version %1").arg(qApp->applicationVersion()));
-    ui.linksLabel->setText(tr("<a href=\"https://github.com/%1\">GitHub page</a><br><br>%2").arg(Updater::repository(), ui.linksLabel->text()));
+    // The fork's link comes from the repository the update check reads; the .ui holds the link to the original.
+    ui.linksLabel->setText(tr("<a href=\"https://github.com/%1\">Lightscreen Rd on GitHub</a> · %2").arg(Updater::repository(), ui.linksLabel->text()));
 
     ui.uploadSslWarningLabel->setVisible(false);
 

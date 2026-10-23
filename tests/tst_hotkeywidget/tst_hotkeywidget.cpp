@@ -36,6 +36,9 @@ private slots:
     void tabFocusThenKeyStartsEntry_data();
     void tabFocusThenKeyStartsEntry();
     void tabFocusMovesOnWithTab();
+    void tabDuringEntryMovesOn_data();
+    void tabDuringEntryMovesOn();
+    void ctrlTabDuringEntryIsRecorded();
     void languageChangeResetsText();
 
 private:
@@ -331,6 +334,49 @@ void tst_HotkeyWidget::tabFocusMovesOnWithTab()
     QTest::keyClick(mOther, Qt::Key_Backtab, Qt::ShiftModifier);
     QTRY_VERIFY(mWidget->hasFocus());
     QCOMPARE(mWidget->text(), QKeySequence(QStringLiteral("Ctrl+Print")).toString(QKeySequence::NativeText));
+}
+
+// QA pass A5: with the button waiting for a hotkey ("Type your hotkey", after Space, Enter or a click), a plain
+// Tab or Shift+Tab used to be recorded as the hotkey. It now ends the entry with the hotkey unchanged and moves focus
+// on, so a keyboard user can always leave the button. A bare Tab is never a usable global hotkey.
+void tst_HotkeyWidget::tabDuringEntryMovesOn_data()
+{
+    QTest::addColumn<int>("key");
+    QTest::addColumn<int>("modifiers");
+
+    QTest::newRow("Tab") << int(Qt::Key_Tab) << int(Qt::NoModifier);
+    QTest::newRow("Shift+Tab as Backtab") << int(Qt::Key_Backtab) << int(Qt::ShiftModifier);
+    QTest::newRow("Shift+Tab as Tab") << int(Qt::Key_Tab) << int(Qt::ShiftModifier);
+}
+
+void tst_HotkeyWidget::tabDuringEntryMovesOn()
+{
+    QFETCH(int, key);
+    QFETCH(int, modifiers);
+
+    mWidget->setHotkey(QStringLiteral("Ctrl+Print"));
+    focusAndWait(Qt::TabFocusReason);
+    QTest::keyClick(mWidget, Qt::Key_Space);
+    QCOMPARE(mWidget->text(), QStringLiteral("Type your hotkey"));
+
+    click(key, modifiers);
+
+    QCOMPARE(mWidget->hotkey(), QStringLiteral("Ctrl+Print"));
+    QTRY_VERIFY(mOther->hasFocus());
+    QCOMPARE(mWidget->text(), QKeySequence(QStringLiteral("Ctrl+Print")).toString(QKeySequence::NativeText));
+    QVERIFY(QWidget::keyboardGrabber() != mWidget);
+}
+
+// A combination with Tab is still a hotkey.
+void tst_HotkeyWidget::ctrlTabDuringEntryIsRecorded()
+{
+    mWidget->setHotkey(QStringLiteral("Ctrl+Print"));
+    focusAndWait(Qt::TabFocusReason);
+    QTest::keyClick(mWidget, Qt::Key_Space);
+
+    click(Qt::Key_Tab, Qt::ControlModifier);
+
+    QCOMPARE(mWidget->hotkey(), QStringLiteral("Ctrl+Tab"));
 }
 
 void tst_HotkeyWidget::languageChangeResetsText()

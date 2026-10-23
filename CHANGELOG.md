@@ -17,6 +17,7 @@ First release of the fork, based on upstream Lightscreen 2.5. Settings and scree
 - **History dialog:** "Delete from imgur.com" is now "Open delete link", for any upload that returned one.
 - **Defaults:** every setting has one default (the options dialog's). A settings file with keys missing now behaves as a fresh install would: save to `Documents\Screenshots` with the `screenshot.` prefix, PNG format, tray icon on. Existing complete settings are unaffected.
 - **Sound:** played without QtMultimedia; the error sound is the system default sound.
+- **Dark mode:** the main window follows the Windows light or dark theme (Qt 6), with light icons on dark buttons.
 - **Display scaling:** the app's windows follow the exact Windows scale (125%, 150%, 175%) instead of being rounded to 100% or 200%.
 
 ### Added
@@ -33,8 +34,9 @@ First release of the fork, based on upstream Lightscreen 2.5. Settings and scree
 - A failed save reported twice and still wrote a history row; a temporary `.screenshot.` file was left behind with file and clipboard both on (bugs 16, 18).
 - Uploading a screenshot that was already in the history added a second row instead of updating it (bug 13).
 - Uploads from the history dialog ignored the chosen service; an unknown service name crashed; cancelling an upload reported an error (bugs 14, 21, 22).
-- WEBP, and any other value the dialog could not show, was lost when the options were saved (bug 19); an unknown format setting produced a file with no extension (bug 2).
+- WEBP, and any other value the dialog could not show, was lost when the options were saved (bug 19); an unknown format setting produced a file with no extension (bug 2). The Windows package now includes Qt's WEBP plugin, so WEBP screenshots are written (bug 39).
 - An upper-case X in a typed area size ("100X50") was ignored (bug 24).
+- The date format box in the Naming dialog took `?`, `:` and other characters a file name cannot hold (bug 40), and the Directory box suggested no folders (bug 41).
 - A hotkey could not be set from the keyboard (bug 26).
 - Window capture left a border strip or cut the window's edge on Windows 10/11, also on a secondary monitor (bug 5); the window picker showed no icons on 64-bit Windows (bug 1).
 - `lightscreen --quit` with no instance running started a hidden one (bug 29), and with "Closing hides the main window" on and no tray icon it waited on a dialog.
@@ -50,13 +52,16 @@ First release of the fork, based on upstream Lightscreen 2.5. Settings and scree
 ### Known issues
 
 - Browsers on an HDR monitor can be captured brighter than they appear (bug 9).
+- The window picker shows no icon for Windows Store apps such as Settings (bug 36).
+- With "Sound cue" and "Tray icon Popup" both on, Windows plays its notification sound with the shutter. Turn the pop-up off, or turn off the sound for Lightscreen Rd's notifications in Windows' notification settings (bug 37).
+- On Windows 11, Print Screen opens Windows' Snipping Tool while "Use the Print screen key to open screen capture" is on (Settings > Accessibility > Keyboard; on by default). Turn it off, or give Lightscreen Rd another hotkey.
 - PNG screenshots always use compression quality 80, whatever the quality setting (bug 20).
 - Wayland and macOS are not supported.
 
 ### For developers
 
 - CMake build with presets (Windows MSVC, Linux); no submodules (SingleApplication and UGlobalHotkey are vendored).
-- GitHub Actions CI on Windows and Linux for every pull request: build, 12 QtTest suites, Linux smoke tests, and a dependency check between `tools/` and the UI code.
+- GitHub Actions CI on Windows and Linux for every pull request: build, 13 QtTest suites, Linux smoke tests, and a dependency check between `tools/` and the UI code.
 - Release workflow: a tag `v<version>` builds the Windows zip and opens a draft GitHub Release.
 - Decisions, known bugs, status and manual Windows checks are recorded under `docs/`.
 

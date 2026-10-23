@@ -132,6 +132,19 @@ void HotkeyWidget::keyPressEvent(QKeyEvent *event)
         return;
     }
 
+    // Plain Tab or Shift+Tab ends the entry with the hotkey unchanged and moves focus on, so a keyboard user can always
+    // leave the button; a bare Tab is never a usable global hotkey. Combinations such as Ctrl+Tab are still recorded.
+    const Qt::KeyboardModifiers modifiers = event->modifiers() & ~Qt::KeypadModifier;
+    const bool forward = event->key() == Qt::Key_Tab && modifiers == Qt::NoModifier;
+    const bool backward = (event->key() == Qt::Key_Backtab || event->key() == Qt::Key_Tab) && modifiers == Qt::ShiftModifier;
+
+    if (forward || backward) {
+        releaseKeyboard();
+        setText(mHotkey.toString(QKeySequence::NativeText));
+        focusNextPrevChild(forward);
+        return;
+    }
+
     if (!isValid(event->key())) {
         setText(tr("Invalid hotkey"));
         parentWidget()->setFocus();

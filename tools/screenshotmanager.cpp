@@ -66,6 +66,12 @@ void ScreenshotManager::init()
     connect(mUploader, &Uploader::done, this, &ScreenshotManager::uploadDone);
 
     mOptimizer = new Optimizer(mSettings, mHistoryPath, this);
+
+    // The manager is never destroyed, so without this a running optimizer outlived the app and left its temporary
+    // file behind in the screenshot folder (found in the Windows QA pass).
+    if (QCoreApplication::instance()) {
+        connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, mOptimizer, &Optimizer::stop);
+    }
 }
 
 void ScreenshotManager::initHistory()

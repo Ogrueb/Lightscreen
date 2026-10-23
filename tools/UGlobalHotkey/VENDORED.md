@@ -42,3 +42,11 @@ history and in `docs/decisions.md`.
   `CMakeLists.txt`, a static library with the same sources, the same
   `UGLOBALHOTKEY_NOEXPORT` define and the same libraries (`user32` on Windows,
   `xcb` and `xcb-keysyms` on Linux). No source file changed.
+- **Bug 33 (2026-10-23), Windows only.** Hotkeys are registered to the thread
+  (`RegisterHotKey(nullptr, ...)`) instead of to the widget's own handle
+  (`winId()`), and `WM_HOTKEY` is caught by a `QAbstractNativeEventFilter`
+  (installed on `qApp`, as on Linux) instead of `QWidget::nativeEvent`, which is
+  removed on Windows along with `winEvent`. Registered to the widget, hotkeys
+  stopped arriving on Qt 6 while the main window was hidden to the tray. The
+  filter ignores `WM_HOTKEY` ids this object did not register (upstream asserted
+  on them). Test: `tests/tst_globalhotkeys`.

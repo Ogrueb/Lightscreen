@@ -1,6 +1,5 @@
-# WEBP screenshots are saved (PR #29, bug 19)
+# WEBP screenshots are saved: re-check (PR #29, bugs 19 and 39)
 
-Optional and short.
+Step 2 (the format is kept) passed in the 2026-10-23 pass. Use a PR #58 build or later; its folder has `imageformats\qwebp.dll`.
 
-1. In Options, choose WEBP as the format, save, and take a screenshot: a `.webp` file is written and opens in a viewer. (It needs Qt's `qwebp` plugin, which `windeployqt` deploys when the Qt install has it; if no file appears, note that.)
-2. Reopen Options: the format still shows WEBP.
+1. In Options, choose WEBP as the format, save, and take a screenshot: a `.webp` file is written and opens in a viewer (a browser opens it).
