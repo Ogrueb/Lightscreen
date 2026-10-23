@@ -30,3 +30,5 @@ The owner is running the 22 checks in `docs/windows-qa/`. A1 to A6 ran on the CI
   - Step 6 showed Lightscreen's tray-icon menu, not a jump list. The check now says to right-click the taskbar button itself.
   - Re-checked: the taskbar button's own menu shows only Windows' standard items, so step 6 passes.
   - The check file holds step 1 (upload progress).
+- **A9 (`2026-10-15-sound-cues.md`):** step 2 passed. Step 1: the shutter played together with Windows' notification sound. The owner confirmed the second sound is the tray pop-up's (only the shutter with the pop-up off). Documented as **bug 37**, a known issue with a workaround (owner's choice), in `CHANGELOG.md` and the release notes. The check file is removed.
+- **A10 (`2026-10-22-quit-with-close-hide.md`):** passed; the check file is removed.
