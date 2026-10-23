@@ -28,4 +28,5 @@ The owner is running the 22 checks in `docs/windows-qa/`. A1 to A6 ran on the CI
 - **A8 (`2026-10-16-taskbar-without-winextras.md`):** steps 2, 4 and 5 passed; 3 is covered by A7; 1 (upload progress) skipped.
   - The cross is not red because the overlay is the monochrome icon; the check's wording is corrected.
   - Step 6 showed Lightscreen's tray-icon menu, not a jump list. The check now says to right-click the taskbar button itself.
-  - The check file holds steps 1 and 6.
+  - Re-checked: the taskbar button's own menu shows only Windows' standard items, so step 6 passes.
+  - The check file holds step 1 (upload progress).
