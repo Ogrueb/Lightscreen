@@ -12,6 +12,7 @@
 
 #ifdef Q_OS_WIN
     #include <qt_windows.h>
+    #include <dwmapi.h>
 #endif
 
 class tst_Os : public QObject
@@ -112,6 +113,66 @@ private slots:
         const QPixmap pixmap = os::pixmapFromHICON(icon);
         QVERIFY(!pixmap.isNull());
         QCOMPARE(pixmap.width(), ::GetSystemMetrics(SM_CXICON));
+    }
+
+    // Bug 35: window capture has Windows draw the window itself (PrintWindow), so a window partly off screen comes out
+    // whole, its own content included where it is off screen, cropped to the visible frame DWM reports. A plain GDI
+    // window cannot show the DirectComposition case (that is the owner's check); this guards the size, the crop and
+    // the off-screen part.
+    void grabWindowPartlyOffScreen()
+    {
+        const COLORREF colour = RGB(200, 30, 40);
+        HBRUSH brush = ::CreateSolidBrush(colour);
+
+        WNDCLASSW windowClass = {};
+        windowClass.lpfnWndProc = ::DefWindowProcW;
+        windowClass.hInstance = ::GetModuleHandleW(nullptr);
+        windowClass.hbrBackground = brush;
+        windowClass.lpszClassName = L"LightscreenRdCaptureTest";
+        QVERIFY(::RegisterClassW(&windowClass));
+
+        // 120 pixels of it left of the virtual desktop.
+        const int left = ::GetSystemMetrics(SM_XVIRTUALSCREEN) - 120;
+        const int top = ::GetSystemMetrics(SM_YVIRTUALSCREEN) + 40;
+        HWND window = ::CreateWindowExW(0, windowClass.lpszClassName, L"capture test", WS_OVERLAPPEDWINDOW,
+                                        left, top, 400, 300, nullptr, nullptr, windowClass.hInstance, nullptr);
+        QVERIFY(window);
+        ::ShowWindow(window, SW_SHOWNOACTIVATE);
+        ::UpdateWindow(window);
+        QTest::qWait(300);
+
+        RECT frame;
+        if (FAILED(::DwmGetWindowAttribute(window, DWMWA_EXTENDED_FRAME_BOUNDS, &frame, sizeof(frame)))) {
+            ::GetWindowRect(window, &frame);
+        }
+
+        RECT client;
+        ::GetClientRect(window, &client);
+        POINT clientOrigin = { 0, 0 };
+        ::ClientToScreen(window, &clientOrigin);
+
+        const QImage image = os::grabWindow(WId(window)).toImage();
+
+        ::DestroyWindow(window);
+        ::UnregisterClassW(windowClass.lpszClassName, windowClass.hInstance);
+        ::DeleteObject(brush);
+
+        if (image.isNull()) {
+            QSKIP("Nothing was rendered (no interactive desktop on this runner?)");
+        }
+
+        QCOMPARE(image.size(), QSize(frame.right - frame.left, frame.bottom - frame.top));
+
+        // Inside the client area: the middle, and a point in the part that is off screen.
+        const int clientX = clientOrigin.x - frame.left;
+        const int clientY = clientOrigin.y - frame.top;
+        const QPoint middle(clientX + client.right / 2, clientY + client.bottom / 2);
+        const QPoint offScreen(clientX + 20, clientY + client.bottom / 2);
+        QVERIFY(offScreen.x() + frame.left < ::GetSystemMetrics(SM_XVIRTUALSCREEN));
+
+        const QRgb expected = qRgb(GetRValue(colour), GetGValue(colour), GetBValue(colour));
+        QCOMPARE(image.pixel(middle) & 0xFFFFFF, expected & 0xFFFFFF);
+        QCOMPARE(image.pixel(offScreen) & 0xFFFFFF, expected & 0xFFFFFF);
     }
 #endif
 

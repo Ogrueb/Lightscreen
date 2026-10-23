@@ -1,7 +1,7 @@
 # Window capture uses the visible window bounds (PR #18, bug 5)
 
-Take a window capture of each case and open the file.
+Steps 1 and 2 (a window next to another, a maximized window) passed on 2026-10-23 (owner). Step 3 and the window picker found bug 35. Left to re-check:
 
-1. A non-maximized window next to another window: no stripe of the neighbouring window, and no edge of the window cut off.
-2. A maximized window: the whole window, nothing cut.
-3. A window partly off screen to the left or top: clean left and top edges, nothing cut on the right or bottom.
+1. Move Explorer partly off screen to the left or top and take an active-window capture: the whole window, title bar and toolbar included (not black), clean edges, nothing cut.
+2. Use the window picker on Explorer, then on a browser or the Settings app, with another window behind each: the file shows the picked window's own title bar and content, not the window behind or the picker.
+3. Note what the four rounded corners look like on Windows 11 (outside the window's shape): report only if it looks wrong.

@@ -48,6 +48,11 @@
     #include <dwmapi.h>
     #include <mmsystem.h>
 
+    // PrintWindow's "render DirectComposition content too" flag, Windows 8.1 and later; older SDK headers lack it.
+    #ifndef PW_RENDERFULLCONTENT
+        #define PW_RENDERFULLCONTENT 0x00000002
+    #endif
+
     // Define for MinGW
     #ifndef SM_CXPADDEDBORDER
         #define SM_CXPADDEDBORDER 92
@@ -241,61 +246,35 @@ QPixmap os::grabWindow(WId winId)
         rcWindow.bottom -= margin;
     }
 
-    int width, height;
-    width = rcWindow.right - rcWindow.left;
-    height = rcWindow.bottom - rcWindow.top;
+    const int width = rcWindow.right - rcWindow.left;
+    const int height = rcWindow.bottom - rcWindow.top;
+    const int fullWidth = rcFull.right - rcFull.left;
+    const int fullHeight = rcFull.bottom - rcFull.top;
 
-    // The whole virtual desktop (every monitor), in the same physical pixels as the window rectangle: Qt 6 makes the
-    // process per-monitor DPI aware. GetDesktopWindow() covers only the primary monitor, which sent every window on
-    // another monitor down the window DC path below.
-    RECT rcScreen;
-    rcScreen.left = GetSystemMetrics(SM_XVIRTUALSCREEN);
-    rcScreen.top = GetSystemMetrics(SM_YVIRTUALSCREEN);
-    rcScreen.right = rcScreen.left + GetSystemMetrics(SM_CXVIRTUALSCREEN);
-    rcScreen.bottom = rcScreen.top + GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    // PrintWindow with PW_RENDERFULLCONTENT (Windows 8.1 and later) has Windows draw the window itself into our
+    // bitmap, DirectComposition content included (the title bars and toolbars of current apps, browsers), whatever
+    // covers it and wherever it is. Until 3.0 the window was copied from the screen when it was fully on screen,
+    // which caught whatever was on top at that moment (the window picker as it closed, or the window behind), and
+    // from its own window DC otherwise, where DirectComposition content is black (QA pass, bug 35).
+    HDC hdcScreen = GetDC(nullptr);
+    HDC hdcMem = CreateCompatibleDC(hdcScreen);
+    HBITMAP hbmFull = CreateCompatibleBitmap(hdcScreen, fullWidth, fullHeight);
+    HGDIOBJ previous = SelectObject(hdcMem, hbmFull);
 
-    RECT rcResult;
-    UnionRect(&rcResult, &rcWindow, &rcScreen);
-
-    QPixmap pixmap;
-
-    // Comparing the rects to determine if the window is outside the boundaries of the screen,
-    // the window DC method has the disadvantage that it does not show Aero glass transparency,
-    // so we'll avoid it for the screenshots that don't need it.
-
-    HDC hdcMem;
-    HBITMAP hbmCapture;
-
-    if (EqualRect(&rcScreen, &rcResult)) {
-        // Grabbing the window from the Screen DC.
-        HDC hdcScreen = GetDC(NULL);
-
-        BringWindowToTop(hwndId);
-
-        hdcMem = CreateCompatibleDC(hdcScreen);
-        hbmCapture = CreateCompatibleBitmap(hdcScreen, width, height);
-        SelectObject(hdcMem, hbmCapture);
-
-        BitBlt(hdcMem, 0, 0, width, height, hdcScreen, rcWindow.left, rcWindow.top, SRCCOPY);
-    } else {
-        // Grabbing the window by its own DC
-        HDC hdcWindow = GetWindowDC(hwndId);
-
-        hdcMem = CreateCompatibleDC(hdcWindow);
-        hbmCapture = CreateCompatibleBitmap(hdcWindow, width, height);
-        SelectObject(hdcMem, hbmCapture);
-
-        BitBlt(hdcMem, 0, 0, width, height, hdcWindow, rcWindow.left - rcFull.left, rcWindow.top - rcFull.top, SRCCOPY);
+    if (!PrintWindow(hwndId, hdcMem, PW_RENDERFULLCONTENT)) {
+        // Fallback: the window's area as it is on screen.
+        BitBlt(hdcMem, 0, 0, fullWidth, fullHeight, hdcScreen, rcFull.left, rcFull.top, SRCCOPY);
     }
 
-    ReleaseDC(hwndId, hdcMem);
+    SelectObject(hdcMem, previous);
     DeleteDC(hdcMem);
+    ReleaseDC(nullptr, hdcScreen);
 
-    pixmap = os::pixmapFromHBITMAP(hbmCapture);
+    const QPixmap full = os::pixmapFromHBITMAP(hbmFull);
+    DeleteObject(hbmFull);
 
-    DeleteObject(hbmCapture);
-
-    return pixmap;
+    // The bitmap covers GetWindowRect, invisible resize borders included; keep the visible frame.
+    return full.copy(rcWindow.left - rcFull.left, rcWindow.top - rcFull.top, width, height);
 #else
     return QGuiApplication::primaryScreen()->grabWindow(winId);
 #endif
