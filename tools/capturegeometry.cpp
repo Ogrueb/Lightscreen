@@ -102,12 +102,10 @@ QRect windowGeometry(const Screen &screen, const QRect &device)
 
 QRect selectionToDevice(const QRect &selection, qreal ratio, const QSize &bounds)
 {
-    const int left = int(std::floor(selection.left() * ratio));
-    const int top = int(std::floor(selection.top() * ratio));
-    const int right = int(std::ceil((selection.left() + selection.width()) * ratio));
-    const int bottom = int(std::ceil((selection.top() + selection.height()) * ratio));
-
-    QRect result(left, top, right - left, bottom - top);
+    // Until 3.0's QA pass every device pixel the selection touched was included, which made a typed 100x100 at 125%
+    // come out 125x126 when the selection started mid-pixel; the owner chose the exact size.
+    QRect result(qRound(selection.left() * ratio), qRound(selection.top() * ratio),
+                 qRound(selection.width() * ratio), qRound(selection.height() * ratio));
 
     if (!bounds.isEmpty() && result.width() > 0 && result.height() > 0) {
         result = result.intersected(QRect(QPoint(0, 0), bounds));

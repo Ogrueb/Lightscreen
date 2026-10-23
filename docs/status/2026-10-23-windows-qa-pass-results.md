@@ -14,3 +14,7 @@ The owner is running the 22 checks in `docs/windows-qa/` (CI build from `master`
   - With it off, Print Screen captures only while a Lightscreen Rd window or menu is open, not from the tray: new **bug 33**, under investigation (Print Screen only, or every hotkey in the background).
   - The check file now holds only the re-check.
 - **Bug 33 narrowed down and fixed:** the owner found every hotkey fails from the tray while upstream 2.5 works, so it is a Qt 6 regression. `UGlobalHotkeys` on Windows now registers hotkeys to the thread and catches `WM_HOTKEY` with a native event filter, so no window is involved. New test suite `tst_globalhotkeys` (Windows), 13 suites in total. Cause inferred, fix awaiting the owner's re-check.
+- **A4 (`2026-10-21-area-capture-after-s01.md`):** all six steps passed.
+  - "Green tick" was the check's wording; the accept button is a plain tick, as in 2.5.
+  - Step 4 gave 125x126 for a typed 100x100 at 125%. The owner chose exact sizes over covering every touched pixel: `CaptureGeometry::selectionToDevice` now rounds the edges and the size. Safety-net rows in `tst_AreaDialog::resultRect` and `tst_CaptureGeometry::selectionToDevice` changed on purpose ("rounds"), with typed-size rows added; bug 23's file records it.
+  - Verified under Xvfb at 1, 1.25 and 1.5. The check file holds only the 125%/150% re-check.

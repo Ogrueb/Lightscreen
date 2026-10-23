@@ -174,10 +174,13 @@ private slots:
 
         QTest::newRow("ratio 1") << QRect(10, 20, 30, 40) << qreal(1) << QSize() << QRect(10, 20, 30, 40);
         QTest::newRow("ratio 2") << QRect(10, 20, 30, 40) << qreal(2) << QSize() << QRect(20, 40, 60, 80);
-        // Device pixels 4.5 to 15 and 7.5 to 21.
-        QTest::newRow("ratio 1.5") << QRect(3, 5, 7, 9) << qreal(1.5) << QSize() << QRect(4, 7, 11, 14);
-        // Device pixels 1.25 to 5 and 2.5 to 6.25.
-        QTest::newRow("ratio 1.25") << QRect(1, 2, 3, 3) << qreal(1.25) << QSize() << QRect(1, 2, 4, 5);
+        // Edges rounded to the nearest device pixel (4.5 -> 5, 7.5 -> 8), size scaled and rounded (10.5 -> 11, 13.5 -> 14).
+        QTest::newRow("ratio 1.5") << QRect(3, 5, 7, 9) << qreal(1.5) << QSize() << QRect(5, 8, 11, 14);
+        // 1.25 -> 1, 2.5 -> 3; 3.75 -> 4 both ways.
+        QTest::newRow("ratio 1.25") << QRect(1, 2, 3, 3) << qreal(1.25) << QSize() << QRect(1, 3, 4, 4);
+        // A typed 100x100 at 125% keeps its size wherever it starts (with "every touched pixel" it was 125x126).
+        QTest::newRow("ratio 1.25, typed 100x100 mid-pixel") << QRect(1, 1, 100, 100) << qreal(1.25) << QSize()
+                                                            << QRect(1, 1, 125, 125);
         QTest::newRow("ratio 1.75, whole") << QRect(0, 0, 100, 100) << qreal(1.75) << QSize(175, 175)
                                            << QRect(0, 0, 175, 175);
         QTest::newRow("clipped to the bounds") << QRect(90, 90, 20, 20) << qreal(1.5) << QSize(150, 150)
