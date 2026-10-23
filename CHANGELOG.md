@@ -17,6 +17,7 @@ First release of the fork, based on upstream Lightscreen 2.5. Settings and scree
 - **History dialog:** "Delete from imgur.com" is now "Open delete link", for any upload that returned one.
 - **Defaults:** every setting has one default (the options dialog's). A settings file with keys missing now behaves as a fresh install would: save to `Documents\Screenshots` with the `screenshot.` prefix, PNG format, tray icon on. Existing complete settings are unaffected.
 - **Sound:** played without QtMultimedia; the error sound is the system default sound.
+- **Dark mode:** the main window follows the Windows light or dark theme (Qt 6), with light icons on dark buttons.
 - **Display scaling:** the app's windows follow the exact Windows scale (125%, 150%, 175%) instead of being rounded to 100% or 200%.
 
 ### Added

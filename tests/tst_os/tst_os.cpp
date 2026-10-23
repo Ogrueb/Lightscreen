@@ -175,6 +175,24 @@ private slots:
         QVERIFY(os::icon("lightscreen.small", Qt::black).pixmap(16, 16).isNull());
     }
 
+    // Each inverted icon is the same picture as its normal one, light on dark: same size and the same transparency
+    // mask. Bug 31: until 3.0 the inverted "upload" was the old Imgur logo and "configure" a wrench, which Qt 6
+    // shows on Windows in dark mode.
+    void invertedIconsMatchTheNormalSet()
+    {
+        const QStringList names = QDir(":/icons/inv").entryList(QDir::Files);
+        QVERIFY(names.size() >= 20);
+
+        for (const QString &name : names) {
+            const QImage normal = QImage(":/icons/" + name).convertToFormat(QImage::Format_Alpha8);
+            const QImage inverted = QImage(":/icons/inv/" + name).convertToFormat(QImage::Format_Alpha8);
+
+            QVERIFY2(!normal.isNull(), qPrintable(name + " has no normal icon"));
+            QVERIFY2(normal.size() == inverted.size(), qPrintable(name + ": sizes differ"));
+            QVERIFY2(normal == inverted, qPrintable(name + ": the shapes differ"));
+        }
+    }
+
     // An unknown name gives an icon with no pixmap rather than a warning or a fallback.
     void iconUnknownName()
     {
