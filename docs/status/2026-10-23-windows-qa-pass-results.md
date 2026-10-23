@@ -9,3 +9,7 @@ The owner is running the 22 checks in `docs/windows-qa/` (CI build from `master`
   - "The picker modes show no title" is a mistake in the check, not a bug: the area and window-picker overlays are frameless and have had no title bar since upstream. The check's wording is corrected.
   - Two links to the fork on the About tab: new **bug 32**, fixed (one link, built from `Updater::repository()`).
   - The check file now holds only the About re-check.
+- **A2 (`2026-10-22-fresh-install.md`):** steps 1 and 2 passed; step 4 (clean up) not applicable. In step 3:
+  - With Windows' Print Screen setting on, the Snipping Tool takes the key. Recorded as a known issue in `CHANGELOG.md` and the release notes.
+  - With it off, Print Screen captures only while a Lightscreen Rd window or menu is open, not from the tray: new **bug 33**, under investigation (Print Screen only, or every hotkey in the background).
+  - The check file now holds only the re-check.
