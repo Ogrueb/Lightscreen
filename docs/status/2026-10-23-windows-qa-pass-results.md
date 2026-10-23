@@ -24,3 +24,8 @@ The owner is running the 22 checks in `docs/windows-qa/`. A1 to A6 ran on the CI
   - In step 2, the window picker captured the window behind as well: bug 35's symptom, fixed in the PR #58 build at `27bffb3`, so it is a re-check.
   - Active-window capture worked with the Lightscreen window open; from the tray it depends on bug 33's fix, also a re-check.
   - The check file holds the two re-checks and autostart.
+- **A7 (`2026-10-14-window-picker-icons.md`):** steps 1 and 3 passed. Step 2 passed except Settings, a Store app, which shows no icon: **bug 36**, a known issue for 3.0 (owner). The picker's title-bar clipping seen in A7 is bug 35, on the A1 build. The check file is removed.
+- **A8 (`2026-10-16-taskbar-without-winextras.md`):** steps 2, 4 and 5 passed; 3 is covered by A7; 1 (upload progress) skipped.
+  - The cross is not red because the overlay is the monochrome icon; the check's wording is corrected.
+  - Step 6 showed Lightscreen's tray-icon menu, not a jump list. The check now says to right-click the taskbar button itself.
+  - The check file holds steps 1 and 6.
