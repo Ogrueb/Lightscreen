@@ -1395,7 +1395,7 @@ Lightscreen was created by &lt;a href=&quot;https://ckaiser.com.ar&quot;&gt;Chri
        <item>
         <widget class="QLabel" name="linksLabel">
          <property name="text">
-          <string>&lt;a href=&quot;https://github.com/Ogrueb/Lightscreen-Rd&quot;&gt;Lightscreen Rd on GitHub&lt;/a&gt; · &lt;a href=&quot;https://github.com/ckaiser/Lightscreen/&quot;&gt;Original Lightscreen&lt;/a&gt;</string>
+          <string>&lt;a href=&quot;https://github.com/ckaiser/Lightscreen/&quot;&gt;Original Lightscreen&lt;/a&gt;</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>

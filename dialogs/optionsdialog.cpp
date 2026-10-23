@@ -630,7 +630,8 @@ void OptionsDialog::init()
 
     // Version
     ui.versionLabel->setText(tr("Version %1").arg(qApp->applicationVersion()));
-    ui.linksLabel->setText(tr("<a href=\"https://github.com/%1\">GitHub page</a><br><br>%2").arg(Updater::repository(), ui.linksLabel->text()));
+    // The fork's link comes from the repository the update check reads; the .ui holds the link to the original.
+    ui.linksLabel->setText(tr("<a href=\"https://github.com/%1\">Lightscreen Rd on GitHub</a> · %2").arg(Updater::repository(), ui.linksLabel->text()));
 
     ui.uploadSslWarningLabel->setVisible(false);
 
