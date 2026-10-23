@@ -31,9 +31,6 @@ class NamingDialog : public QDialog
 public:
     explicit NamingDialog(Screenshot::Naming naming, QWidget *parent = 0);
 
-protected:
-    bool eventFilter(QObject *object, QEvent *event);
-
 public slots:
     void saveSettings();
     void updateDatePreview();

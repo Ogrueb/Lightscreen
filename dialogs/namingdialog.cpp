@@ -24,8 +24,9 @@
 
 #include <QDateTime>
 #include <QDesktopServices>
-#include <QKeyEvent>
+#include <QLineEdit>
 #include <QRegularExpression>
+#include <QRegularExpressionValidator>
 #include <QSettings>
 #include <QUrl>
 
@@ -36,7 +37,14 @@ NamingDialog::NamingDialog(Screenshot::Naming naming, QWidget *parent) :
     setModal(true);
     setWindowFlags(windowFlags() ^ Qt::WindowContextHelpButtonHint);
 
-    ui.dateFormatComboBox->installEventFilter(this);
+    // No character a file name cannot hold. A validator on the box's text field, which receives the typing (an event
+    // filter on the box itself never saw a key), also covers pasting.
+#ifdef Q_OS_WIN
+    const QRegularExpression dateFormat("[^?:\\\\/*\"<>|]*");
+#else
+    const QRegularExpression dateFormat("[^/]*");
+#endif
+    ui.dateFormatComboBox->lineEdit()->setValidator(new QRegularExpressionValidator(dateFormat, ui.dateFormatComboBox));
 
     // Settings
     auto settings = ScreenshotManager::instance()->settings();
@@ -67,29 +75,6 @@ NamingDialog::NamingDialog(Screenshot::Naming naming, QWidget *parent) :
     ui.stack->currentWidget()->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
     resize(minimumSizeHint());
-}
-
-bool NamingDialog::eventFilter(QObject *object, QEvent *event)
-{
-    if (event->type() == QEvent::KeyPress
-            && object == ui.dateFormatComboBox) {
-        QKeyEvent *keyEvent = (QKeyEvent *)(event);
-#ifdef Q_OS_WIN
-        if (QRegularExpression(QRegularExpression::anchoredPattern("[?:\\\\/*\"<>|]")).match(keyEvent->text()).hasMatch()) {
-            event->ignore();
-            return true;
-        }
-#endif
-
-#ifdef Q_OS_UNIX
-        if (keyEvent->text().contains("/")) {
-            event->ignore();
-            return true;
-        }
-#endif
-    }
-
-    return QDialog::eventFilter(object, event);
 }
 
 void NamingDialog::updateDatePreview() {

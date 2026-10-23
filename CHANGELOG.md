@@ -36,6 +36,7 @@ First release of the fork, based on upstream Lightscreen 2.5. Settings and scree
 - Uploads from the history dialog ignored the chosen service; an unknown service name crashed; cancelling an upload reported an error (bugs 14, 21, 22).
 - WEBP, and any other value the dialog could not show, was lost when the options were saved (bug 19); an unknown format setting produced a file with no extension (bug 2). The Windows package now includes Qt's WEBP plugin, so WEBP screenshots are written (bug 39).
 - An upper-case X in a typed area size ("100X50") was ignored (bug 24).
+- The date format box in the Naming dialog took `?`, `:` and other characters a file name cannot hold (bug 40), and the Directory box suggested no folders (bug 41).
 - A hotkey could not be set from the keyboard (bug 26).
 - Window capture left a border strip or cut the window's edge on Windows 10/11, also on a secondary monitor (bug 5); the window picker showed no icons on 64-bit Windows (bug 1).
 - `lightscreen --quit` with no instance running started a hidden one (bug 29), and with "Closing hides the main window" on and no tray icon it waited on a dialog.
