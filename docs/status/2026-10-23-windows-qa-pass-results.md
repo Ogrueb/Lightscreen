@@ -13,3 +13,4 @@ The owner is running the 22 checks in `docs/windows-qa/` (CI build from `master`
   - With Windows' Print Screen setting on, the Snipping Tool takes the key. Recorded as a known issue in `CHANGELOG.md` and the release notes.
   - With it off, Print Screen captures only while a Lightscreen Rd window or menu is open, not from the tray: new **bug 33**, under investigation (Print Screen only, or every hotkey in the background).
   - The check file now holds only the re-check.
+- **Bug 33 narrowed down and fixed:** the owner found every hotkey fails from the tray while upstream 2.5 works, so it is a Qt 6 regression. `UGlobalHotkeys` on Windows now registers hotkeys to the thread and catches `WM_HOTKEY` with a native event filter, so no window is involved. New test suite `tst_globalhotkeys` (Windows), 13 suites in total. Cause inferred, fix awaiting the owner's re-check.

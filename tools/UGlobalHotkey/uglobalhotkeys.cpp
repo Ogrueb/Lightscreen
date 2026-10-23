@@ -1,6 +1,7 @@
 #include <QtCore>
 #if defined(Q_OS_WIN)
 #include <windows.h>
+#include <QCoreApplication>
 #elif defined(Q_OS_LINUX)
 #include <QApplication>
 #endif
@@ -13,7 +14,13 @@
 UGlobalHotkeys::UGlobalHotkeys(QWidget *parent)
     : QWidget(parent)
 {
-#if defined(Q_OS_LINUX)
+#if defined(Q_OS_WIN)
+    // Hotkeys are registered to the thread, not to a window (RegisterHotKey with no HWND): WM_HOTKEY then arrives
+    // as a thread message, which Qt's event dispatcher passes to native event filters. Registered to this widget's
+    // own handle, as upstream did, they stopped arriving on Qt 6 once the main window was hidden to the tray
+    // (bug 33).
+    qApp->installNativeEventFilter(this);
+#elif defined(Q_OS_LINUX)
     qApp->installNativeEventFilter(this);
     X11Connection = qGuiApp->nativeInterface<QNativeInterface::QX11Application>()->connection();
     X11Wid = xcb_setup_roots_iterator(xcb_get_setup(X11Connection)).data->root;
@@ -69,7 +76,7 @@ bool UGlobalHotkeys::registerHotkey(const UKeySequence &keySeq, size_t id)
         }
     }
 
-    if (!RegisterHotKey((HWND)winId(), id, winMod, key)) {
+    if (!RegisterHotKey(nullptr, int(id), UINT(winMod), UINT(key))) {
         return false;
     } else {
         Registered.insert(id);
@@ -108,7 +115,7 @@ void UGlobalHotkeys::unregisterHotkey(size_t id)
     Q_ASSERT(Registered.find(id) != Registered.end() && "Unregistered hotkey");
 #endif
 #if defined(Q_OS_WIN)
-    UnregisterHotKey((HWND)winId(), id);
+    UnregisterHotKey(nullptr, int(id));
 #elif defined(Q_OS_LINUX)
     unregLinuxHotkey(id);
 #endif
@@ -141,7 +148,7 @@ UGlobalHotkeys::~UGlobalHotkeys()
 {
 #if defined(Q_OS_WIN)
     for (QSet<size_t>::iterator i = Registered.begin(); i != Registered.end(); ++i) {
-        UnregisterHotKey((HWND)winId(), *i);
+        UnregisterHotKey(nullptr, int(*i));
     }
 #elif defined(Q_OS_LINUX)
     xcb_key_symbols_free(X11KeySymbs);
@@ -156,22 +163,24 @@ void UGlobalHotkeys::onHotkeyPressed(size_t id)
 #endif
 
 #if defined(Q_OS_WIN)
-bool UGlobalHotkeys::winEvent(MSG *message, UNativeEventResult *result)
+bool UGlobalHotkeys::nativeEventFilter(const QByteArray &eventType, void *message, UNativeEventResult *result)
 {
     Q_UNUSED(result);
-    if (message->message == WM_HOTKEY) {
-        size_t id = message->wParam;
-        Q_ASSERT(Registered.find(id) != Registered.end() && "Unregistered hotkey");
-        emit activated(id);
-    }
-    return false;
-}
 
-bool UGlobalHotkeys::nativeEvent(const QByteArray &eventType,
-                                 void *message, UNativeEventResult *result)
-{
-    Q_UNUSED(eventType);
-    return winEvent((MSG *)message, result);
+    if (eventType != "windows_generic_MSG") {
+        return false;
+    }
+
+    const MSG *msg = static_cast<const MSG *>(message);
+
+    // Thread hotkeys carry no window. Another UGlobalHotkeys in the same thread sees the message too and ignores
+    // ids it did not register.
+    if (msg->message != WM_HOTKEY || msg->hwnd != nullptr || !Registered.contains(size_t(msg->wParam))) {
+        return false;
+    }
+
+    emit activated(size_t(msg->wParam));
+    return true;
 }
 
 #elif defined(Q_OS_LINUX)
