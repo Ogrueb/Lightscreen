@@ -1,6 +1,6 @@
 # 33. Global hotkeys do not fire while Lightscreen Rd is only in the tray
 
-- **Found:** by the owner in the Windows QA pass (A2, `2026-10-22-fresh-install.md` step 3), 2026-10-23, on Windows 11 with the CI build of PR #58.
+- **Found:** by the owner in the Windows QA pass (A2, `2026-10-22-fresh-install.md` step 3), 2026-10-23, on Windows 11 with the CI build from `master` at `06db33a` (run #179).
 - **What happens:** with Windows' "Use the Print screen key to open screen capture" turned off, Print Screen captures with Lightscreen Rd only while its window or menu is open. With the app only in the tray, nothing happens. (With that Windows setting on, the Snipping Tool takes the key: a known issue, see below.)
 - **Where:** `tools/UGlobalHotkey/uglobalhotkeys.cpp` (Windows: `RegisterHotKey` against the `UGlobalHotkeys` widget's own handle, `winId()`, a native child of `LightscreenWindow`; `WM_HOTKEY` arrives through `nativeEvent`), `LightscreenWindow::connectHotkeys`.
 - **Narrowed down (owner, 2026-10-23):** every hotkey fails from the tray, not only Print Screen, and upstream 2.5 works from the tray on the same machine. So it is a regression from the Qt 6 port, not Windows' handling of Print Screen.
