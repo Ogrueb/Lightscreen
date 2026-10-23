@@ -20,4 +20,7 @@ The owner is running the 22 checks in `docs/windows-qa/` (CI build from `master`
   - Verified under Xvfb at 1, 1.25 and 1.5. The check file holds only the 125%/150% re-check.
 - **A5 (`2026-10-15-hotkey-from-keyboard.md`):** steps 1 and 2 passed; step 3 found **bug 34**, fixed: a plain Tab or Shift+Tab pressed while a hotkey button showed "Type your hotkey" was recorded as the hotkey. It now ends the entry and moves focus on. New `tst_HotkeyWidget` cases (fail before, pass after). The check file holds the re-check, with the highlighted and entry-mode cases split.
 - **A6 (`2026-10-14-window-capture-bounds.md`):** steps 1 and 2 passed. Step 3 (window partly off screen: Explorer's title bar black) and the window picker (title bar showing the window behind) are **bug 35**, fixed: `os::grabWindow` now has Windows draw the window with `PrintWindow(PW_RENDERFULLCONTENT)` instead of copying screen or window-DC pixels, and releases its DCs. New `tst_Os::grabWindowPartlyOffScreen` (Windows). The check file holds the re-check.
-- **A3** (the Qt 6 general pass) not reported yet.
+- **A3 (`2026-10-20-qt6-flip.md`):** steps 1, 3, 4, 5 and 6 passed; 7 (portable mode) passed through the fresh-install check; 8 (autostart) skipped.
+  - In step 2, the window picker captured the window behind as well: bug 35's symptom, fixed in the PR #58 build at `27bffb3`, so it is a re-check.
+  - Active-window capture worked with the Lightscreen window open; from the tray it depends on bug 33's fix, also a re-check.
+  - The check file holds the two re-checks and autostart.
