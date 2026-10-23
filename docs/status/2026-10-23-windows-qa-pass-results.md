@@ -18,3 +18,5 @@ The owner is running the 22 checks in `docs/windows-qa/` (CI build from `master`
   - "Green tick" was the check's wording; the accept button is a plain tick, as in 2.5.
   - Step 4 gave 125x126 for a typed 100x100 at 125%. The owner chose exact sizes over covering every touched pixel: `CaptureGeometry::selectionToDevice` now rounds the edges and the size. Safety-net rows in `tst_AreaDialog::resultRect` and `tst_CaptureGeometry::selectionToDevice` changed on purpose ("rounds"), with typed-size rows added; bug 23's file records it.
   - Verified under Xvfb at 1, 1.25 and 1.5. The check file holds only the 125%/150% re-check.
+- **A5 (`2026-10-15-hotkey-from-keyboard.md`):** steps 1 and 2 passed; step 3 found **bug 34**, fixed: a plain Tab or Shift+Tab pressed while a hotkey button showed "Type your hotkey" was recorded as the hotkey. It now ends the entry and moves focus on. New `tst_HotkeyWidget` cases (fail before, pass after). The check file holds the re-check, with the highlighted and entry-mode cases split.
+- **A3** (the Qt 6 general pass) not reported yet.
