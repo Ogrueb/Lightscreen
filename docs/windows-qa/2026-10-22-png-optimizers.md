@@ -1,9 +1,6 @@
-# PNG optimizers after S05 (S05, bug 10)
+# PNG optimizers: re-checks (S05, bugs 10 and 38)
 
-Use the `lightscreen-win64` artifact of the latest `master` CI run (it contains `oxipng.exe`, `optipng.exe` and a `licenses` folder), with Options tab > Screenshots > "Optimize PNG screenshots." on and format PNG (General tab).
+Steps 1 to 4 passed in the 2026-10-23 pass (unoptimized 318 KB, OptiPNG 200 KB, oxipng 170 KB). Use a PR #58 build or later, with Options tab > Screenshots > "Optimize PNG screenshots." on and format PNG (General tab).
 
-1. **oxipng.** Choose "oxipng" in the box next to the checkbox, save, take a full-screen screenshot: the file ends up smaller than the same screenshot with optimization off, and opens fine.
-2. **OptiPNG.** The same with "OptiPNG".
-3. **Fallback.** Close Lightscreen, rename `oxipng.exe` to `oxipng.exe.off`, start it again: the box shows "oxipng (not found)"; with oxipng chosen a screenshot is still optimized (by OptiPNG). Rename it back.
-4. **Burst.** Take five screenshots quickly: the tray tooltip shows "N optimizing" counting down, Task Manager shows at most one oxipng or optipng process at a time, and every file ends up optimized.
-5. **Restart.** Take a burst of screenshots and quit Lightscreen at once from the tray menu: the files are intact (they open). Start Lightscreen again: the remaining files get optimized ("N optimizing").
+1. **Quit during a burst (bug 38).** Take a burst of screenshots and quit Lightscreen at once from the tray menu (confirm the prompt): the files open, and no `*.optimize.tmp` file is in the screenshot folder, also after a few seconds. Start Lightscreen again: the remaining files get optimized ("N optimizing").
+2. **No optimizer at all (optional).** Close Lightscreen, rename both `oxipng.exe` and `optipng.exe` (for example to `.off`), start it again: in Options the optimize checkbox is greyed out with "No optimizer found next to lightscreen.exe", and screenshots are still saved, unoptimized. Rename both back.

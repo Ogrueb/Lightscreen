@@ -32,3 +32,9 @@ The owner is running the 22 checks in `docs/windows-qa/`. A1 to A6 ran on the CI
   - The check file holds step 1 (upload progress).
 - **A9 (`2026-10-15-sound-cues.md`):** step 2 passed. Step 1: the shutter played together with Windows' notification sound. The owner confirmed the second sound is the tray pop-up's (only the shutter with the pop-up off). Documented as **bug 37**, a known issue with a workaround (owner's choice), in `CHANGELOG.md` and the release notes. The check file is removed.
 - **A10 (`2026-10-22-quit-with-close-hide.md`):** passed; the check file is removed.
+- **A11 (`2026-10-22-png-optimizers.md`):** steps 1 to 4 passed: unoptimized 318 KB, OptiPNG 200 KB, oxipng 170 KB. The tools ran too quickly to see in Task Manager. In step 5:
+  - The files were intact, the quit prompt appeared, and the next start optimized the rest.
+  - One `.optimize.tmp` file was left in the screenshot folder: new **bug 38**, fixed. The manager singleton is never destroyed, so the optimizer's clean-up never ran and the tool outlived the app. `Optimizer::stop()` now runs on `aboutToQuit`, tested by `tst_Optimizer::quit_stopsTheRunningTool`, which fails without the fix.
+  - The owner asked what happens with both tools missing: the checkbox is greyed out with "No optimizer found next to lightscreen.exe" and screenshots are saved unoptimized (S05). That is now an optional step of the check.
+  - The check file holds the step 5 re-check and that step.
+- **A12 (`2026-10-15-webp-format.md`):** step 2 passed. Step 1 wrote no file: new **bug 39**, fixed. The Windows workflows did not install Qt's `qtimageformats` module, so the package had no WEBP plugin. Both workflows now install it and fail unless `qwebp.dll` is deployed, and on Windows `tst_Screenshot::save_formats` requires WEBP to save. The check file holds the step 1 re-check.

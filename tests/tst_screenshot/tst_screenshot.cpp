@@ -709,6 +709,12 @@ private slots:
         const QString expected = native(dir.filePath("shot" + extension));
         QCOMPARE(screenshot.options().fileName, expected);
 
+#ifdef Q_OS_WIN
+        // The Windows builds install qtimageformats and ship its plugins, so every format must save there (WEBP
+        // wrote no file in the Windows QA pass).
+        QVERIFY2(QImageWriter::supportedImageFormats().contains(readerFormat), readerFormat.constData());
+#endif
+
         if (QImageWriter::supportedImageFormats().contains(readerFormat)) {
             QCOMPARE(screenshot.options().result, Screenshot::Success);
             QImageReader reader(expected);

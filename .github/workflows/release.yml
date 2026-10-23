@@ -61,6 +61,8 @@ jobs:
           host: windows
           target: desktop
           arch: win64_msvc2022_64
+          # qtimageformats holds the WEBP plugin (qwebp), which windeployqt then ships.
+          modules: qtimageformats
           cache: true
 
       - name: Set up MSVC (x64)
@@ -89,6 +91,7 @@ jobs:
           Copy-Item build\windows-msvc-release\lightscreen.exe $dir\
           windeployqt --release --no-translations "$dir\lightscreen.exe"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path "$dir\imageformats\qwebp.dll")) { throw 'qwebp.dll was not deployed' }
           # oxipng.exe and optipng.exe, pinned and hash-checked, with their licences.
           .github\scripts\fetch-optimizers.ps1 -Destination $dir
           # The zip holds one top-level folder named like the zip.

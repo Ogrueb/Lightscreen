@@ -472,6 +472,32 @@ private slots:
         QCOMPARE(manager.optimizer()->pending(), 0);
     }
 
+    // Quitting the app stops the manager's running optimizer: the tool does not go on to write its temporary file
+    // (it was left in the screenshot folder, found in the Windows QA pass), the original is intact and the file is
+    // still pending for the next start.
+    void quit_stopsTheRunningTool()
+    {
+        const QString file = mDir->filePath("shot.png");
+        const QString log = mDir->filePath("log.txt");
+        write(file, "original");
+        qputenv("OPTIMIZER_STUB_LOG", QFile::encodeName(log));
+        qputenv("OPTIMIZER_STUB_SLEEP", "1500");
+        install({ "oxipng" });
+
+        ScreenshotManager manager(mSettings, mDir->filePath("data") + "/");
+        manager.optimizer()->add(file);
+        QTRY_COMPARE(starts(log).size(), 1);
+
+        QTimer::singleShot(0, [] { QCoreApplication::exit(0); });
+        QCoreApplication::exec();
+
+        QTest::qWait(2500);
+        QVERIFY(!QFile::exists(Optimizer::temporaryFileName(file)));
+        QCOMPARE(readAll(file), QByteArray("original"));
+        QCOMPARE(manager.optimizer()->pending(), 1);
+        QCOMPARE(lines(manager.optimizer()->pendingFileName()), QStringList{ file });
+    }
+
     // The real tools, when installed (Linux CI installs both): a PNG saved with little compression gets no larger and
     // keeps every pixel.
     void realTool_data()

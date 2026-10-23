@@ -67,11 +67,18 @@ Optimizer::Optimizer(QSettings *settings, const QString &dataPath, QObject *pare
 
 Optimizer::~Optimizer()
 {
+    stop();
+}
+
+void Optimizer::stop()
+{
     // Whatever is running stays in the pending file and runs again after the next start.
     if (mProcess) {
         disconnect(mProcess, nullptr, this, nullptr);
         mProcess->kill();
         mProcess->waitForFinished(3000);
+        delete mProcess;
+        mProcess = nullptr;
         QFile::remove(temporaryFileName(mQueue.first()));
     }
 }

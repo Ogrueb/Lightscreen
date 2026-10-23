@@ -34,7 +34,7 @@ First release of the fork, based on upstream Lightscreen 2.5. Settings and scree
 - A failed save reported twice and still wrote a history row; a temporary `.screenshot.` file was left behind with file and clipboard both on (bugs 16, 18).
 - Uploading a screenshot that was already in the history added a second row instead of updating it (bug 13).
 - Uploads from the history dialog ignored the chosen service; an unknown service name crashed; cancelling an upload reported an error (bugs 14, 21, 22).
-- WEBP, and any other value the dialog could not show, was lost when the options were saved (bug 19); an unknown format setting produced a file with no extension (bug 2).
+- WEBP, and any other value the dialog could not show, was lost when the options were saved (bug 19); an unknown format setting produced a file with no extension (bug 2). The Windows package now includes Qt's WEBP plugin, so WEBP screenshots are written (bug 39).
 - An upper-case X in a typed area size ("100X50") was ignored (bug 24).
 - A hotkey could not be set from the keyboard (bug 26).
 - Window capture left a border strip or cut the window's edge on Windows 10/11, also on a secondary monitor (bug 5); the window picker showed no icons on 64-bit Windows (bug 1).
@@ -60,7 +60,7 @@ First release of the fork, based on upstream Lightscreen 2.5. Settings and scree
 ### For developers
 
 - CMake build with presets (Windows MSVC, Linux); no submodules (SingleApplication and UGlobalHotkey are vendored).
-- GitHub Actions CI on Windows and Linux for every pull request: build, 12 QtTest suites, Linux smoke tests, and a dependency check between `tools/` and the UI code.
+- GitHub Actions CI on Windows and Linux for every pull request: build, 13 QtTest suites, Linux smoke tests, and a dependency check between `tools/` and the UI code.
 - Release workflow: a tag `v<version>` builds the Windows zip and opens a draft GitHub Release.
 - Decisions, known bugs, status and manual Windows checks are recorded under `docs/`.
 

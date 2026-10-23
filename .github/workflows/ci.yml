@@ -186,6 +186,8 @@ jobs:
           host: windows
           target: desktop
           arch: win64_msvc2022_64
+          # qtimageformats holds the WEBP plugin (qwebp), which windeployqt then ships.
+          modules: qtimageformats
           cache: true
 
       - name: Set up MSVC (x64)
@@ -231,6 +233,8 @@ jobs:
           mkdir deploy
           copy build\windows-msvc-release\lightscreen.exe deploy\
           windeployqt --release --no-translations deploy\lightscreen.exe
+          if errorlevel 1 exit /b 1
+          if not exist deploy\imageformats\qwebp.dll (echo ::error::qwebp.dll was not deployed & exit /b 1)
 
       # oxipng.exe and optipng.exe, pinned and hash-checked, with their licences (same script as the release).
       - name: Add the PNG optimizers

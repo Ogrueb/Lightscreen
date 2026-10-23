@@ -50,6 +50,9 @@ public:
     int pending() const;
     QString pendingFileName() const;
     void resume();
+    // Kills the running tool and removes its temporary file; every file stays pending for the next start. Runs when
+    // the app quits (the manager that owns the optimizer is never destroyed) and on destruction.
+    void stop();
 
 signals:
     void optimizationDone(const QString &fileName);
